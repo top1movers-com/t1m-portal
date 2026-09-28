@@ -297,7 +297,7 @@ a { color: var(--t1m-navy-700); text-underline-offset: 2px; }
 
 /* ---------- Empty state ---------- */
 .ds-empty { display: grid; justify-items: center; gap: var(--t1m-space-3); padding: var(--t1m-space-12) var(--t1m-space-4); text-align: center; }
-.ds-empty .ds-icon { width: 32px; height: 32px; color: var(--t1m-ink-3); }
+.ds-empty > .ds-icon { width: 32px; height: 32px; color: var(--t1m-ink-3); }
 .ds-empty p { margin: 0; max-width: 46ch; color: var(--t1m-ink-2); }
 
 /* ---------- Stat (inline, dense; not a hero metric) ---------- */

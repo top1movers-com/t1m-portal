@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
-<!-- Top1Movers icon set. 24x24 grid, 1.75 stroke, round caps/joins, currentColor. Use via <svg class="ds-icon"><use href="#i-NAME"/></svg>. Add new icons here in the same style; never use emoji or unicode glyphs as icons. -->
+<!-- Top1Movers icon set. 24x24 grid, 1.75 stroke, round caps and joins, currentColor. Reference an icon with a use element pointing at #i-NAME. Add new icons in the same style; never use emoji or unicode glyphs as icons. -->
 <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></symbol>
 <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
 <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
