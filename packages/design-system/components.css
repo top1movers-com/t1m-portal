@@ -51,9 +51,11 @@ a { color: var(--t1m-navy-700); text-underline-offset: 2px; }
 .ds-btn--sm { height: var(--t1m-control-h-sm); padding: 0 var(--t1m-space-3); font-size: var(--t1m-text-sm); }
 .ds-btn--touch { height: var(--t1m-control-h-touch); font-size: var(--t1m-text-md); }
 .ds-btn:disabled, .ds-btn[aria-disabled="true"] { background: var(--t1m-surface-muted); color: var(--t1m-ink-3); border-color: var(--t1m-border); box-shadow: none; cursor: not-allowed; }
-.ds-btn--loading { position: relative; color: transparent; pointer-events: none; }
-.ds-btn--loading::after { content: ""; position: absolute; width: 14px; height: 14px; border: 2px solid var(--t1m-ink-inverse); border-right-color: transparent; border-radius: var(--t1m-radius-full); animation: ds-spin 700ms linear infinite; }
-@keyframes ds-spin { to { transform: rotate(360deg); } }
+/* Action in progress: the one place a circular spinner is allowed. A small spinner sits before the label,
+   and the label changes ("Saving...") so the button keeps its width. Content and pages never use a spinner. */
+.ds-btn--loading { pointer-events: none; }
+.ds-btn--loading::before { content: ""; flex: none; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: var(--t1m-radius-full); animation: ds-spin 700ms linear infinite; }
+@keyframes ds-spin { to { rotate: 360deg; } }
 
 /* ---------- Fields ---------- */
 .ds-field { display: grid; gap: 6px; }
@@ -359,3 +361,123 @@ th[aria-sort="ascending"] .ds-icon { rotate: 180deg; }
 }
 
 .ds-input--sm, .ds-select--sm { height: var(--t1m-control-h-sm); font-size: var(--t1m-text-sm); }
+
+/* ---------- Card ----------
+ * A card is a discrete, scannable object a person acts on (a shipment job, a task, a document).
+ * It is not a layout container: never nest cards, never wrap a page section in one.
+ * Component tokens (--card-*) default to global tokens; variants change these, never raw values.
+ * The card is a size container, so it adapts to the space it is given, not to the viewport. */
+.ds-card {
+  --card-bg: var(--t1m-surface);
+  --card-border: var(--t1m-border);
+  --card-shadow: none;
+  --card-radius: var(--t1m-radius-md);
+  --card-pad: var(--t1m-space-4);
+  --card-gap: var(--t1m-space-3);
+  position: relative; display: flex; flex-direction: column; gap: var(--card-gap); min-width: 0;
+  padding: var(--card-pad); background: var(--card-bg); color: var(--t1m-ink);
+  border: 1px solid var(--card-border); border-radius: var(--card-radius); box-shadow: var(--card-shadow);
+  container-type: inline-size; container-name: card;
+  transition: border-color var(--t1m-dur-base) var(--t1m-ease), box-shadow var(--t1m-dur-base) var(--t1m-ease), background var(--t1m-dur-base) var(--t1m-ease), translate var(--t1m-dur-fast) var(--t1m-ease);
+}
+.ds-card--filled { --card-bg: var(--t1m-surface-muted); --card-border: transparent; }
+.ds-card--elevated { --card-border: transparent; --card-shadow: var(--t1m-shadow-card); }
+.ds-card--compact { --card-pad: var(--t1m-space-3); --card-gap: var(--t1m-space-2); }
+.ds-card--interactive { cursor: pointer; }
+.ds-card--interactive:hover { --card-border: var(--t1m-border-strong); --card-shadow: var(--t1m-shadow-card); }
+.ds-card--interactive:active { translate: 0 0.5px; }
+.ds-card--interactive:has(.ds-card__link:focus-visible) { box-shadow: var(--t1m-focus-ring); }
+.ds-card--selected, .ds-card[aria-selected="true"] { --card-bg: var(--t1m-navy-50); --card-border: var(--t1m-navy-700); box-shadow: 0 0 0 1px var(--t1m-navy-700); }
+.ds-card[aria-disabled="true"] { opacity: 0.55; pointer-events: none; }
+
+.ds-card__header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--t1m-space-2) var(--t1m-space-3); }
+.ds-card__heading { flex: 1 1 150px; min-width: 0; display: grid; gap: 2px; }
+.ds-card__header > .ds-pill { flex: none; }
+.ds-card__title { margin: 0; font-size: var(--t1m-text-md); overflow-wrap: break-word; }
+.ds-card__title.ds-mono { white-space: nowrap; }
+.ds-card__meta { margin: 0; font-size: var(--t1m-text-sm); color: var(--t1m-ink-2); }
+.ds-card__body { display: grid; gap: var(--t1m-space-3); }
+.ds-card__footer { display: flex; align-items: center; justify-content: space-between; gap: var(--t1m-space-3); margin-top: auto; padding-top: var(--card-gap); border-top: 1px solid var(--t1m-border); }
+.ds-card__footer--plain { border-top: 0; padding-top: 0; }
+.ds-card__media { display: grid; place-items: center; aspect-ratio: 16 / 9; margin: calc(var(--card-pad) * -1) calc(var(--card-pad) * -1) 0; background: var(--t1m-surface-muted); color: var(--t1m-ink-3); border-bottom: 1px solid var(--t1m-border); border-radius: calc(var(--card-radius) - 1px) calc(var(--card-radius) - 1px) 0 0; overflow: hidden; }
+.ds-card__media .ds-icon { width: 32px; height: 32px; }
+
+/* Stretched link: the title link covers the whole card, so the card is one accessible target.
+   Other controls sit above it and stay independently clickable. */
+.ds-card__link { color: inherit; text-decoration: none; }
+.ds-card__link:focus-visible { box-shadow: none; }
+.ds-card__link::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.ds-card .ds-btn, .ds-card a:not(.ds-card__link), .ds-card input, .ds-card .ds-card__actions { position: relative; z-index: 1; }
+.ds-card--interactive .ds-card__title { color: var(--t1m-navy-700); }
+
+/* Responsive to its own width: a split card puts the media beside the content once the card has room.
+   The card is the container; the layout wrapper inside it is what changes. */
+.ds-card--split { padding: 0; gap: 0; overflow: hidden; }
+.ds-card--split .ds-card__layout { display: flex; flex-direction: column; }
+.ds-card--split .ds-card__media { margin: 0; aspect-ratio: auto; min-height: 88px; border-radius: 0; }
+.ds-card--split .ds-card__content { padding: var(--card-pad); }
+@container card (min-width: 460px) {
+  .ds-card--split .ds-card__layout { flex-direction: row; }
+  .ds-card--split .ds-card__media { flex: none; width: 168px; min-height: 0; border-bottom: 0; border-right: 1px solid var(--t1m-border); }
+  .ds-card--split .ds-card__content { flex: 1; }
+}
+.ds-card__content { flex: 1; }
+}
+.ds-card__content { display: flex; flex-direction: column; gap: var(--card-gap); min-width: 0; }
+
+.ds-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: var(--t1m-space-4); }
+
+/* Card content helpers */
+.ds-route { display: flex; align-items: center; gap: var(--t1m-space-2); margin: 0; font-weight: var(--t1m-w-control); }
+.ds-route .ds-icon { color: var(--t1m-ink-3); }
+.ds-kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: var(--t1m-space-3); margin: 0; }
+.ds-kv dt { font-family: var(--t1m-font-chrome); font-size: var(--t1m-text-xs); font-weight: var(--t1m-w-label); letter-spacing: 0.05em; text-transform: uppercase; color: var(--t1m-ink-3); }
+.ds-kv dd { margin: 2px 0 0; }
+.ds-segs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; margin: 0 0 6px; padding: 0; list-style: none; }
+.ds-segs li { height: 4px; border-radius: var(--t1m-radius-full); background: var(--t1m-border); }
+.ds-segs li[data-state="done"] { background: var(--t1m-navy-700); }
+.ds-segs li[data-state="current"] { background: color-mix(in srgb, var(--t1m-navy-700) 45%, var(--t1m-border)); }
+.ds-segs li[data-state="overdue"] { background: var(--t1m-danger); }
+.ds-owner { display: inline-flex; align-items: center; gap: var(--t1m-space-2); font-size: var(--t1m-text-sm); color: var(--t1m-ink-2); }
+.ds-avatar--sm { width: 24px; height: 24px; font-size: 10px; }
+.ds-btn--icon { width: var(--t1m-control-h-sm); padding: 0; }
+
+/* ---------- Loading: scaffold, not spinner ----------
+ * Content that takes time (tables, lists, cards, stats, detail panels, dropdown options) loads as a scaffold:
+ * skeletons in the exact size and shape of the final content, so nothing shifts when it arrives.
+ * Fades in after a short delay so fast loads never flash. Mark the container aria-busy and announce with a status region. */
+.ds-skeleton {
+  display: block; height: 12px; border-radius: var(--t1m-radius-sm);
+  background: linear-gradient(90deg, var(--t1m-surface-muted) 25%, color-mix(in srgb, var(--t1m-surface-muted) 55%, var(--t1m-surface)) 50%, var(--t1m-surface-muted) 75%);
+  background-size: 200% 100%;
+  animation: ds-shimmer 1.4s linear infinite, ds-skel-in var(--t1m-dur-base) var(--t1m-ease) 150ms backwards;
+}
+.ds-skeleton--title { height: 16px; width: 55%; }
+.ds-skeleton--pill { height: 28px; width: 84px; border-radius: var(--t1m-radius-full); }
+.ds-skeleton--avatar { width: 32px; height: 32px; border-radius: var(--t1m-radius-full); }
+.ds-skeleton--icon { width: 32px; height: 32px; }
+.ds-skeleton--btn { height: var(--t1m-control-h); width: 96px; }
+.ds-skeleton--input { height: var(--t1m-control-h); width: 100%; }
+.ds-skeleton--block { height: 96px; border-radius: var(--t1m-radius-md); }
+@keyframes ds-shimmer { to { background-position: -200% 0; } }
+@keyframes ds-skel-in { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .ds-skeleton { animation: none; } .ds-btn--loading::before { animation-duration: 2.4s; } }
+
+/* Table scaffold: same row height as real rows, varied widths so it reads as content, not a grid of bars */
+.ds-table--loading td { pointer-events: none; }
+.ds-table--loading tbody tr:hover td { background: transparent; }
+.ds-table--loading td .ds-skeleton { width: 64%; }
+.ds-table--loading td:nth-child(3n+1) .ds-skeleton { width: 82%; }
+.ds-table--loading td:nth-child(3n+2) .ds-skeleton { width: 46%; }
+.ds-table--loading .ds-check-col .ds-skeleton { width: 18px; height: 18px; border-radius: 5px; }
+.ds-table--loading td .ds-skeleton--pill { width: 92px; }
+.ds-table--loading td.ds-num .ds-skeleton { width: 20px; margin-left: auto; }
+.ds-option--loading { pointer-events: none; cursor: default; }
+.ds-vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* Progress: determinate work (an upload) is a linear bar with a number; indeterminate is a sliding bar, never a circle */
+.ds-progress { height: 6px; border-radius: var(--t1m-radius-full); background: var(--t1m-border); overflow: hidden; }
+.ds-progress__bar { height: 100%; width: var(--progress, 0%); background: var(--t1m-navy-700); border-radius: inherit; transition: width var(--t1m-dur-base) var(--t1m-ease); }
+.ds-progress--indeterminate .ds-progress__bar { width: 40%; animation: ds-indeterminate 1.4s var(--t1m-ease) infinite; }
+@keyframes ds-indeterminate { from { translate: -100% 0; } to { translate: 260% 0; } }
+@media (prefers-reduced-motion: reduce) { .ds-progress--indeterminate .ds-progress__bar { animation: none; width: 100%; opacity: 0.5; } }

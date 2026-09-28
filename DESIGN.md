@@ -202,7 +202,7 @@ Fixed app shell: 240px white sidebar with a 1px right border, 56px top bar, cont
 Flat and outlined. Panels have a 1px border (#E3E8F1) and no shadow. Only elements that float over the page (menus, drawers, toasts) use `--t1m-shadow-float` (`0 2px 6px rgba(2,3,59,.08), 0 8px 24px rgba(2,3,59,.12)`). Keyboard focus is a 2px navy ring offset by 2px of surface (`--t1m-focus-ring`).
 
 ### Named Rules
-**The Flat-Until-Floating Rule.** If it doesn't overlay other content, it has no shadow.
+**The Flat-Until-Floating Rule.** If it doesn't overlay other content, it has no shadow at rest. The exceptions are an elevated card on a tinted surface and the soft lift an interactive card gains on hover.
 
 ## Shapes
 
@@ -214,7 +214,7 @@ Soft, modern radii: 8px (`--t1m-radius-sm`) for controls and nav items, 12px (`-
 - **Shape:** 8px radius, 36px tall (30px small, 44px touch), 16px horizontal padding, 500 weight, sentence-case action label.
 - **Primary:** Harbour Navy fill, white text, with a faint top-edge highlight and a soft navy drop (`--t1m-btn-lift`) that deepens on hover and flattens on press. One per view.
 - **Secondary:** tonal, a Navy Tint fill with navy text and no outline; hover deepens to Navy Wash. On a tinted surface such as the bulk bar it switches to white with the field shadow so it stays visible. **Ghost:** transparent with navy text, Navy Tint on hover. **Danger:** Danger fill, white text, same lift as primary; destructive actions only.
-- **States:** press nudges the button down half a pixel; hover shifts fill (120ms, `--t1m-ease`), focus shows the navy ring, disabled uses Surface Muted + Ink 3, loading hides the label behind a spinner.
+- **States:** press nudges the button down half a pixel; hover shifts fill (120ms, `--t1m-ease`), focus shows the navy ring, disabled uses Surface Muted + Ink 3, loading keeps the label (changed to "Saving…") and shows a small 14px spinner before it, with the button disabled.
 
 ### Inputs / Fields
 - 36px tall (30px small, 44px touch), white, 1px Border Strong, 8px radius, with a faint 1px lift shadow. Hover darkens the border to Ink 3. Focus swaps the border to Harbour Navy and adds a soft 4px translucent navy halo (`--t1m-field-focus`, 18% of Harbour Navy) instead of the hard double ring buttons use. Invalid: Danger border and a Danger halo on focus, with an icon-led error line beneath that names the problem and the fix. Disabled and read-only fields sit on Surface Muted with no shadow. Labels sit above at 13px/500; optional fields say "optional" in Ink 3 rather than marking required with an asterisk.
@@ -247,6 +247,24 @@ Soft, modern radii: 8px (`--t1m-radius-sm`) for controls and nav items, 12px (`-
 ### Document checklist row (signature)
 - 52px row: file icon, name plus version/meta line, status pill, one row action (View, Upload, Replace). Rejected rows state the reason in the meta line.
 
+### Cards
+- A card is a discrete object people scan and act on (shipment job, task, document). It is never a layout container: no nesting, no wrapping page sections, no rows of identical icon-heading-text cards.
+- **Structure:** optional media, a header (heading with title and meta, plus a status pill), a body, and a footer (owner, then actions). Job cards lead with the ID in the monospace data face, then customer and service, the route, a segmented milestone bar with the next step, ETA and container count, and the owner.
+- **Shape:** 12px radius, 16px padding (12px compact), 1px Border, white. **Variants:** outlined (default, flat), filled (Surface Muted, no border), elevated (`--t1m-shadow-card`, for tinted or busy surfaces), compact, split (media beside content).
+- **Interaction:** an interactive card is one target: the title link stretches over the card, and menus or buttons inside sit above it. Hover darkens the border to Border Strong and adds the soft card lift; press nudges 0.5px; keyboard focus rings the whole card; selected is a Harbour Navy border with a Navy Tint fill (never a side stripe); disabled dims to 55% and blocks input.
+- **Component tokens:** a card exposes `--card-bg`, `--card-border`, `--card-shadow`, `--card-radius`, `--card-pad`, and `--card-gap`, each defaulting to a global token. Variants change these, not raw values. New components follow this pattern.
+- **Responsive:** the card is a size container and an inner layout wrapper changes with it; a split card moves media beside content once the card itself is 460px wide (a short media strip above 88px tall until then). Cards flow in a grid with a 300px minimum column.
+- **Loading:** skeletons (`ds-skeleton`, a slow shimmer that stops under reduced motion) hold the layout with `aria-busy`.
+
+### Loading
+**The Scaffold, Not Spinner Rule.** Content that takes time to appear (tables, lists, cards, stats, detail panels, dropdown options) loads as a skeleton scaffold: placeholder shapes in the exact size and position of the final content, so nothing shifts when it arrives. A circular spinner is never used for content or pages; its only place is inside a button while that button's action runs.
+- **Skeleton:** Surface Muted shapes with a slow shimmer (1.4s), 8px radius, in variants for text, title, pill (fully round, 28px), avatar, icon, button, input, and block. They fade in after 150ms so fast responses never flash, and keep at least half a second once shown.
+- **Table:** the scaffold uses real row height (52px) and varied cell widths so it reads as content, with the header, labels, and toolbar loading immediately. Other scaffolded components: stat strip, document rows, forms, drawer detail, dropdown options, and cards.
+- **Accessibility:** the container is `aria-busy="true"`, the shapes are `aria-hidden`, and a `role="status"` region announces the load and the result. Under reduced motion the shimmer stops and the shapes stay.
+- **Actions in progress:** a button changes its label ("Saving…"), shows a small 14px circular spinner before it (the one permitted spinner), and is disabled. Under reduced motion the spinner slows.
+- **Measurable work:** an upload shows a 6px linear progress bar (Harbour Navy on Border) with a percentage; indeterminate work uses a sliding bar, never a circle.
+- **Not for empty or error:** an empty result or a failure shows its own state, never a skeleton.
+
 ### Drawer
 - Right-side, up to 480px, floating shadow. Preferred over modals for record detail and quick edit.
 
@@ -258,13 +276,15 @@ Soft, modern radii: 8px (`--t1m-radius-sm`) for controls and nav items, 12px (`-
 - **Do** keep one navy primary button per view and name the action ("Create quotation").
 - **Do** build empty, loading, error, disabled, and focus states for every component.
 - **Do** surface overdue tasks, missing documents, and exceptions in list rows and on Shipment 360.
+- **Do** load content as a skeleton scaffold in the shape of the final content, and give actions a label change plus the small in-button spinner.
 - **Do** label all mock data as illustrative (IDs like TMW-2026-00412, "Sample Trading Co.").
 
 ### Don't:
 - **Don't** fill a button, badge, banner, or nav item with Signal Red #E5383B, or use it as a side stripe.
 - **Don't** hardcode hex values, px font sizes, or font names in components.
-- **Don't** nest panels or put every group in a card; don't use colored side stripes on cards or rows.
+- **Don't** nest cards or panels, or put every group in a card; don't use colored side stripes on cards or rows.
 - **Don't** use emoji or text glyphs as icons; add to `icons.svg` in the same 1.75-stroke style.
+- **Don't** use a circular spinner or a blank panel for loading content or pages; the only spinner lives inside a button.
 - **Don't** use gradient text, glassmorphism, or decorative shadows.
 - **Don't** open a modal for what a drawer, inline edit, or page can do.
 - **Don't** invent components: check `index.html` first, and if it's missing, add it to the system (tokens.css, components.css, index.html, this file) before using it.

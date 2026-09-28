@@ -101,6 +101,7 @@
 
   /* ---- Elevation: flat by default; shadow only on things that float ---- */
   --t1m-shadow-float: 0 2px 6px rgba(2, 3, 59, 0.08), 0 8px 24px rgba(2, 3, 59, 0.12);
+  --t1m-shadow-card: 0 1px 2px color-mix(in srgb, var(--t1m-ink) 6%, transparent), 0 4px 12px color-mix(in srgb, var(--t1m-ink) 8%, transparent);   /* resting lift for elevated cards, hover lift for interactive cards */
   --t1m-focus-ring: 0 0 0 2px var(--t1m-surface), 0 0 0 4px var(--t1m-navy-700);
   --t1m-focus-glow: color-mix(in srgb, var(--t1m-navy-700) 18%, transparent);   /* soft halo for form fields */
   --t1m-danger-glow: color-mix(in srgb, var(--t1m-danger) 18%, transparent);

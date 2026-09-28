@@ -79,11 +79,12 @@
 <symbol id="i-building" viewBox="0 0 24 24"><path d="M5 20.5V4.5h9v16M14 9.5h5v11M8 8h3M8 11.5h3M8 15h3M3 20.5h18"/></symbol>
 <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.3M12 18.2v2.3M3.5 12h2.3M18.2 12h2.3M6 6l1.6 1.6M16.4 16.4 18 18M18 6l-1.6 1.6M7.6 16.4 6 18"/></symbol>
 <symbol id="i-more" viewBox="0 0 24 24"><circle cx="12" cy="5.5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="18.5" r="1.2"/></symbol>
+<symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
 </svg>
 <div class="doc">
 <nav class="doc__nav" aria-label="Sections">
   <img src="./assets/top1movers-logo.png" alt="Top1Movers Worldwide Inc.">
-  <a href="#principles">Principles</a><a href="#color">Color</a><a href="#type">Typography</a><a href="#space">Space &amp; shape</a><a href="#icons">Icons</a><a href="#buttons">Buttons</a><a href="#forms">Fields</a><a href="#status">Status</a><a href="#tables">Tables</a><a href="#nav">Shell &amp; nav</a><a href="#signature">Shipment patterns</a><a href="#feedback">Feedback</a><a href="#rules">Do &amp; don't</a><a href="#use">Using it</a>
+  <a href="#principles">Principles</a><a href="#color">Color</a><a href="#type">Typography</a><a href="#space">Space &amp; shape</a><a href="#icons">Icons</a><a href="#buttons">Buttons</a><a href="#forms">Fields</a><a href="#status">Status</a><a href="#tables">Tables</a><a href="#cards">Cards</a><a href="#loading">Loading</a><a href="#nav">Shell &amp; nav</a><a href="#signature">Shipment patterns</a><a href="#feedback">Feedback</a><a href="#rules">Do &amp; don't</a><a href="#use">Using it</a>
 </nav>
 <main>
   <h1>Top1Movers Operations Portal: Design System</h1>
@@ -163,14 +164,15 @@
 
   <section id="buttons">
     <h2>Buttons</h2>
-    <p>One primary per view. Labels name the action ("Create quotation", not "Submit").</p>
+    <p>One primary per view. Labels name the action ("Create quotation", not "Submit"). While an action runs, a small spinner appears before the label and the label changes ("Saving…"). This is the only place a circular spinner is used.</p>
     <div class="demo">
       <button class="ds-btn ds-btn--primary"><svg class="ds-icon"><use href="#i-plus"/></svg>New shipment job</button>
       <button class="ds-btn ds-btn--secondary">Save draft</button>
       <button class="ds-btn ds-btn--ghost">Cancel</button>
       <button class="ds-btn ds-btn--danger">Reject document</button>
       <button class="ds-btn ds-btn--primary" disabled>Disabled</button>
-      <button class="ds-btn ds-btn--primary ds-btn--loading">Saving</button>
+      <button class="ds-btn ds-btn--primary ds-btn--loading" aria-busy="true">Saving…</button>
+      <button class="ds-btn ds-btn--secondary ds-btn--loading" aria-busy="true">Uploading…</button>
     </div>
     <div class="demo">
       <button class="ds-btn ds-btn--primary ds-btn--sm">Small 30</button>
@@ -256,6 +258,149 @@
         <div class="ds-field"><label for="dr2">Note</label><textarea id="dr2" class="ds-textarea" placeholder="Add an update for the team"></textarea></div>
         <div style="display:flex;gap:8px;justify-content:flex-end"><button class="ds-btn ds-btn--ghost">Cancel</button><button class="ds-btn ds-btn--primary">Save note</button></div></div>
     </aside></div>
+  </section>
+
+  <section id="cards">
+    <h2>Cards</h2>
+    <p>Cards are for objects, not layout. In this product that means shipment jobs, tasks, and documents. Each shows identity first (the ID), then state, then the next step and who owns it. They are built on component tokens and adapt to the width of their container.</p>
+
+    <h3>Shipment job card</h3>
+    <div class="demo demo--col"><div class="ds-card-grid" style="width:100%">
+      <article class="ds-card ds-card--interactive">
+        <header class="ds-card__header"><div class="ds-card__heading"><h3 class="ds-card__title ds-mono"><a class="ds-card__link" href="#">TMW-2026-00412</a></h3><p class="ds-card__meta">Sample Trading Co. · Import, sea freight</p></div><span class="ds-pill ds-pill--info"><svg class="ds-icon"><use href="#i-truck"/></svg>In transit</span></header>
+        <div class="ds-card__body">
+          <p class="ds-route"><span>Yantian</span><svg class="ds-icon"><use href="#i-arrow-right"/></svg><span>Manila</span></p>
+          <div><ol class="ds-segs" aria-label="3 of 6 milestones complete"><li data-state="done"></li><li data-state="done"></li><li data-state="done"></li><li data-state="current"></li><li></li><li></li></ol><p class="ds-card__meta">Next: Trucking, Sep 30</p></div>
+          <dl class="ds-kv"><div><dt>ETA</dt><dd>Oct 3</dd></div><div><dt>Containers</dt><dd>2</dd></div></dl>
+        </div>
+        <footer class="ds-card__footer"><span class="ds-owner"><span class="ds-avatar ds-avatar--sm" aria-hidden="true">SU</span>Sample User</span><button class="ds-btn ds-btn--ghost ds-btn--icon" aria-label="More actions for TMW-2026-00412"><svg class="ds-icon"><use href="#i-more"/></svg></button></footer>
+      </article>
+      <article class="ds-card ds-card--interactive" aria-selected="true">
+        <header class="ds-card__header"><div class="ds-card__heading"><h3 class="ds-card__title ds-mono"><a class="ds-card__link" href="#">TMW-2026-00409</a></h3><p class="ds-card__meta">Demo Foods Inc. · Import, sea freight</p></div><span class="ds-pill ds-pill--warning"><svg class="ds-icon"><use href="#i-file"/></svg>Missing document</span></header>
+        <div class="ds-card__body">
+          <p class="ds-route"><span>Busan</span><svg class="ds-icon"><use href="#i-arrow-right"/></svg><span>Cebu</span></p>
+          <div><ol class="ds-segs" aria-label="2 of 6 milestones complete"><li data-state="done"></li><li data-state="done"></li><li data-state="current"></li><li></li><li></li><li></li></ol><p class="ds-card__meta">Next: Upload packing list, Sep 29</p></div>
+          <dl class="ds-kv"><div><dt>ETA</dt><dd>Oct 6</dd></div><div><dt>Containers</dt><dd>1</dd></div></dl>
+        </div>
+        <footer class="ds-card__footer"><span class="ds-owner"><span class="ds-avatar ds-avatar--sm" aria-hidden="true">DC</span>Demo Coordinator</span><button class="ds-btn ds-btn--ghost ds-btn--icon" aria-label="More actions for TMW-2026-00409"><svg class="ds-icon"><use href="#i-more"/></svg></button></footer>
+      </article>
+      <article class="ds-card ds-card--interactive">
+        <header class="ds-card__header"><div class="ds-card__heading"><h3 class="ds-card__title ds-mono"><a class="ds-card__link" href="#">TMW-2026-00401</a></h3><p class="ds-card__meta">Example Hardware · Export, air freight</p></div><span class="ds-pill ds-pill--danger"><svg class="ds-icon"><use href="#i-alert"/></svg>Overdue</span></header>
+        <div class="ds-card__body">
+          <p class="ds-route"><span>Manila</span><svg class="ds-icon"><use href="#i-arrow-right"/></svg><span>Shanghai</span></p>
+          <div><ol class="ds-segs" aria-label="3 of 6 milestones complete"><li data-state="done"></li><li data-state="done"></li><li data-state="done"></li><li data-state="overdue"></li><li></li><li></li></ol><p class="ds-card__meta ds-overdue">Customs release overdue since Sep 24</p></div>
+          <dl class="ds-kv"><div><dt>ETA</dt><dd>Oct 1</dd></div><div><dt>Containers</dt><dd>4</dd></div></dl>
+        </div>
+        <footer class="ds-card__footer"><span class="ds-owner"><span class="ds-avatar ds-avatar--sm" aria-hidden="true">ES</span>Example Supervisor</span><button class="ds-btn ds-btn--ghost ds-btn--icon" aria-label="More actions for TMW-2026-00401"><svg class="ds-icon"><use href="#i-more"/></svg></button></footer>
+      </article>
+    </div></div>
+
+    <h3>Variants</h3>
+    <div class="demo" style="background:var(--t1m-bg);border-style:dashed">
+      <div class="ds-card-grid" style="width:100%">
+        <article class="ds-card "><header class="ds-card__header"><div class="ds-card__heading"><h3 class="ds-card__title">Outlined</h3><p class="ds-card__meta">Default. Flat with a hairline border.</p></div></header></article>
+        <article class="ds-card ds-card--filled"><header class="ds-card__header"><div class="ds-card__heading"><h3 class="ds-card__title">Filled</h3><p class="ds-card__meta">Muted fill, no border. For quiet grouping.</p></div></header></article>
+        <article class="ds-card ds-card--elevated"><header class="ds-card__header"><div class="ds-card__heading"><h3 class="ds-card__title">Elevated</h3><p class="ds-card__meta">Soft resting lift, for busy or tinted surfaces.</p></div></header></article>
+        <article class="ds-card ds-card--interactive"><header class="ds-card__header"><div class="ds-card__heading"><h3 class="ds-card__title">Interactive</h3><p class="ds-card__meta">Hover me: border darkens and lifts.</p></div></header></article>
+        <article class="ds-card ds-card--selected"><header class="ds-card__header"><div class="ds-card__heading"><h3 class="ds-card__title">Selected</h3><p class="ds-card__meta">Navy border and Navy Tint fill.</p></div></header></article>
+        <article class="ds-card " aria-disabled="true"><header class="ds-card__header"><div class="ds-card__heading"><h3 class="ds-card__title">Disabled</h3><p class="ds-card__meta">Dimmed and not clickable.</p></div></header></article>
+      </div>
+    </div>
+
+    <h3>Task card, compact</h3>
+    <div class="demo demo--col"><div class="ds-card-grid" style="width:100%">
+      <article class="ds-card ds-card--compact ds-card--interactive"><h3 class="ds-card__title"><a class="ds-card__link" href="#">Chase customs release</a></h3><p class="ds-card__meta"><span class="ds-mono">TMW-2026-00401</span> · Example Hardware</p><footer class="ds-card__footer ds-card__footer--plain"><span class="ds-pill ds-pill--danger"><svg class="ds-icon"><use href="#i-alert"/></svg>Overdue</span><span class="ds-owner"><span class="ds-overdue">Sep 24</span><span class="ds-avatar ds-avatar--sm" aria-hidden="true">ES</span></span></footer></article>
+      <article class="ds-card ds-card--compact ds-card--interactive"><h3 class="ds-card__title"><a class="ds-card__link" href="#">Upload packing list</a></h3><p class="ds-card__meta"><span class="ds-mono">TMW-2026-00409</span> · Demo Foods Inc.</p><footer class="ds-card__footer ds-card__footer--plain"><span class="ds-pill ds-pill--warning"><svg class="ds-icon"><use href="#i-clock"/></svg>Due soon</span><span class="ds-owner"><span class="">Sep 29</span><span class="ds-avatar ds-avatar--sm" aria-hidden="true">DC</span></span></footer></article>
+      <article class="ds-card ds-card--compact ds-card--interactive"><h3 class="ds-card__title"><a class="ds-card__link" href="#">Book trucking</a></h3><p class="ds-card__meta"><span class="ds-mono">TMW-2026-00412</span> · Sample Trading Co.</p><footer class="ds-card__footer ds-card__footer--plain"><span class="ds-pill ds-pill--info"><svg class="ds-icon"><use href="#i-truck"/></svg>In progress</span><span class="ds-owner"><span class="">Sep 30</span><span class="ds-avatar ds-avatar--sm" aria-hidden="true">SU</span></span></footer></article>
+    </div></div>
+
+    <h3>Document card, split (responds to its own width)</h3>
+    <div class="demo demo--col"><div style="display:grid;gap:16px;width:100%">
+      <article class="ds-card ds-card--split"><div class="ds-card__layout">
+        <div class="ds-card__media" aria-hidden="true"><svg class="ds-icon"><use href="#i-file"/></svg></div>
+        <div class="ds-card__content">
+          <header class="ds-card__header"><div class="ds-card__heading"><h3 class="ds-card__title">Bill of Lading</h3><p class="ds-card__meta">v2 · PDF · 1.2 MB · uploaded Sep 8</p></div><span class="ds-pill ds-pill--success"><svg class="ds-icon"><use href="#i-check"/></svg>Approved</span></header>
+          <footer class="ds-card__footer ds-card__footer--plain"><span class="ds-card__actions" style="display:flex;gap:8px"><button class="ds-btn ds-btn--secondary ds-btn--sm">View</button><button class="ds-btn ds-btn--ghost ds-btn--sm">Replace</button></span></footer>
+        </div>
+      </div></article>
+      <div style="width:min(100%,340px)"><article class="ds-card ds-card--split"><div class="ds-card__layout">
+        <div class="ds-card__media" aria-hidden="true"><svg class="ds-icon"><use href="#i-file"/></svg></div>
+        <div class="ds-card__content">
+          <header class="ds-card__header"><div class="ds-card__heading"><h3 class="ds-card__title">Commercial Invoice</h3><p class="ds-card__meta">v1 · PDF · 640 KB</p></div><span class="ds-pill ds-pill--danger"><svg class="ds-icon"><use href="#i-x"/></svg>Rejected</span></header>
+          <footer class="ds-card__footer ds-card__footer--plain"><span class="ds-card__actions" style="display:flex;gap:8px"><button class="ds-btn ds-btn--secondary ds-btn--sm"><svg class="ds-icon"><use href="#i-upload"/></svg>Replace</button></span></footer>
+        </div>
+      </div></article></div>
+    </div></div>
+
+    <h3>Loading</h3>
+    <p>Cards load as scaffolds too. See <a href="#loading">Loading</a> for the rule.</p>
+    <div class="demo demo--col"><div class="ds-card-grid" style="width:100%"><article class="ds-card" aria-busy="true" aria-label="Loading shipment job"><header class="ds-card__header"><div class="ds-card__heading" style="flex:1"><span class="ds-skeleton ds-skeleton--title"></span><span class="ds-skeleton" style="width:80%"></span></div><span class="ds-skeleton ds-skeleton--pill"></span></header><div class="ds-card__body"><span class="ds-skeleton" style="width:50%"></span><span class="ds-skeleton"></span><span class="ds-skeleton" style="width:70%"></span></div></article><article class="ds-card" aria-busy="true" aria-label="Loading shipment job"><header class="ds-card__header"><div class="ds-card__heading" style="flex:1"><span class="ds-skeleton ds-skeleton--title"></span><span class="ds-skeleton" style="width:80%"></span></div><span class="ds-skeleton ds-skeleton--pill"></span></header><div class="ds-card__body"><span class="ds-skeleton" style="width:50%"></span><span class="ds-skeleton"></span><span class="ds-skeleton" style="width:70%"></span></div></article></div></div>
+
+    <h3>Specification</h3>
+    <div class="ds-panel"><table class="ds-table ds-table--compact spec" style="table-layout:fixed"><tbody>
+        <tr><td style="width:160px">Use it for</td><td style="white-space:normal">A discrete thing people scan and act on: a shipment job, a task, a document. Not a page section, not a form group, not decoration.</td></tr>
+        <tr><td>Anatomy</td><td style="white-space:normal"><code>ds-card</code> &gt; <code>__media</code> (optional), <code>__header</code> (<code>__heading</code> with <code>__title</code> + <code>__meta</code>, plus a status pill), <code>__body</code>, <code>__footer</code> (owner, then actions). A split card wraps <code>__media</code> and <code>__content</code> in <code>__layout</code>.</td></tr>
+        <tr><td>Variants</td><td style="white-space:normal">Outlined (default), <code>--filled</code>, <code>--elevated</code>, <code>--compact</code>, <code>--split</code>. Behavior: <code>--interactive</code>, <code>--selected</code> / <code>aria-selected</code>, <code>aria-disabled</code>. Elevated is for cards on tinted or busy surfaces; the default stays flat.</td></tr>
+        <tr><td>States</td><td style="white-space:normal">Rest, hover (border darkens, soft lift), focus-visible (ring on the whole card), pressed (0.5px nudge), selected (navy border, Navy Tint fill, never a side stripe), disabled, loading (<code>ds-skeleton</code> with <code>aria-busy</code>).</td></tr>
+        <tr><td>Component tokens</td><td style="white-space:normal">Variants set <code>--card-bg</code>, <code>--card-border</code>, <code>--card-shadow</code>, <code>--card-radius</code>, <code>--card-pad</code>, <code>--card-gap</code>. Each defaults to a global token; components never hardcode values.</td></tr>
+        <tr><td>Responsive</td><td style="white-space:normal">The card is a size container. A split card puts media beside content when the card itself is 460px or wider, wherever it sits. Cards flow in <code>ds-card-grid</code> (300px minimum column).</td></tr>
+        <tr><td>Accessibility</td><td style="white-space:normal">Use <code>article</code> with a real heading. One primary target: the title link is stretched over the card, so the card is a single link and controls inside it (menu, buttons) stay independently clickable above it. Never make a <code>div</code> clickable. Status is icon + word. Keep title, status, and next step in reading order.</td></tr>
+        <tr><td>Do not</td><td style="white-space:normal">Nest cards or panels in cards; use a card as the only structure of a page; repeat identical icon-heading-text cards to fill space; put more than one primary action in a card.</td></tr>
+      </tbody></table></div>
+  </section>
+
+  <section id="loading">
+    <h2>Loading</h2>
+    <div class="rule"><b>Scaffold, not spinner.</b> Content that takes time to appear (tables, lists, cards, stats, detail panels, dropdown options) loads as a skeleton scaffold: placeholder shapes in the exact size and position of the final content, so nothing shifts when it arrives. Never a circular spinner for content. The one exception is a small spinner inside a button while its action runs. Measurable work (an upload) shows a linear progress bar with a number.</div>
+    <p>How to apply it: mark the container <code>aria-busy="true"</code>, hide the placeholder shapes from assistive tech, and announce once with a <code>role="status"</code> region. Skeletons fade in after 150ms, so a fast response never flashes. Once loaded, swap in place; if data is empty or fails, show the empty or error state, not a skeleton. Match real row heights, and vary widths so the scaffold reads as content.</p>
+
+    <h3>Page scaffold</h3>
+    <div class="demo demo--col"><div style="display:grid;gap:20px;width:100%" aria-busy="true"><div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px"><div style="display:grid;gap:8px;flex:1"><span class="ds-skeleton" style="width:120px;height:10px"></span><span class="ds-skeleton ds-skeleton--title" style="width:min(260px,60%);height:24px"></span></div><span class="ds-skeleton ds-skeleton--btn"></span></div><div class="ds-stats" aria-busy="true"><div class="ds-stat"><span class="ds-label">Open tasks</span><div style="margin-top:8px"><span class="ds-skeleton" style="width:36px;height:24px"></span></div></div><div class="ds-stat"><span class="ds-label">Overdue</span><div style="margin-top:8px"><span class="ds-skeleton" style="width:36px;height:24px"></span></div></div><div class="ds-stat"><span class="ds-label">Missing docs</span><div style="margin-top:8px"><span class="ds-skeleton" style="width:36px;height:24px"></span></div></div></div><div class="ds-panel" style="overflow:hidden"><div class="ds-panel__head"><span class="ds-skeleton ds-skeleton--title" style="width:160px"></span><span class="ds-skeleton ds-skeleton--btn" style="width:88px;height:30px"></span></div><div class="ds-table-wrap"><table class="ds-table ds-table--loading" aria-busy="true"><thead><tr><th class="ds-check-col"></th><th>Job ID</th><th>Customer</th><th>Route</th><th>Status</th><th>Next task due</th><th class="ds-num">Containers</th><th class="ds-actions-col"></th></tr></thead><tbody><tr aria-hidden="true"><td class="ds-check-col"><span class="ds-skeleton"></span></td><td><span class="ds-skeleton"></span></td><td><span class="ds-skeleton"></span></td><td><span class="ds-skeleton"></span></td><td><span class="ds-skeleton ds-skeleton--pill"></span></td><td><span class="ds-skeleton"></span></td><td class="ds-num"><span class="ds-skeleton"></span></td><td class="ds-actions-col"></td></tr><tr aria-hidden="true"><td class="ds-check-col"><span class="ds-skeleton"></span></td><td><span class="ds-skeleton"></span></td><td><span class="ds-skeleton"></span></td><td><span class="ds-skeleton"></span></td><td><span class="ds-skeleton ds-skeleton--pill"></span></td><td><span class="ds-skeleton"></span></td><td class="ds-num"><span class="ds-skeleton"></span></td><td class="ds-actions-col"></td></tr><tr aria-hidden="true"><td class="ds-check-col"><span class="ds-skeleton"></span></td><td><span class="ds-skeleton"></span></td><td><span class="ds-skeleton"></span></td><td><span class="ds-skeleton"></span></td><td><span class="ds-skeleton ds-skeleton--pill"></span></td><td><span class="ds-skeleton"></span></td><td class="ds-num"><span class="ds-skeleton"></span></td><td class="ds-actions-col"></td></tr><tr aria-hidden="true"><td class="ds-check-col"><span class="ds-skeleton"></span></td><td><span class="ds-skeleton"></span></td><td><span class="ds-skeleton"></span></td><td><span class="ds-skeleton"></span></td><td><span class="ds-skeleton ds-skeleton--pill"></span></td><td><span class="ds-skeleton"></span></td><td class="ds-num"><span class="ds-skeleton"></span></td><td class="ds-actions-col"></td></tr></tbody></table></div></div></div></div>
+
+    <h3>Table, live demo</h3>
+    <p>Press Reload data to see the scaffold hand off to real rows in place, with no layout shift.</p>
+    <div class="demo demo--col"><div class="ds-panel" id="sim" style="width:100%;overflow:hidden">
+      <div class="ds-panel__head"><h3>Shipment jobs</h3><button class="ds-btn ds-btn--secondary ds-btn--sm" id="sim-btn">Reload data</button></div>
+      <div class="ds-table-wrap"><table class="ds-table ds-table--loading" id="sim-table" aria-busy="true">
+        <thead><tr><th class="ds-check-col"></th><th>Job ID</th><th>Customer</th><th>Route</th><th>Status</th><th>Next task due</th><th class="ds-num">Containers</th><th class="ds-actions-col"></th></tr></thead>
+        <tbody id="sim-skel"><tr aria-hidden="true"><td class="ds-check-col"><span class="ds-skeleton"></span></td><td><span class="ds-skeleton"></span></td><td><span class="ds-skeleton"></span></td><td><span class="ds-skeleton"></span></td><td><span class="ds-skeleton ds-skeleton--pill"></span></td><td><span class="ds-skeleton"></span></td><td class="ds-num"><span class="ds-skeleton"></span></td><td class="ds-actions-col"></td></tr><tr aria-hidden="true"><td class="ds-check-col"><span class="ds-skeleton"></span></td><td><span class="ds-skeleton"></span></td><td><span class="ds-skeleton"></span></td><td><span class="ds-skeleton"></span></td><td><span class="ds-skeleton ds-skeleton--pill"></span></td><td><span class="ds-skeleton"></span></td><td class="ds-num"><span class="ds-skeleton"></span></td><td class="ds-actions-col"></td></tr><tr aria-hidden="true"><td class="ds-check-col"><span class="ds-skeleton"></span></td><td><span class="ds-skeleton"></span></td><td><span class="ds-skeleton"></span></td><td><span class="ds-skeleton"></span></td><td><span class="ds-skeleton ds-skeleton--pill"></span></td><td><span class="ds-skeleton"></span></td><td class="ds-num"><span class="ds-skeleton"></span></td><td class="ds-actions-col"></td></tr></tbody>
+        <tbody id="sim-real" hidden><tr data-href="#"><td class="ds-check-col"><input type="checkbox" aria-label="Select TMW-2026-00412"></td><td class="ds-mono ds-cell-primary">TMW-2026-00412</td><td><span class="ds-cell-name">Sample Trading Co.<span class="ds-cell-sub">Import, sea freight</span></span></td><td>Yantian to Manila</td><td><span class="ds-pill ds-pill--info"><svg class="ds-icon"><use href="#i-truck"/></svg>In transit</span></td><td>Sep 30</td><td class="ds-num">2</td><td class="ds-actions-col"></td></tr><tr data-href="#"><td class="ds-check-col"><input type="checkbox" aria-label="Select TMW-2026-00409"></td><td class="ds-mono ds-cell-primary">TMW-2026-00409</td><td><span class="ds-cell-name">Demo Foods Inc.<span class="ds-cell-sub">Import, sea freight</span></span></td><td>Busan to Cebu</td><td><span class="ds-pill ds-pill--warning"><svg class="ds-icon"><use href="#i-file"/></svg>Missing document</span></td><td>Sep 29</td><td class="ds-num">1</td><td class="ds-actions-col"></td></tr><tr data-href="#"><td class="ds-check-col"><input type="checkbox" aria-label="Select TMW-2026-00388"></td><td class="ds-mono ds-cell-primary">TMW-2026-00388</td><td><span class="ds-cell-name">Sample Trading Co.<span class="ds-cell-sub">Import, sea freight</span></span></td><td>Manila to Davao</td><td><span class="ds-pill ds-pill--success"><svg class="ds-icon"><use href="#i-check"/></svg>Delivered</span></td><td>Done</td><td class="ds-num">1</td><td class="ds-actions-col"></td></tr></tbody>
+      </table></div>
+      <p class="ds-vh" role="status" id="sim-status">Loading shipment jobs</p>
+    </div></div>
+
+    <h3>Stats, documents, form, drawer, dropdown</h3>
+    <div class="demo demo--col" style="gap:24px">
+      <div class="ds-stats" aria-busy="true"><div class="ds-stat"><span class="ds-label">Open tasks</span><div style="margin-top:8px"><span class="ds-skeleton" style="width:36px;height:24px"></span></div></div><div class="ds-stat"><span class="ds-label">Overdue</span><div style="margin-top:8px"><span class="ds-skeleton" style="width:36px;height:24px"></span></div></div><div class="ds-stat"><span class="ds-label">Missing docs</span><div style="margin-top:8px"><span class="ds-skeleton" style="width:36px;height:24px"></span></div></div></div>
+      <div class="ds-panel" aria-busy="true"><div class="ds-doc" aria-hidden="true"><span class="ds-skeleton ds-skeleton--icon"></span><div style="display:grid;gap:8px"><span class="ds-skeleton" style="width:40%"></span><span class="ds-skeleton" style="width:62%;height:10px"></span></div><span class="ds-skeleton ds-skeleton--pill"></span><span class="ds-skeleton" style="width:56px;height:30px"></span></div><div class="ds-doc" aria-hidden="true"><span class="ds-skeleton ds-skeleton--icon"></span><div style="display:grid;gap:8px"><span class="ds-skeleton" style="width:40%"></span><span class="ds-skeleton" style="width:62%;height:10px"></span></div><span class="ds-skeleton ds-skeleton--pill"></span><span class="ds-skeleton" style="width:56px;height:30px"></span></div><div class="ds-doc" aria-hidden="true"><span class="ds-skeleton ds-skeleton--icon"></span><div style="display:grid;gap:8px"><span class="ds-skeleton" style="width:40%"></span><span class="ds-skeleton" style="width:62%;height:10px"></span></div><span class="ds-skeleton ds-skeleton--pill"></span><span class="ds-skeleton" style="width:56px;height:30px"></span></div></div>
+      <div style="display:flex;gap:32px;flex-wrap:wrap;align-items:flex-start"><div style="display:grid;gap:16px;width:min(360px,100%)" aria-busy="true"><div style="display:grid;gap:8px"><span class="ds-skeleton" style="width:30%;height:12px"></span><span class="ds-skeleton ds-skeleton--input"></span></div><div style="display:grid;gap:8px"><span class="ds-skeleton" style="width:38%;height:12px"></span><span class="ds-skeleton ds-skeleton--input"></span></div><div style="display:grid;gap:8px"><span class="ds-skeleton" style="width:52%;height:12px"></span><span class="ds-skeleton ds-skeleton--block" style="height:88px"></span></div><div style="display:flex;gap:8px;justify-content:flex-end"><span class="ds-skeleton ds-skeleton--btn" style="width:72px"></span><span class="ds-skeleton ds-skeleton--btn"></span></div></div><aside class="ds-drawer" style="width:min(360px,100%);border-left:0" aria-busy="true" aria-label="Loading job detail"><div class="ds-panel__head"><div style="display:grid;gap:8px;flex:1"><span class="ds-skeleton" style="width:30%;height:10px"></span><span class="ds-skeleton ds-skeleton--title" style="width:60%"></span></div><span class="ds-skeleton ds-skeleton--icon" style="width:24px;height:24px"></span></div><div class="ds-panel__body" style="display:grid;gap:16px"><span class="ds-skeleton ds-skeleton--pill"></span><span class="ds-skeleton ds-skeleton--input"></span><span class="ds-skeleton ds-skeleton--block" style="height:88px"></span></div></aside><ul class="ds-menu" style="position:static;visibility:visible;opacity:1;translate:0 0;width:280px" role="listbox" aria-busy="true" aria-label="Loading options"><li class="ds-option ds-option--loading" role="presentation"><span class="ds-option__text"><span class="ds-skeleton" style="width:70%"></span></span></li><li class="ds-option ds-option--loading" role="presentation"><span class="ds-option__text"><span class="ds-skeleton" style="width:55%"></span></span></li><li class="ds-option ds-option--loading" role="presentation"><span class="ds-option__text"><span class="ds-skeleton" style="width:80%"></span></span></li><li class="ds-option ds-option--loading" role="presentation"><span class="ds-option__text"><span class="ds-skeleton" style="width:48%"></span></span></li></ul></div>
+    </div>
+
+    <h3>Actions and measurable work</h3>
+    <p>A button in progress shows a small spinner and a changed label, and is disabled. Uploads use a linear bar with a percentage.</p>
+    <div class="demo demo--col" style="gap:20px">
+      <div style="display:flex;gap:12px;flex-wrap:wrap"><button class="ds-btn ds-btn--primary ds-btn--loading" aria-busy="true">Saving…</button><button class="ds-btn ds-btn--secondary ds-btn--loading" aria-busy="true">Uploading…</button></div>
+      <div class="ds-panel ds-panel__body" style="width:min(420px,100%);display:grid;gap:8px"><div style="display:flex;justify-content:space-between;gap:12px"><span class="ds-doc__name">Commercial-Invoice-v2.pdf</span><span class="ds-muted ds-tnum" style="font-variant-numeric:tabular-nums">62%</span></div><div class="ds-progress" role="progressbar" aria-label="Uploading Commercial-Invoice-v2.pdf" aria-valuemin="0" aria-valuemax="100" aria-valuenow="62"><div class="ds-progress__bar" style="--progress:62%"></div></div><span class="ds-doc__meta">Uploading, 1.2 of 1.9 MB</span></div>
+      <div class="ds-panel ds-panel__body" style="width:min(420px,100%);display:grid;gap:8px"><span class="ds-doc__name">Generating export</span><div class="ds-progress ds-progress--indeterminate" role="progressbar" aria-label="Generating export"><div class="ds-progress__bar"></div></div><span class="ds-doc__meta">This can take up to a minute</span></div>
+    </div>
+
+    <h3>Rules</h3>
+    <div class="dd">
+      <div class="ds-panel ds-panel__body"><h3 style="margin-top:0">Do</h3><ul>
+        <li>Build the scaffold from the same components and sizes as the loaded state.</li>
+        <li>Use <code>aria-busy</code>, hide the shapes, and announce with a status region.</li>
+        <li>Wait about 150ms before showing it; keep it up at least half a second once shown.</li>
+        <li>Load stable chrome (headers, labels, buttons) immediately and scaffold only the data.</li>
+        <li>Respect reduced motion: the shimmer stops and the shapes stay.</li>
+      </ul></div>
+      <div class="ds-panel ds-panel__body"><h3 style="margin-top:0">Don't</h3><ul>
+        <li>Use a circular spinner for content or pages. The only spinner is the small one inside a button while its action runs.</li>
+        <li>Show a blank panel, or a full-page blocker, while data loads.</li>
+        <li>Let the layout jump when content arrives.</li>
+        <li>Use a skeleton for an error or an empty result.</li>
+        <li>Animate several different loading treatments on one screen.</li>
+      </ul></div>
+    </div>
   </section>
 
   <section id="nav">
@@ -422,6 +567,36 @@
   const cs = getComputedStyle(document.documentElement);
   document.querySelectorAll('.sw code').forEach(c => { c.innerHTML = c.innerHTML.replace(/(--t1m-[\w-]+)\s+#[0-9A-Fa-f]{6}/, (m, name) => { const val = cs.getPropertyValue(name).trim(); return /^#[0-9a-f]{6}$/i.test(val) ? name + ' ' + val.toUpperCase() : m; }); });
   document.querySelectorAll('.doc__nav a').forEach(a => a.dataset.text = a.textContent);
+
+  // Demo links go nowhere. Only the guide's own section nav (.doc__nav) navigates.
+  // Clicking a demo nav item just moves the current-item state, so the state can be seen.
+  document.addEventListener('click', e => {
+    const a = e.target.closest('a[href^="#"]');
+    if (!a || a.closest('.doc__nav')) return;
+    e.preventDefault();
+    if (a.classList.contains('ds-nav__item')) {
+      const nav = a.closest('.ds-nav');
+      nav.querySelectorAll('.ds-nav__item').forEach(x => x.removeAttribute('aria-current'));
+      a.setAttribute('aria-current', 'page');
+    }
+  });
+
+  // Loading demo: scaffold first, then real rows swap in place.
+  (() => {
+    const btn = document.getElementById('sim-btn'), skel = document.getElementById('sim-skel'), real = document.getElementById('sim-real');
+    const table = document.getElementById('sim-table'), status = document.getElementById('sim-status');
+    if (!btn) return;
+    const load = () => {
+      skel.hidden = false; real.hidden = true; table.classList.add('ds-table--loading'); table.setAttribute('aria-busy', 'true');
+      status.textContent = 'Loading shipment jobs'; btn.disabled = true; btn.classList.add('ds-btn--loading'); btn.textContent = 'Loading…';
+      setTimeout(() => {
+        skel.hidden = true; real.hidden = false; table.classList.remove('ds-table--loading'); table.setAttribute('aria-busy', 'false');
+        status.textContent = '3 shipment jobs loaded'; btn.disabled = false; btn.classList.remove('ds-btn--loading'); btn.textContent = 'Reload data';
+      }, 1800);
+    };
+    btn.addEventListener('click', load);
+    setTimeout(load, 600);
+  })();
 
   // Highlight the current section in the guide nav.
   const links = [...document.querySelectorAll('.doc__nav a')];

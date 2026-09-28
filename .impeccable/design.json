@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-28T14:46:31.347Z",
+  "generatedAt": "2026-09-28T15:34:59.322Z",
   "title": "Design System: Top1Movers Operations Portal",
   "extensions": {
     "colorMeta": {
@@ -568,6 +568,22 @@
       "description": "Field-styled trigger with a floating listbox: check on selected, soft highlight, optional descriptions.",
       "html": "<div class=\"ds-dd\"><button class=\"ds-trigger\" type=\"button\">Import, sea freight<svg class=\"ds-chev\" viewBox=\"0 0 24 24\"><path d=\"m6 9 6 6 6-6\"/></svg></button><ul class=\"ds-menu\"><li class=\"ds-option is-active\"><span>Import, sea freight<small>Origin port to Manila</small></span></li><li class=\"ds-option is-selected\"><span>Export, sea freight<small>Manila to destination</small></span><svg viewBox=\"0 0 24 24\"><path d=\"m5 12.5 4.5 4.5L19 7.5\"/></svg></li><li class=\"ds-option\"><span>Air freight</span></li></ul></div>",
       "css": ".ds-dd{position:relative;width:280px;padding-bottom:150px}.ds-trigger{display:flex;align-items:center;justify-content:space-between;width:100%;height:var(--t1m-control-h);padding:0 var(--t1m-space-3);background:var(--t1m-surface);color:var(--t1m-ink);border:1px solid var(--t1m-navy-700);border-radius:var(--t1m-radius-sm);box-shadow:var(--t1m-field-focus);font:400 var(--t1m-text-base) var(--t1m-font-body);text-align:left}.ds-chev{width:16px;height:16px;fill:none;stroke:var(--t1m-navy-700);stroke-width:var(--t1m-icon-stroke);stroke-linecap:round;stroke-linejoin:round;rotate:180deg}.ds-menu{position:absolute;top:calc(36px + 6px);left:0;right:0;margin:0;padding:4px;list-style:none;background:var(--t1m-surface);border:1px solid var(--t1m-border);border-radius:var(--t1m-radius-md);box-shadow:var(--t1m-shadow-float)}.ds-option{display:flex;align-items:center;justify-content:space-between;min-height:36px;padding:6px 10px 6px 12px;border-radius:calc(var(--t1m-radius-md) - 4px);color:var(--t1m-ink);cursor:pointer}.ds-option small{display:block;font-size:var(--t1m-text-xs);color:var(--t1m-ink-3)}.ds-option:hover,.ds-option.is-active{background:var(--t1m-navy-50)}.ds-option.is-selected{color:var(--t1m-navy-700);font-weight:var(--t1m-w-control)}.ds-option svg{width:16px;height:16px;fill:none;stroke:var(--t1m-navy-700);stroke-width:var(--t1m-icon-stroke);stroke-linecap:round;stroke-linejoin:round}"
+    },
+    {
+      "name": "Shipment Job Card",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Discrete job summary: ID, status, route, milestone bar, ETA, owner. Whole card is one link.",
+      "html": "<article class=\"ds-card\"><header class=\"ds-card__header\"><div><h3 class=\"ds-card__title\"><a class=\"ds-card__link\" href=\"#\">TMW-2026-00412</a></h3><p class=\"ds-card__meta\">Sample Trading Co. · Import, sea freight</p></div><span class=\"ds-pill\">In transit</span></header><p class=\"ds-route\">Yantian → Manila</p><ol class=\"ds-segs\"><li class=\"d\"></li><li class=\"d\"></li><li class=\"d\"></li><li></li></ol></article>",
+      "css": ".ds-card{--card-bg:var(--t1m-surface);--card-border:var(--t1m-border);--card-radius:var(--t1m-radius-md);--card-pad:var(--t1m-space-4);position:relative;display:flex;flex-direction:column;gap:var(--t1m-space-3);width:320px;padding:var(--card-pad);background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--card-radius);color:var(--t1m-ink);transition:border-color var(--t1m-dur-base) var(--t1m-ease),box-shadow var(--t1m-dur-base) var(--t1m-ease)}.ds-card:hover{--card-border:var(--t1m-border-strong);box-shadow:var(--t1m-shadow-card)}.ds-card__header{display:flex;justify-content:space-between;gap:var(--t1m-space-3)}.ds-card__title{margin:0;font-family:var(--t1m-font-mono);font-size:var(--t1m-text-md);font-weight:var(--t1m-w-heading);color:var(--t1m-navy-700)}.ds-card__link{color:inherit;text-decoration:none}.ds-card__link::after{content:\"\";position:absolute;inset:0;border-radius:inherit}.ds-card__link:focus-visible{outline:none}.ds-card:has(.ds-card__link:focus-visible){box-shadow:var(--t1m-focus-ring)}.ds-card__meta{margin:0;font-size:var(--t1m-text-sm);color:var(--t1m-ink-2)}.ds-route{margin:0;font-weight:var(--t1m-w-control)}.ds-pill{display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:var(--t1m-radius-full);font-size:var(--t1m-text-xs);font-weight:var(--t1m-w-label);background:var(--t1m-info-bg);color:var(--t1m-info)}.ds-segs{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;margin:0;padding:0;list-style:none}.ds-segs li{height:4px;border-radius:var(--t1m-radius-full);background:var(--t1m-border)}.ds-segs li.d{background:var(--t1m-navy-700)}"
+    },
+    {
+      "name": "Table Skeleton",
+      "kind": "custom",
+      "refersTo": "table-row",
+      "description": "Loading scaffold for a table: real row height, varied widths, fades in after a short delay.",
+      "html": "<table class=\"ds-table\" aria-busy=\"true\"><tbody><tr aria-hidden=\"true\"><td><span class=\"ds-skeleton\" style=\"width:82%\"></span></td><td><span class=\"ds-skeleton\" style=\"width:46%\"></span></td><td><span class=\"ds-skeleton pill\"></span></td></tr><tr aria-hidden=\"true\"><td><span class=\"ds-skeleton\" style=\"width:64%\"></span></td><td><span class=\"ds-skeleton\" style=\"width:70%\"></span></td><td><span class=\"ds-skeleton pill\"></span></td></tr></tbody></table>",
+      "css": ".ds-table{width:420px;border-collapse:separate;border-spacing:0}.ds-table td{height:var(--t1m-row-h);padding:0 var(--t1m-space-3);border-bottom:1px solid var(--t1m-border)}.ds-skeleton{display:block;height:12px;border-radius:var(--t1m-radius-sm);background:linear-gradient(90deg,var(--t1m-surface-muted) 25%,color-mix(in srgb,var(--t1m-surface-muted) 55%,var(--t1m-surface)) 50%,var(--t1m-surface-muted) 75%);background-size:200% 100%;animation:sh 1.4s linear infinite}.ds-skeleton.pill{height:28px;width:92px;border-radius:var(--t1m-radius-full)}@keyframes sh{to{background-position:-200% 0}}@media (prefers-reduced-motion:reduce){.ds-skeleton{animation:none}}"
     }
   ],
   "narrative": {
@@ -606,6 +622,11 @@
         "name": "The Flat-Until-Floating Rule",
         "body": "If it doesn't overlay other content, it has no shadow.",
         "section": "elevation"
+      },
+      {
+        "name": "The Scaffold, Not Spinner Rule",
+        "body": "Content that takes time to appear loads as a skeleton scaffold in the exact shape and size of the final content; a circular spinner is never used for content or pages, and its only place is a small one inside a button while its action runs.",
+        "section": "components"
       }
     ],
     "dos": [
@@ -614,7 +635,8 @@
       "**Do** keep one navy primary button per view and name the action (\"Create quotation\").",
       "**Do** build empty, loading, error, disabled, and focus states for every component.",
       "**Do** surface overdue tasks, missing documents, and exceptions in list rows and on Shipment 360.",
-      "**Do** label all mock data as illustrative (IDs like TMW-2026-00412, \"Sample Trading Co.\")."
+      "**Do** label all mock data as illustrative (IDs like TMW-2026-00412, \"Sample Trading Co.\").",
+      "Do load content as a skeleton scaffold in the shape of the final content, and give actions a label change plus the small in-button spinner."
     ],
     "donts": [
       "**Don't** fill a button, badge, banner, or nav item with Signal Red #E5383B, or use it as a side stripe.",
@@ -623,7 +645,8 @@
       "**Don't** use emoji or text glyphs as icons; add to `icons.svg` in the same 1.75-stroke style.",
       "**Don't** use gradient text, glassmorphism, or decorative shadows.",
       "**Don't** open a modal for what a drawer, inline edit, or page can do.",
-      "**Don't** invent components: check `index.html` first, and if it's missing, add it to the system (tokens.css, components.css, index.html, this file) before using it."
+      "**Don't** invent components: check `index.html` first, and if it's missing, add it to the system (tokens.css, components.css, index.html, this file) before using it.",
+      "Don't use a circular spinner or a blank panel for loading content or pages; the only spinner lives inside a button."
     ]
   }
 }

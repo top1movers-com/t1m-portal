@@ -22,8 +22,17 @@ Applies to any AI agent (Claude Code, Codex, Cursor, Copilot) building or changi
 - Status is always color + icon + word.
 - One primary (navy) button per view.
 - Ship all states: hover, focus-visible, disabled, loading, empty, error.
+- **Scaffold, not spinner.** Content that loads (tables, lists, cards, stats, detail panels, dropdown options) shows a skeleton scaffold (`ds-skeleton`) in the exact shape and size of the final content. Never a circular spinner for content or pages. The one permitted spinner is the small one inside a button while its action runs (`ds-btn--loading`, with the label changed to "Saving…"); uploads use `ds-progress`. Mark containers `aria-busy`, announce with `role="status"`, and never use a skeleton for an empty or error state.
 - Mock data must look mock: IDs like `TMW-2026-00412`, names like "Sample Trading Co.". Never invent real customers, prices, or claims.
 - Accessibility floor: text contrast 4.5:1, keyboard reachable, visible focus, 44px touch targets on mobile.
+
+## Components: how to build new ones
+
+- Expose **component tokens**: local custom properties (for example `--card-bg`) that default to global `--t1m-*` tokens. Variants and states change the local properties, never raw values.
+- Size components from their **container** (container queries), not only the viewport.
+- Compose from slots (`__header`, `__body`, `__footer`), keep one primary action per component, and use a real semantic element (`article`, `button`, `a`), never a clickable `div`.
+- Ship every state: rest, hover, focus-visible, pressed, selected, disabled, loading (scaffold, see the rule above), empty, error.
+- **Cards** are for discrete objects (a shipment job, a task, a document). Never nest cards, never use a card as page structure, and never fill a page with identical icon-heading-text cards.
 
 ## If the design system doesn't cover what you need
 
