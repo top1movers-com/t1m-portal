@@ -1,0 +1,47 @@
+/* Feature-local styles for Document Management. Tokens only, no hardcoded values. */
+
+.docs-preview {
+  display: grid;
+  justify-items: center;
+  gap: var(--t1m-space-2);
+  padding: var(--t1m-space-8) var(--t1m-space-4);
+  border: 1px dashed var(--t1m-border-strong);
+  border-radius: var(--t1m-radius-md);
+  background: var(--t1m-surface-muted);
+  color: var(--t1m-ink-2);
+  text-align: center;
+}
+.docs-preview .ds-icon {
+  width: var(--t1m-space-8);
+  height: var(--t1m-space-8);
+  color: var(--t1m-ink-3);
+}
+.docs-preview strong {
+  color: var(--t1m-ink);
+  font-weight: var(--t1m-w-control);
+}
+
+.docs-namebtn {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  text-align: left;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.docs-namebtn:hover .ds-doc__name {
+  color: var(--t1m-navy-700);
+  text-decoration: underline;
+}
+
+.docs-reqrow {
+  align-items: flex-start;
+}
+
+.docs-reqrow__remove {
+  margin-left: auto;
+}
