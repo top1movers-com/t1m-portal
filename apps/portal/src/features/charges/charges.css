@@ -1,0 +1,166 @@
+/* Charges & Billing Readiness — feature-local styles. Tokens only. */
+
+.charges-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: var(--t1m-space-4);
+  align-items: start;
+}
+
+.charges-layout__main {
+  min-width: 0;
+  display: grid;
+  gap: var(--t1m-space-4);
+}
+
+.charges-layout__side {
+  position: sticky;
+  top: var(--t1m-space-4);
+}
+
+@media (max-width: 900px) {
+  .charges-layout {
+    grid-template-columns: 1fr;
+  }
+  .charges-layout__side {
+    position: static;
+    order: -1;
+  }
+}
+
+.charges-kind {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--t1m-space-1);
+  font-size: var(--t1m-text-xs);
+  font-weight: var(--t1m-w-label);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--t1m-ink-3);
+}
+.charges-kind--charge {
+  color: var(--t1m-navy-700);
+}
+
+.charges-evidence {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--t1m-space-1);
+  color: var(--t1m-ink-2);
+}
+.charges-evidence .ds-icon {
+  width: 12px;
+  height: 12px;
+  stroke-width: 2.25;
+}
+
+.charges-added {
+  display: grid;
+  line-height: 1.35;
+}
+.charges-added__by {
+  color: var(--t1m-ink);
+}
+.charges-added__at {
+  font-size: var(--t1m-text-xs);
+  color: var(--t1m-ink-3);
+}
+
+.charges-footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--t1m-space-3) var(--t1m-space-4) var(--t1m-space-4);
+}
+
+.charges-locked {
+  display: flex;
+  align-items: center;
+  gap: var(--t1m-space-2);
+  padding: var(--t1m-space-3) var(--t1m-space-4);
+  color: var(--t1m-ink-2);
+  font-size: var(--t1m-text-sm);
+  border-top: 1px solid var(--t1m-border);
+}
+.charges-locked .ds-icon {
+  color: var(--t1m-ink-3);
+  flex: none;
+}
+
+.charges-totals {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--t1m-space-4);
+  padding: var(--t1m-space-4);
+  border-top: 1px solid var(--t1m-border);
+}
+.charges-totals__item dt {
+  font-family: var(--t1m-font-chrome);
+  font-size: var(--t1m-text-xs);
+  font-weight: var(--t1m-w-label);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--t1m-ink-3);
+  margin: 0;
+}
+.charges-totals__item dd {
+  margin: 2px 0 0;
+  font-family: var(--t1m-font-mono);
+  font-size: var(--t1m-text-md);
+  font-weight: 600;
+  color: var(--t1m-ink);
+}
+.charges-totals__item dd[data-tone='danger'] {
+  color: var(--t1m-danger);
+}
+.charges-totals__item dd[data-tone='success'] {
+  color: var(--t1m-success);
+}
+
+.charges-progress {
+  font-size: var(--t1m-text-sm);
+  color: var(--t1m-ink-2);
+}
+
+.charges-ready {
+  display: grid;
+  gap: var(--t1m-space-2);
+  text-align: center;
+  padding: var(--t1m-space-4) 0;
+}
+.charges-ready .ds-icon {
+  width: var(--t1m-space-8);
+  height: var(--t1m-space-8);
+  color: var(--t1m-navy-700);
+  margin: 0 auto;
+}
+
+/* Row menu: reuses .ds-menu / .ds-option, anchored to the right so it doesn't overflow the table */
+.charges-row-menu {
+  position: relative;
+  display: inline-flex;
+}
+.charges-row-menu .ds-menu {
+  left: auto;
+  right: 0;
+  min-width: 180px;
+}
+.charges-row-menu .ds-menu[data-open] {
+  visibility: visible;
+  opacity: 1;
+  translate: 0 0;
+}
+.charges-row-menu .ds-option {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+}
+.charges-row-menu .ds-option:hover,
+.charges-row-menu .ds-option:focus-visible {
+  background: var(--t1m-navy-50);
+  outline: none;
+}
+.charges-row-menu .ds-option[data-tone='danger'] {
+  color: var(--t1m-danger);
+}
