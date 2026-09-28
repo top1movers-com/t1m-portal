@@ -141,3 +141,42 @@
 @media (prefers-reduced-motion: reduce) {
   :root { --t1m-dur-fast: 0ms; --t1m-dur-base: 0ms; }
 }
+
+/* ---------- Dark theme ----------
+ * Set data-theme="dark" on <html>. Same tokens, new values, so no component changes.
+ * The accent flips role: navy becomes a light periwinkle, and filled controls carry dark text
+ * (--t1m-ink-inverse becomes dark). Every text pair meets 4.5:1; control edges meet 3:1. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --t1m-brand-red: #ff5a5f;
+  --t1m-navy-950: #070a1f;
+  --t1m-navy-800: #7d89f0;
+  --t1m-navy-700: #9da7ff;
+  --t1m-navy-600: #b3bbff;
+  --t1m-navy-100: #262c5c;
+  --t1m-navy-50: #1b2147;
+  --t1m-bg: #0e1122;
+  --t1m-surface: #151a33;
+  --t1m-surface-muted: #1d2340;
+  --t1m-border: #2a3159;
+  --t1m-border-strong: #6470a3;
+  --t1m-ink: #e9ebf7;
+  --t1m-ink-2: #b7bcda;
+  --t1m-ink-3: #9097bd;
+  --t1m-ink-inverse: #0e1122;          /* text on filled accents flips to dark */
+  --t1m-ink-inverse-2: #3a4170;
+  --t1m-danger: #ff8a80;
+  --t1m-danger-hover: #ffa39b;
+  --t1m-danger-bg: #3a181b;
+  --t1m-warning: #f2b45f;
+  --t1m-warning-bg: #37270e;
+  --t1m-success: #5cd29b;
+  --t1m-success-bg: #10332a;
+  --t1m-info: #7fb2ff;
+  --t1m-info-bg: #12284a;
+  --t1m-shadow-float: 0 2px 6px rgb(0 0 0 / 0.4), 0 12px 32px rgb(0 0 0 / 0.5);
+  --t1m-shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 16px rgb(0 0 0 / 0.35);
+  --t1m-field-shadow: 0 1px 1px rgb(0 0 0 / 0.35);
+  --t1m-btn-lift: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 1px 2px rgb(0 0 0 / 0.5);
+  --t1m-btn-lift-hover: inset 0 1px 0 rgb(255 255 255 / 0.3), 0 3px 8px rgb(0 0 0 / 0.5);
+}

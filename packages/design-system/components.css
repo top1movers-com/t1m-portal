@@ -202,7 +202,7 @@ a { color: var(--t1m-navy-700); text-underline-offset: 2px; }
 .ds-seg { display: inline-flex; gap: 2px; padding: 2px; margin: 0; border: 1px solid var(--t1m-border); border-radius: var(--t1m-radius-sm); background: var(--t1m-surface-muted); }
 .ds-seg label { position: relative; display: inline-flex; align-items: center; height: 26px; padding: 0 var(--t1m-space-3); border-radius: calc(var(--t1m-radius-sm) - 2px); font-family: var(--t1m-font-chrome); font-size: var(--t1m-text-sm); font-weight: var(--t1m-w-control); color: var(--t1m-ink-2); cursor: pointer; }
 .ds-seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
-.ds-seg label:has(input:checked) { background: var(--t1m-surface); color: var(--t1m-navy-700); box-shadow: 0 1px 2px rgba(20, 22, 58, 0.08); }
+.ds-seg label:has(input:checked) { background: var(--t1m-surface); color: var(--t1m-navy-700); box-shadow: var(--t1m-field-shadow); }
 .ds-seg label:has(input:focus-visible) { box-shadow: var(--t1m-focus-ring); }
 
 /* Checkbox */
@@ -481,3 +481,10 @@ th[aria-sort="ascending"] .ds-icon { rotate: 180deg; }
 .ds-progress--indeterminate .ds-progress__bar { width: 40%; animation: ds-indeterminate 1.4s var(--t1m-ease) infinite; }
 @keyframes ds-indeterminate { from { translate: -100% 0; } to { translate: 260% 0; } }
 @media (prefers-reduced-motion: reduce) { .ds-progress--indeterminate .ds-progress__bar { animation: none; width: 100%; opacity: 0.5; } }
+
+/* ---------- Dark theme adjustments (things a token swap cannot reach) ---------- */
+:root[data-theme="dark"] .ds-sidebar__brand img { background: #fff; padding: 6px 10px; border-radius: var(--t1m-radius-sm); } /* the logo's navy type needs a light plate */
+:root[data-theme="dark"] .ds-check input:checked, :root[data-theme="dark"] .ds-table input[type="checkbox"]:checked { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230e1122' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5'/%3E%3C/svg%3E"); }
+
+/* Stat strip stacks on narrow widths: dividers switch from the side to the bottom. */
+@media (max-width: 640px) { .ds-stat { border-right: 0; border-bottom: 1px solid var(--t1m-border); } .ds-stat:last-child { border-bottom: 0; } }

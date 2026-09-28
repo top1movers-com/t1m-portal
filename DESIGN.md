@@ -144,7 +144,7 @@ Surfaces are flat and outlined. Structure comes from borders, tint, and consiste
 - Two densities from one component set: 36px desktop, 44px touch.
 - Quiet chrome: a white, bordered sidebar with light-weight labels; navy is spent on primary buttons, links, and headings.
 - Softened color: brand navy and red are lifted and eased in the UI; the exact brand colors live in the logo. Body text is 13.6:1, never harsher.
-- Light theme only in Phase 1 (daytime offices, lit warehouse floors).
+- Light and dark themes from one token set. Light is the default for offices and lit floors; dark serves night shifts and dim warehouses. Both meet the same contrast floor.
 - Brand red is an identity mark, not a control color.
 
 ## Colors
@@ -167,6 +167,14 @@ Restrained palette: navy plus navy-tinted neutrals, one set of four status color
 
 ### Status
 - **Danger** #B3372D (bg #FBECEB; hover #922C24): overdue, rejected, destructive. **Warning** #93500F (bg #FDF3E3): due soon, missing. **Success** #1F7A55 (bg #E8F4EE): delivered, approved. **Info** #2B62C0 (bg #E9F0FB): in progress, neutral notices.
+
+### Dark theme
+Set `data-theme="dark"` on the root and the same tokens take dark values; components do not change. Canvas is a deep navy (#0E1122), surfaces step up in lightness (#151A33 panels, #1D2340 muted, #262C5C selection), and borders and controls stay visible (#2A3159 dividers, #6470A3 control edges at 3.6:1). Text is #E9EBF7 (14:1), secondary #B7BCDA, tertiary #9097BD (6:1).
+- **The accent lightens.** Harbour Navy becomes a light periwinkle (#9DA7FF) that works as both text and fill; hover is lighter (#B3BBFF).
+- **Filled controls carry dark text.** `--t1m-ink-inverse` flips to #0E1122, so primary and danger buttons read at about 8:1. Never write white text on a filled accent; use the token.
+- **Status colors lighten** (danger #FF8A80, warning #F2B45F, success #5CD29B, info #7FB2FF) over dark tinted backgrounds, all above 6.8:1.
+- **Shadows go black and stronger**, since dark surfaces need more separation. The logo sits on a light plate because its navy type disappears on dark.
+- Users choose Light, Dark, or System; the choice persists.
 
 ### Named Rules
 **The Navy Works, Red Signs Rule.** Actions are navy. Red #E5383B only ever marks identity or current location. Trouble is Danger #B3372D, always with an icon.

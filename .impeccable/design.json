@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-28T15:34:59.322Z",
+  "generatedAt": "2026-09-28T15:39:42.285Z",
   "title": "Design System: Top1Movers Operations Portal",
   "extensions": {
     "colorMeta": {
@@ -485,6 +485,43 @@
       {
         "name": "lg",
         "value": "1280px"
+      }
+    ],
+    "themes": {
+      "dark": {
+        "selector": ":root[data-theme=\"dark\"]",
+        "note": "Accents lighten; --t1m-ink-inverse flips to dark for filled controls; shadows go black.",
+        "tokens": {
+          "bg": "#0e1122",
+          "surface": "#151a33",
+          "surface-muted": "#1d2340",
+          "border": "#2a3159",
+          "border-strong": "#6470a3",
+          "ink": "#e9ebf7",
+          "ink-2": "#b7bcda",
+          "ink-3": "#9097bd",
+          "navy-700": "#9da7ff",
+          "navy-600": "#b3bbff",
+          "navy-100": "#262c5c",
+          "navy-50": "#1b2147",
+          "ink-inverse": "#0e1122",
+          "danger": "#ff8a80",
+          "warning": "#f2b45f",
+          "success": "#5cd29b",
+          "info": "#7fb2ff"
+        }
+      }
+    },
+    "viewports": [
+      {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      {
+        "name": "tablet",
+        "width": 820,
+        "height": 1100
       }
     ]
   },

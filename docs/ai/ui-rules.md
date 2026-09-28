@@ -24,6 +24,7 @@ Applies to any AI agent (Claude Code, Codex, Cursor, Copilot) building or changi
 - Ship all states: hover, focus-visible, disabled, loading, empty, error.
 - **Scaffold, not spinner.** Content that loads (tables, lists, cards, stats, detail panels, dropdown options) shows a skeleton scaffold (`ds-skeleton`) in the exact shape and size of the final content. Never a circular spinner for content or pages. The one permitted spinner is the small one inside a button while its action runs (`ds-btn--loading`, with the label changed to "Saving…"); uploads use `ds-progress`. Mark containers `aria-busy`, announce with `role="status"`, and never use a skeleton for an empty or error state.
 - Mock data must look mock: IDs like `TMW-2026-00412`, names like "Sample Trading Co.". Never invent real customers, prices, or claims.
+- **Both themes.** UI must work in light and dark (`data-theme` on the root). Never hardcode colors; use tokens. Text on a filled accent uses `--t1m-ink-inverse`, never white. Check the component in both themes and at phone width (390px) before calling it done.
 - Accessibility floor: text contrast 4.5:1, keyboard reachable, visible focus, 44px touch targets on mobile.
 
 ## Components: how to build new ones
