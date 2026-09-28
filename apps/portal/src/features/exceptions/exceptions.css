@@ -1,0 +1,41 @@
+/* Feature-local styles for Exceptions & Approvals. Tokens only. */
+
+.exc-table-cell--stack {
+  display: grid;
+  gap: var(--t1m-space-1);
+}
+
+.exc-approvals {
+  display: grid;
+  grid-template-columns: minmax(280px, 420px) 1fr;
+  gap: var(--t1m-space-4);
+  align-items: start;
+}
+
+.exc-approvals__back {
+  display: none;
+}
+
+.exc-decision {
+  display: grid;
+  gap: var(--t1m-space-3);
+}
+
+.exc-corrective-prompt {
+  display: flex;
+  align-items: center;
+  gap: var(--t1m-space-3);
+  flex-wrap: wrap;
+}
+
+@media (max-width: 960px) {
+  .exc-approvals {
+    grid-template-columns: 1fr;
+  }
+  .exc-approvals[data-selected='true'] .exc-approvals__queue {
+    display: none;
+  }
+  .exc-approvals__back {
+    display: inline-flex;
+  }
+}
