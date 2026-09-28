@@ -87,6 +87,7 @@
 <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
 <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
 <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+<symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol>
 <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
 <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4 3 19.5h18z"/><path d="M12 10v4.5M12 17.5v.01"/></symbol>
 <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8v.01"/></symbol>
@@ -117,11 +118,20 @@
 <symbol id="i-moon" viewBox="0 0 24 24"><path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z"/></symbol>
 <symbol id="i-contrast" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor" stroke="none"/></symbol>
 <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></symbol>
+<symbol id="i-calendar" viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3.5v4M16 3.5v4"/></symbol>
+<symbol id="i-paperclip" viewBox="0 0 24 24"><path d="M17 7 9.5 14.5a3.2 3.2 0 0 0 4.5 4.5L21 12a5.5 5.5 0 0 0-7.8-7.8L6 11.4"/></symbol>
+<symbol id="i-history" viewBox="0 0 24 24"><path d="M4 4v5h5"/><path d="M4.5 13a8 8 0 1 0 2.5-6.5L4 9"/><path d="M12 8.5V13l3 2"/></symbol>
+<symbol id="i-flag" viewBox="0 0 24 24"><path d="M6 3.5v17"/><path d="M6 4.5h10.5l-2.5 4 2.5 4H6z"/></symbol>
+<symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8.5h3l1.5-2.5h7L17 8.5h3a1 1 0 0 1 1 1V18a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.3"/></symbol>
+<symbol id="i-edit" viewBox="0 0 24 24"><path d="M16.5 3.5 20.5 7.5 9 19H5v-4z"/><path d="M14 6 18 10"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M5 7h14M9 7V4.5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1V7M7 7l1 13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-13"/><path d="M10 11v6M14 11v6"/></symbol>
+<symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol>
+<symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></symbol>
 </svg>
 <div class="doc">
 <nav class="doc__nav" aria-label="Sections">
   <img src="./assets/top1movers-logo.png" alt="Top1Movers Worldwide Inc.">
-  <a href="#principles">Principles</a><a href="#color">Color</a><a href="#type">Typography</a><a href="#space">Space &amp; shape</a><a href="#icons">Icons</a><a href="#buttons">Buttons</a><a href="#forms">Fields</a><a href="#status">Status</a><a href="#tables">Tables</a><a href="#cards">Cards</a><a href="#loading">Loading</a><a href="#nav">Shell &amp; nav</a><a href="#signature">Shipment patterns</a><a href="#feedback">Feedback</a><a href="#rules">Do &amp; don't</a><a href="#use">Using it</a>
+  <a href="#principles">Principles</a><a href="#color">Color</a><a href="#type">Typography</a><a href="#space">Space &amp; shape</a><a href="#icons">Icons</a><a href="#buttons">Buttons</a><a href="#forms">Fields</a><a href="#status">Status</a><a href="#tables">Tables</a><a href="#cards">Cards</a><a href="#loading">Loading</a><a href="#nav">Shell &amp; nav</a><a href="#signature">Shipment patterns</a><a href="#decisions">Decisions &amp; evidence</a><a href="#feedback">Feedback</a><a href="#rules">Do &amp; don't</a><a href="#use">Using it</a>
 </nav>
 <main>
   <h1>Top1Movers Operations Portal: Design System</h1>
@@ -283,7 +293,7 @@
       <div class="ds-pager"><span>1 to 4 of 1,284 jobs</span><span style="display:flex;gap:8px;align-items:center"><span class="ds-muted" id="ps-lbl">Rows</span><div class="ds-select-wrap ds-dropdown" data-dropdown data-placement="top" style="width:84px"><button type="button" id="ps" class="ds-select ds-select--sm" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="ps-list"><span class="ds-dropdown__value">25</span></button><svg class="ds-icon"><use href="#i-chevron-down"/></svg><ul class="ds-menu" role="listbox" id="ps-list" tabindex="-1"><li class="ds-option" role="option" id="ps1" aria-selected="true"><span class="ds-option__text">25</span><svg class="ds-icon"><use href="#i-check"/></svg></li><li class="ds-option" role="option" id="ps2" aria-selected="false"><span class="ds-option__text">50</span><svg class="ds-icon"><use href="#i-check"/></svg></li><li class="ds-option" role="option" id="ps3" aria-selected="false"><span class="ds-option__text">100</span><svg class="ds-icon"><use href="#i-check"/></svg></li></ul></div><button class="ds-btn ds-btn--secondary ds-btn--sm" disabled>Previous</button><button class="ds-btn ds-btn--secondary ds-btn--sm">Next</button></span></div>
     </div>
     <h3>Tabs</h3>
-    <div class="demo demo--flush"><div class="ds-tabs" role="tablist" style="padding:0 16px"><button class="ds-tab" data-text="Overview" role="tab" aria-selected="true">Overview</button><button class="ds-tab" data-text="Tasks" role="tab" aria-selected="false">Tasks</button><button class="ds-tab" data-text="Documents" role="tab" aria-selected="false">Documents</button><button class="ds-tab" data-text="Charges" role="tab" aria-selected="false">Charges</button><button class="ds-tab" data-text="Audit trail" role="tab" aria-selected="false">Audit trail</button></div></div>
+    <div class="demo demo--flush"><div class="ds-tabs" role="tablist" style="padding:0 16px"><button class="ds-tab" data-text="Overview" role="tab" aria-selected="true">Overview</button><button class="ds-tab" data-text="Tasks" role="tab" aria-selected="false">Tasks<span class="ds-tab__count">4</span></button><button class="ds-tab" data-text="Documents" role="tab" aria-selected="false">Documents<span class="ds-tab__count ds-tab__count--warning">1</span></button><button class="ds-tab" data-text="Charges" role="tab" aria-selected="false">Charges<span class="ds-tab__count ds-tab__count--danger">2</span></button><button class="ds-tab" data-text="Audit trail" role="tab" aria-selected="false">Audit trail</button></div></div>
     <h3>Empty state</h3>
     <div class="demo demo--flush"><div class="ds-empty"><svg class="ds-icon"><use href="#i-file"/></svg><h3>No documents uploaded yet</h3><p>Upload the bill of lading to start the checklist. Missing required documents will show on the dashboard.</p><button class="ds-btn ds-btn--primary"><svg class="ds-icon"><use href="#i-upload"/></svg>Upload document</button></div></div>
   <h3>Drawer</h3>
@@ -499,6 +509,80 @@
       <div class="ds-doc"><span class="ds-doc__icon"><svg class="ds-icon"><use href="#i-file"/></svg></span><div><div class="ds-doc__name">Bill of Lading</div><div class="ds-doc__meta">v2 · uploaded Sep 8 by Sample User</div></div><span class="ds-pill ds-pill--success"><svg class="ds-icon"><use href="#i-check"/></svg>Approved</span><button class="ds-btn ds-btn--ghost ds-btn--sm">View</button></div>
       <div class="ds-doc"><span class="ds-doc__icon"><svg class="ds-icon"><use href="#i-file"/></svg></span><div><div class="ds-doc__name">Commercial Invoice</div><div class="ds-doc__meta">Rejected: amounts do not match packing list</div></div><span class="ds-pill ds-pill--danger"><svg class="ds-icon"><use href="#i-x"/></svg>Rejected</span><button class="ds-btn ds-btn--secondary ds-btn--sm"><svg class="ds-icon"><use href="#i-upload"/></svg>Replace</button></div>
       <div class="ds-doc"><span class="ds-doc__icon"><svg class="ds-icon"><use href="#i-file"/></svg></span><div><div class="ds-doc__name">Packing List</div><div class="ds-doc__meta">Required · not yet uploaded</div></div><span class="ds-pill ds-pill--warning"><svg class="ds-icon"><use href="#i-alert"/></svg>Missing</span><button class="ds-btn ds-btn--secondary ds-btn--sm"><svg class="ds-icon"><use href="#i-upload"/></svg>Upload</button></div>
+    </div></div>
+  </section>
+
+  <section id="decisions">
+    <h2>Decisions &amp; evidence</h2>
+    <p>Patterns for a task that needs proof before it can close, a job's approval history, and billing readiness.</p>
+
+    <h3>Dialog</h3>
+    <p>A dialog interrupts for a decision the user must make before continuing, such as completing a task with evidence or rejecting a document with a reason. Prefer the <a href="#signature">drawer</a> for record detail or a quick edit. Shown here inline (not modal) so it stays visible in the guide; under 640px it becomes a bottom sheet.</p>
+    <div class="demo" style="background:var(--t1m-surface-muted);justify-content:center;padding:32px 16px">
+      <dialog class="ds-dialog" open aria-labelledby="dlg-title">
+        <div class="ds-dialog__header">
+          <h2 class="ds-dialog__title" id="dlg-title">Complete task</h2>
+          <button class="ds-dialog__close ds-btn ds-btn--ghost ds-btn--icon" aria-label="Close"><svg class="ds-icon"><use href="#i-x"/></svg></button>
+        </div>
+        <div class="ds-dialog__body">
+          <p class="ds-muted" style="margin:0">Attach proof of delivery for TMW-2026-00409 before marking this task complete.</p>
+          <label class="ds-dropzone"><input type="file" class="ds-vh"><span class="ds-dropzone__icon"><svg class="ds-icon"><use href="#i-upload"/></svg></span><span class="ds-dropzone__title">Drop files or click to upload</span><span class="ds-dropzone__hint">PDF, JPG, or PNG up to 10MB</span></label>
+          <ul class="ds-files">
+            <li class="ds-file"><span class="ds-file__icon"><svg class="ds-icon"><use href="#i-camera"/></svg></span><div class="ds-file__body"><span class="ds-file__name">Proof of delivery.pdf</span><span class="ds-file__meta">248 KB</span></div><button class="ds-file__remove ds-btn ds-btn--ghost ds-btn--icon" aria-label="Remove Proof of delivery.pdf"><svg class="ds-icon"><use href="#i-x"/></svg></button></li>
+          </ul>
+        </div>
+        <div class="ds-dialog__footer">
+          <button class="ds-btn ds-btn--ghost">Cancel</button>
+          <button class="ds-btn ds-btn--primary">Complete task</button>
+        </div>
+      </dialog>
+    </div>
+
+    <h3>Dropzone &amp; files</h3>
+    <div class="demo demo--col">
+      <label class="ds-dropzone"><input type="file" class="ds-vh"><span class="ds-dropzone__icon"><svg class="ds-icon"><use href="#i-upload"/></svg></span><span class="ds-dropzone__title">Drop files or click to upload</span><span class="ds-dropzone__hint">PDF, JPG, or PNG up to 10MB</span></label>
+      <label class="ds-dropzone" data-state="dragover"><input type="file" class="ds-vh"><span class="ds-dropzone__icon"><svg class="ds-icon"><use href="#i-upload"/></svg></span><span class="ds-dropzone__title">Drop files or click to upload</span><span class="ds-dropzone__hint">Release to add 2 files</span></label>
+      <label class="ds-dropzone ds-dropzone--invalid"><input type="file" class="ds-vh" aria-invalid="true"><span class="ds-dropzone__icon"><svg class="ds-icon"><use href="#i-upload"/></svg></span><span class="ds-dropzone__title">Drop files or click to upload</span><span class="ds-dropzone__hint">File type not supported</span></label>
+      <label class="ds-dropzone ds-dropzone--compact"><input type="file" class="ds-vh"><span class="ds-dropzone__icon"><svg class="ds-icon"><use href="#i-paperclip"/></svg></span><span class="ds-dropzone__title">Attach a file</span></label>
+    </div>
+    <div class="demo demo--col">
+      <ul class="ds-files">
+        <li class="ds-file"><span class="ds-file__icon"><svg class="ds-icon"><use href="#i-file"/></svg></span><div class="ds-file__body"><span class="ds-file__name">Commercial invoice.pdf</span><span class="ds-file__meta">312 KB · uploaded</span></div><button class="ds-file__remove ds-btn ds-btn--ghost ds-btn--icon" aria-label="Remove Commercial invoice.pdf"><svg class="ds-icon"><use href="#i-x"/></svg></button></li>
+        <li class="ds-file"><span class="ds-file__icon"><svg class="ds-icon"><use href="#i-file"/></svg></span><div class="ds-file__body"><span class="ds-file__name">Packing list.pdf</span><span class="ds-file__meta">Uploading, 62%</span><div class="ds-progress"><div class="ds-progress__bar" style="--progress:62%"></div></div></div><button class="ds-file__remove ds-btn ds-btn--ghost ds-btn--icon" aria-label="Cancel upload"><svg class="ds-icon"><use href="#i-x"/></svg></button></li>
+      </ul>
+    </div>
+
+    <h3>Timeline</h3>
+    <p>Used for the job milestone timeline, document version history, and approval log.</p>
+    <div class="demo demo--col">
+      <ol class="ds-timeline" aria-label="Approval log">
+        <li class="ds-timeline__item" data-state="done"><span class="ds-timeline__marker"></span><div class="ds-timeline__content"><p class="ds-timeline__title">Quotation approved</p><p class="ds-timeline__meta">Sep 5 · Sample User</p></div></li>
+        <li class="ds-timeline__item" data-state="done"><span class="ds-timeline__marker"></span><div class="ds-timeline__content"><p class="ds-timeline__title">Booking confirmed</p><p class="ds-timeline__meta">Sep 8 · Demo Coordinator</p></div></li>
+        <li class="ds-timeline__item" data-state="rejected"><span class="ds-timeline__marker"></span><div class="ds-timeline__content"><p class="ds-timeline__title">Commercial invoice rejected</p><p class="ds-timeline__meta">Sep 20 · Demo Coordinator</p><div class="ds-timeline__body"><span class="ds-pill ds-pill--danger"><svg class="ds-icon"><use href="#i-x"/></svg>Amounts do not match packing list</span></div></div></li>
+        <li class="ds-timeline__item" data-state="current"><span class="ds-timeline__marker"></span><div class="ds-timeline__content"><p class="ds-timeline__title">Customs release</p><p class="ds-timeline__meta">Due Sep 24</p></div></li>
+        <li class="ds-timeline__item" data-state="overdue"><span class="ds-timeline__marker"></span><div class="ds-timeline__content"><p class="ds-timeline__title">Trucking dispatch</p><p class="ds-timeline__meta">Was due Sep 26</p></div></li>
+        <li class="ds-timeline__item" data-state="upcoming"><span class="ds-timeline__marker"></span><div class="ds-timeline__content"><p class="ds-timeline__title">Delivery and POD</p><p class="ds-timeline__meta">Oct 3</p></div></li>
+      </ol>
+      <h3 style="margin-top:24px">Document version history <span class="ds-muted" style="font-weight:400;font-size:var(--t1m-text-sm)">(compact)</span></h3>
+      <ol class="ds-timeline ds-timeline--compact" aria-label="Document version history">
+        <li class="ds-timeline__item" data-state="done"><span class="ds-timeline__marker"></span><div class="ds-timeline__content"><p class="ds-timeline__title">v2 uploaded</p><p class="ds-timeline__meta">Sep 8 · Sample User</p></div></li>
+        <li class="ds-timeline__item" data-state="rejected"><span class="ds-timeline__marker"></span><div class="ds-timeline__content"><p class="ds-timeline__title">v1 rejected</p><p class="ds-timeline__meta">Sep 6 · Demo Coordinator</p></div></li>
+      </ol>
+    </div>
+
+    <h3>Billing readiness checklist</h3>
+    <div class="demo demo--flush"><ul class="ds-checklist" style="padding:0 16px">
+      <li class="ds-checklist__item" data-state="pass"><svg class="ds-icon ds-checklist__icon"><use href="#i-check"/></svg><div><div class="ds-checklist__label">Bill of lading approved</div><div class="ds-checklist__detail">Approved Sep 8 by Sample User</div></div></li>
+      <li class="ds-checklist__item" data-state="fail"><svg class="ds-icon ds-checklist__icon"><use href="#i-alert"/></svg><div><div class="ds-checklist__label">Commercial invoice rejected</div><div class="ds-checklist__detail">Amounts do not match packing list</div></div><span class="ds-checklist__action"><button class="ds-btn ds-btn--ghost ds-btn--sm">Review</button></span></li>
+      <li class="ds-checklist__item" data-state="pending"><svg class="ds-icon ds-checklist__icon"><use href="#i-clock"/></svg><div><div class="ds-checklist__label">Packing list</div><div class="ds-checklist__detail">Awaiting upload</div></div></li>
+    </ul></div>
+
+    <h3>Choice cards</h3>
+    <p>Used for delivery outcome and other either/or decisions where the options are worth explaining, not just naming.</p>
+    <div class="demo demo--flush"><div class="ds-choices" role="radiogroup" aria-label="Delivery outcome" style="padding:16px">
+      <label class="ds-choice"><input type="radio" name="outcome" class="ds-vh" checked><span class="ds-choice__icon"><svg class="ds-icon"><use href="#i-check"/></svg></span><span class="ds-choice__title">Complete</span><span class="ds-choice__desc">Delivered in full, no issues</span></label>
+      <label class="ds-choice" data-tone="danger"><input type="radio" name="outcome" class="ds-vh"><span class="ds-choice__icon"><svg class="ds-icon"><use href="#i-alert"/></svg></span><span class="ds-choice__title">Damaged</span><span class="ds-choice__desc">Cargo arrived with visible damage</span></label>
+      <label class="ds-choice" data-tone="warning"><input type="radio" name="outcome" class="ds-vh"><span class="ds-choice__icon"><svg class="ds-icon"><use href="#i-box"/></svg></span><span class="ds-choice__title">Incomplete</span><span class="ds-choice__desc">Fewer pieces than the manifest</span></label>
     </div></div>
   </section>
 

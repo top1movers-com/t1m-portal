@@ -244,7 +244,7 @@ Soft, modern radii: 8px (`--t1m-radius-sm`) for controls and nav items, 12px (`-
 - Sortable headers are buttons inside `th` with `aria-sort` and a chevron; a checkbox column feeds a bulk bar (Navy Wash, count + actions) above the table; the pager carries a page-size select; `/` focuses search (shown as a `kbd` hint). Under 640px, `ds-table--stack` turns rows into labeled cards.
 
 ### Tabs
-- 40px, weight 400 in Ink 2; hover and selected grow to weight 600 in navy (200ms, width reserved). Selected also gets a 3px Signal Red underline.
+- 40px, weight 400 in Ink 2; hover and selected grow to weight 600 in navy (200ms, width reserved). Selected also gets a 3px Signal Red underline. A tab may carry a `ds-tab__count` chip after its label (quiet grey by default, `--danger` or `--warning` for an alerting count); it sits beside the label without disturbing the reserved-width weight transition.
 
 ### Alerts
 - Tinted status background, matching-hue border at 25%, icon + bold title + one sentence naming problem and recovery. Inline; a modal only when the user must decide before continuing.
@@ -275,6 +275,22 @@ Soft, modern radii: 8px (`--t1m-radius-sm`) for controls and nav items, 12px (`-
 
 ### Drawer
 - Right-side, up to 480px, floating shadow. Preferred over modals for record detail and quick edit.
+- `.ds-drawer` doubles as a native `<dialog>`: `dialog.ds-drawer` adds fixed, full-height, right-anchored positioning, a `--t1m-scrim` backdrop, and a reduced-motion-aware slide-in, going full width under 640px, without changing the static `.ds-drawer` reference look.
+
+### Dialog
+- `ds-dialog`, a native `<dialog>` opened with `showModal()`. Reserved for a decision the user must make before continuing: completing a task with evidence, rejecting a document with a reason. If a drawer, inline edit, or page can do it, use that instead. Header, body, and footer slots; actions in the footer are right-aligned with the primary last. `ds-dialog--lg` for a wider dialog (a form with several fields). White surface, `--t1m-radius-lg`, `--t1m-shadow-float`, scrim from `--t1m-scrim` on `::backdrop`. Under 640px it becomes a bottom sheet, full width with rounded top corners. Enters with a short fade and slide, skipped under reduced motion.
+
+### Dropzone and file chip
+- `ds-dropzone`, a file `<label>` with a dashed Border Strong outline; hover and focus-within switch to the navy field border and halo, `data-state="dragover"` fills Navy Tint, `aria-invalid="true"` (or `ds-dropzone--invalid`) shows the danger border. `ds-dropzone--compact` is a single-line variant for a smaller upload slot. Each attached file is a `ds-file` row (icon, truncating name, meta line, optional `ds-progress`, ghost icon remove button) inside a `ds-files` list.
+
+### Timeline
+- `ds-timeline`, a vertical stepper for the job milestone history, document version history, and approval log. Same state semantics as the milestone track: done is a solid navy dot and line, current is ringed navy, overdue and rejected are danger, upcoming is hollow. `ds-timeline--compact` tightens spacing for a version list.
+
+### Checklist
+- `ds-checklist`, used for billing readiness. Each row states its status as color, icon, and word together (pass in Success, fail in Danger, pending in Ink 3), with an optional detail line and a right-aligned action.
+
+### Choice cards
+- `ds-choices` is a `radiogroup` of `ds-choice` cards for an either/or decision worth explaining, not just naming (delivery outcome: Complete, Damaged, Incomplete). Checked state is a Harbour Navy border and Navy Tint fill, never a side stripe; `data-tone="danger"` or `"warning"` tints only the icon.
 
 ## Do's and Don'ts
 
