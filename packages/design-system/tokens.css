@@ -81,9 +81,9 @@
   --t1m-space-12: 48px;
 
   /* ---- Shape ---- */
-  --t1m-radius-sm: 4px;      /* inputs, buttons, pills-not-round */
-  --t1m-radius-md: 6px;      /* panels, menus */
-  --t1m-radius-lg: 10px;     /* drawers, dialogs */
+  --t1m-radius-sm: 8px;      /* inputs, buttons, nav items */
+  --t1m-radius-md: 12px;     /* panels, menus, alerts */
+  --t1m-radius-lg: 16px;     /* drawers, dialogs */
   --t1m-radius-full: 999px;  /* avatars, status dots only */
 
   /* ---- Elevation: flat by default; shadow only on things that float ---- */

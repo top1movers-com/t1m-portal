@@ -60,9 +60,9 @@ typography:
     fontFamily: "ui-monospace, Cascadia Mono, Consolas, Courier New, monospace"
     fontSize: "0.92em"
 rounded:
-  sm: "4px"
-  md: "6px"
-  lg: "10px"
+  sm: "8px"
+  md: "12px"
+  lg: "16px"
   full: "999px"
 spacing:
   xs: "4px"
@@ -195,21 +195,21 @@ Flat and outlined. Panels have a 1px border (#DCE3EE) and no shadow. Only elemen
 
 ## Shapes
 
-Small, square-leaning radii to echo the client's crisp look: 4px for controls and pills, 6px for panels and menus, 10px (`--t1m-radius-lg`) held for dialogs; the edge-anchored drawer has square corners. Only avatars, status dots, nav count chips, and milestone dots are round. Borders are 1px; the only thicker lines are the 3px brand rule and the 3px active-tab underline.
+Soft, modern radii: 8px (`--t1m-radius-sm`) for controls and nav items, 12px (`--t1m-radius-md`) for panels, menus, and alerts, 16px (`--t1m-radius-lg`) for drawers and dialogs (the edge-anchored drawer rounds its leading corners only). Status pills, nav count chips, avatars, and milestone dots are fully round. This is a deliberate step softer than the client marketing site, chosen for a friendlier, contemporary app feel. Borders are 1px; the only thicker lines are the 3px brand rule and the 3px active-tab underline.
 
 ## Components
 
 ### Buttons
-- **Shape:** 4px radius, 36px tall (30px small, 44px touch), 16px horizontal padding, 600 weight, sentence-case action label.
+- **Shape:** 8px radius, 36px tall (30px small, 44px touch), 16px horizontal padding, 600 weight, sentence-case action label.
 - **Primary:** Harbour Navy fill, white text. One per view.
 - **Secondary:** white with Border Strong outline, navy text. **Ghost:** transparent, navy text. **Danger:** Danger fill, white text; destructive actions only.
 - **States:** hover shifts fill (120ms, `--t1m-ease`), focus shows the navy ring, disabled uses Surface Muted + Ink 3, loading hides the label behind a spinner.
 
 ### Inputs / Fields
-- 36px tall, white, 1px Border Strong, 4px radius. Hover darkens border to navy; focus adds the navy ring. Invalid: Danger border plus an icon-led error line beneath naming the problem and fix. Labels sit above, 13px/600.
+- 36px tall, white, 1px Border Strong, 8px radius. Hover darkens border to navy; focus adds the navy ring. Invalid: Danger border plus an icon-led error line beneath naming the problem and fix. Labels sit above, 13px/600.
 
 ### Status pill
-- 22px tall, 4px radius, 12px/700 text with a 12px icon. Info = in progress, Success = done, Warning = needs attention soon, Danger = overdue or rejected, Brand = billing ready, neutral = not started.
+- 22px tall, fully round (pill), 12px/700 text with a 12px icon. Info = in progress, Success = done, Warning = needs attention soon, Danger = overdue or rejected, Brand = billing ready, neutral = not started.
 
 ### Tables
 - Sticky 32px uppercase header on Surface Muted; 40px rows (32px compact, 48px on phones); 1px row dividers; hover Navy Tint; selected Navy Wash. Numbers right-aligned. The whole row opens the record. Overdue dates are Danger + bold.
