@@ -1,0 +1,190 @@
+/* Milestones & Tasks — feature-local styles. Tokens only (var(--t1m-*)). */
+
+.tasks-list {
+  display: grid;
+  gap: var(--t1m-space-2);
+}
+
+.tasks-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: var(--t1m-space-3);
+  padding: var(--t1m-space-3);
+  background: var(--t1m-surface);
+  border: 1px solid var(--t1m-border);
+  border-radius: var(--t1m-radius-sm);
+}
+
+.tasks-row__main {
+  display: grid;
+  gap: var(--t1m-space-1);
+  min-width: 0;
+}
+
+.tasks-row__title-line {
+  display: flex;
+  align-items: center;
+  gap: var(--t1m-space-2);
+  flex-wrap: wrap;
+}
+
+.tasks-row__title {
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-weight: var(--t1m-w-control);
+  color: var(--t1m-ink);
+  cursor: pointer;
+  text-align: left;
+}
+
+.tasks-row__title:hover,
+.tasks-row__title:focus-visible {
+  color: var(--t1m-navy-700);
+  text-decoration: underline;
+}
+
+.tasks-row__tag {
+  text-decoration: none;
+}
+
+.tasks-row__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--t1m-space-2);
+  font-size: var(--t1m-text-xs);
+  color: var(--t1m-ink-3);
+}
+
+.tasks-row__evidence {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--t1m-space-1);
+}
+
+.tasks-row__evidence .ds-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.tasks-row__actions {
+  display: flex;
+  gap: var(--t1m-space-2);
+}
+
+.tasks-empty-row {
+  margin: 0;
+  padding: var(--t1m-space-2) 0;
+}
+
+.tasks-note {
+  margin: 0;
+}
+
+.tasks-note--tight {
+  margin: var(--t1m-space-1) 0 0;
+}
+
+.tasks-milestone-body {
+  display: grid;
+  gap: var(--t1m-space-2);
+}
+
+.tasks-milestone-body__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.tasks-system-note {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--t1m-space-1);
+}
+
+/* Milestone template editor */
+.tasks-milestones {
+  display: grid;
+  gap: var(--t1m-space-4);
+}
+
+.tasks-milestone {
+  display: grid;
+  gap: var(--t1m-space-3);
+  padding: var(--t1m-space-4);
+  background: var(--t1m-surface);
+  border: 1px solid var(--t1m-border);
+  border-radius: var(--t1m-radius-md);
+}
+
+.tasks-milestone__head {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: var(--t1m-space-3);
+}
+
+.tasks-milestone__order {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--t1m-control-h);
+  height: var(--t1m-control-h);
+  border-radius: var(--t1m-radius-full);
+  background: var(--t1m-surface-muted);
+  color: var(--t1m-ink-2);
+  font-weight: var(--t1m-w-label);
+  flex: none;
+}
+
+.tasks-milestone__name {
+  flex: 1;
+  min-width: 22ch;
+}
+
+.tasks-milestone__sla {
+  width: 10ch;
+}
+
+.tasks-milestone__switch {
+  padding-bottom: var(--t1m-space-2);
+}
+
+.tasks-milestone__actions {
+  padding-bottom: var(--t1m-space-1);
+}
+
+.tasks-milestone__note {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--t1m-space-2);
+  font-size: var(--t1m-text-xs);
+  color: var(--t1m-ink-3);
+}
+
+.tasks-milestone__note .ds-icon {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+
+.tasks-tasks {
+  display: grid;
+  gap: var(--t1m-space-2);
+  padding-top: var(--t1m-space-2);
+  border-top: 1px solid var(--t1m-border);
+}
+
+.tasks-task-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: var(--t1m-space-2);
+}
+
+.tasks-task-row__title {
+  min-width: 0;
+}
