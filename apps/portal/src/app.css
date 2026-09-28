@@ -1,0 +1,45 @@
+/*
+ * Layout glue for the portal app only. Every value is a design-system token (var(--t1m-*)).
+ * Component looks live in @t1m/design-system; feature folders keep their own CSS next to their code.
+ */
+
+/* ---------- Layout utilities ---------- */
+.app-stack { display: grid; gap: var(--t1m-space-4); align-content: start; }
+.app-stack--xs { gap: var(--t1m-space-1); }
+.app-stack--sm { gap: var(--t1m-space-2); }
+.app-stack--lg { gap: var(--t1m-space-6); }
+.app-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--t1m-space-2); }
+.app-row--tight { gap: var(--t1m-space-1); }
+.app-row--end { justify-content: flex-end; }
+.app-row--between { justify-content: space-between; }
+.app-nowrap { flex-wrap: nowrap; }
+.app-grow { flex: 1; min-width: 0; }
+.app-prose { margin: 0; max-width: 70ch; }
+
+/* ---------- Shell ---------- */
+.app-main { min-width: 0; }
+.app-topbar-actions { margin-left: auto; flex-wrap: nowrap; }
+.app-theme-cycle { display: none; }
+@media (max-width: 640px) {
+  .app-theme-cycle { display: inline-flex; }
+  .app-hide-sm { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
+
+/* ---------- Tables: the primary cell link keeps the cell's navy and opens the row ---------- */
+.app-row-link { color: inherit; text-decoration: none; }
+.app-row-link:hover { text-decoration: underline; }
+
+/* ---------- Shipment 360 ---------- */
+.app-tabpanel { padding-top: var(--t1m-space-4); }
+.app-kv { grid-template-columns: repeat(auto-fit, minmax(calc(var(--t1m-space-12) * 3), 1fr)); }
+
+/* ---------- Dialog and drawer forms: the form must not break the flex column ---------- */
+.app-dialog-form { display: contents; }
+
+/* ---------- Drawer: header title and footer are app-local layout on top of the DS dialog.ds-drawer ---------- */
+.app-drawer__title { margin: 0; font-size: var(--t1m-text-md); }
+.app-drawer__body { flex: 1; overflow-y: auto; display: grid; align-content: start; gap: var(--t1m-space-4); }
+.app-drawer__footer {
+  display: flex; justify-content: flex-end; gap: var(--t1m-space-3);
+  padding: var(--t1m-space-3) var(--t1m-space-4); border-top: 1px solid var(--t1m-border);
+}
