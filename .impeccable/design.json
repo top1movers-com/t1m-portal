@@ -1,375 +1,407 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-28T13:31:17.122Z",
+  "generatedAt": "2026-09-28T14:46:31.347Z",
   "title": "Design System: Top1Movers Operations Portal",
   "extensions": {
     "colorMeta": {
       "brand-red": {
         "role": "accent",
         "displayName": "Signal Red",
-        "canonical": "#ff0000",
-        "oklch": "oklch(62.8% 0.258 29)",
+        "canonical": "#e5383b",
+        "oklch": "oklch(60.8% 0.209 25)",
         "tonalRamp": [
-          "#1f0000",
-          "#4d0100",
-          "#800201",
-          "#b90101",
-          "#f30503",
-          "#fe7463",
-          "#feb3a7",
-          "#fee9e5"
+          "#530000",
+          "#790000",
+          "#9f0000",
+          "#c6061f",
+          "#ec4041",
+          "#ff6662",
+          "#ff8b83",
+          "#ffafa5"
         ]
       },
       "midnight": {
         "role": "primary",
         "displayName": "Midnight",
-        "canonical": "#02033b",
-        "oklch": "oklch(16.9% 0.104 267)",
+        "canonical": "#1c2050",
+        "oklch": "oklch(27.1% 0.087 275)",
         "tonalRamp": [
-          "#020035",
-          "#0e1e56",
-          "#293e79",
-          "#465e9c",
-          "#6680c1",
-          "#87a3e7",
-          "#b2c8fe",
-          "#e8eefe"
+          "#0e0d3c",
+          "#242a5a",
+          "#3e467a",
+          "#5b659b",
+          "#7a84bd",
+          "#9aa5e1",
+          "#bbc7ff",
+          "#ddebff"
         ]
       },
       "navy-deep": {
         "role": "primary",
         "displayName": "Navy Deep",
-        "canonical": "#0d0f55",
-        "oklch": "oklch(23.3% 0.121 271)",
+        "canonical": "#272d78",
+        "oklch": "oklch(34.1% 0.126 274)",
         "tonalRamp": [
-          "#040033",
-          "#13195e",
-          "#2b3a81",
-          "#485ba6",
-          "#677dcb",
-          "#89a0f1",
-          "#b6c7fe",
-          "#e8eeff"
+          "#0d004d",
+          "#20236d",
+          "#38428f",
+          "#5461b1",
+          "#7281d4",
+          "#91a3f9",
+          "#b2c5ff",
+          "#d4e8ff"
         ]
       },
       "harbour-navy": {
         "role": "primary",
         "displayName": "Harbour Navy",
-        "canonical": "#191970",
-        "oklch": "oklch(28.8% 0.144 273)",
+        "canonical": "#2F3A8F",
+        "oklch": "oklch(39.2% 0.140 272)",
         "tonalRamp": [
-          "#050032",
-          "#151069",
-          "#2c358c",
-          "#4857b1",
-          "#667ad7",
-          "#879dfe",
-          "#b7c6fe",
-          "#e9eeff"
+          "#0c0053",
+          "#1c2074",
+          "#344096",
+          "#4f60b9",
+          "#6d81dd",
+          "#8ca2ff",
+          "#adc5ff",
+          "#cfe8ff"
         ]
       },
       "navy-hover": {
         "role": "primary",
         "displayName": "Navy Hover",
-        "canonical": "#2c2f95",
-        "oklch": "oklch(37.6% 0.163 274)",
+        "canonical": "#3f4bab",
+        "oklch": "oklch(45.9% 0.153 273)",
         "tonalRamp": [
-          "#050032",
-          "#180371",
-          "#2d3096",
-          "#4853bc",
-          "#6676e2",
-          "#8a9dfe",
-          "#b8c6ff",
-          "#e9eefe"
+          "#0e0059",
+          "#1d1c7a",
+          "#343e9d",
+          "#4f5ec0",
+          "#6c7fe4",
+          "#8ba0ff",
+          "#acc3ff",
+          "#cee7ff"
         ]
       },
       "navy-wash": {
         "role": "primary",
         "displayName": "Navy Wash",
-        "canonical": "#e4e7f7",
-        "oklch": "oklch(93.0% 0.022 277)",
+        "canonical": "#e7eaf8",
+        "oklch": "oklch(93.9% 0.019 276)",
         "tonalRamp": [
-          "#090a14",
-          "#222430",
-          "#3f414e",
-          "#5e606e",
-          "#7f8190",
-          "#a1a4b3",
-          "#c5c8d8",
-          "#eaedfe"
+          "#14151f",
+          "#2d2f39",
+          "#484b56",
+          "#666975",
+          "#858895",
+          "#a6a9b6",
+          "#c8cbd8",
+          "#ebeefc"
         ]
       },
       "navy-tint": {
         "role": "primary",
         "displayName": "Navy Tint",
-        "canonical": "#f0f2fb",
-        "oklch": "oklch(96.2% 0.012 276)",
+        "canonical": "#f2f4fc",
+        "oklch": "oklch(96.8% 0.011 274)",
         "tonalRamp": [
-          "#0a0b10",
-          "#23252b",
-          "#404249",
-          "#5f6168",
-          "#80828a",
-          "#a3a5ad",
-          "#c7c9d1",
-          "#eceef7"
+          "#14161b",
+          "#2e2f35",
+          "#4a4b52",
+          "#676970",
+          "#87888f",
+          "#a7a9b0",
+          "#c9cbd3",
+          "#eceef6"
         ]
       },
       "canvas": {
         "role": "neutral",
         "displayName": "Canvas",
-        "canonical": "#f5f8fc",
-        "oklch": "oklch(97.8% 0.006 255)",
+        "canonical": "#f6f8fc",
+        "oklch": "oklch(97.9% 0.006 264)",
         "tonalRamp": [
-          "#090b0e",
-          "#232528",
-          "#404245",
-          "#5f6165",
-          "#808286",
-          "#a2a5a9",
-          "#c6c9cd",
-          "#eceff3"
+          "#151619",
+          "#2e3033",
+          "#4a4b4f",
+          "#68696d",
+          "#87898c",
+          "#a8a9ad",
+          "#c9cbcf",
+          "#eceef2"
         ]
       },
       "surface": {
         "role": "neutral",
         "displayName": "Surface",
         "canonical": "#ffffff",
-        "oklch": "oklch(100.0% 0.000 90)",
+        "oklch": "oklch(100.0% 0.000 89)",
         "tonalRamp": [
-          "#0b0b0b",
-          "#252525",
-          "#424242",
-          "#616161",
-          "#828282",
-          "#a5a5a5",
-          "#c9c9c9",
+          "#161616",
+          "#2f2f2f",
+          "#4b4b4b",
+          "#696969",
+          "#898989",
+          "#a9a9a9",
+          "#cbcbcb",
           "#eeeeee"
         ]
       },
       "surface-muted": {
         "role": "neutral",
         "displayName": "Surface Muted",
-        "canonical": "#edf1f7",
-        "oklch": "oklch(95.7% 0.009 258)",
+        "canonical": "#eff2f8",
+        "oklch": "oklch(96.1% 0.009 264)",
         "tonalRamp": [
-          "#090b0f",
-          "#22252a",
-          "#3f4247",
-          "#5e6166",
-          "#7f8388",
-          "#a2a5ab",
-          "#c5c9cf",
-          "#ebeff5"
+          "#14161a",
+          "#2d3034",
+          "#494c50",
+          "#67696e",
+          "#86898e",
+          "#a7a9af",
+          "#c9cbd1",
+          "#ebeef4"
         ]
       },
       "border": {
         "role": "neutral",
         "displayName": "Border",
-        "canonical": "#dce3ee",
-        "oklch": "oklch(91.4% 0.017 259)",
+        "canonical": "#e3e8f1",
+        "oklch": "oklch(93.0% 0.013 262)",
         "tonalRamp": [
-          "#070b12",
-          "#20252d",
-          "#3d424b",
-          "#5c626b",
-          "#7c838d",
-          "#9fa5b0",
-          "#c3cad4",
-          "#e8effa"
+          "#13161c",
+          "#2c3037",
+          "#484c53",
+          "#656971",
+          "#848991",
+          "#a5aab2",
+          "#c7ccd4",
+          "#eaeff8"
         ]
       },
       "border-strong": {
         "role": "neutral",
         "displayName": "Border Strong",
-        "canonical": "#8492aa",
-        "oklch": "oklch(84.6% 0.025 260)",
+        "canonical": "#8794ae",
+        "oklch": "oklch(66.5% 0.042 264)",
         "tonalRamp": [
-          "#0c1628",
-          "#243044",
-          "#404c61",
-          "#5d6a81",
-          "#7c89a1",
-          "#9caac3",
-          "#bdcce6",
-          "#e0efff"
+          "#0c1529",
+          "#252f45",
+          "#404b63",
+          "#5d6982",
+          "#7c89a3",
+          "#9caac4",
+          "#becce7",
+          "#e1efff"
         ]
       },
       "ink": {
         "role": "neutral",
         "displayName": "Ink",
-        "canonical": "#14163a",
-        "oklch": "oklch(22.2% 0.068 277)",
+        "canonical": "#262b52",
+        "oklch": "oklch(30.6% 0.070 275)",
         "tonalRamp": [
-          "#060527",
-          "#1d2046",
-          "#393e66",
-          "#575e88",
-          "#787fac",
-          "#9aa2d0",
-          "#bdc6f6",
-          "#eaeefe"
+          "#0f1035",
+          "#262b52",
+          "#414871",
+          "#5e6692",
+          "#7d85b3",
+          "#9da6d6",
+          "#bec8fa",
+          "#e1ebff"
         ]
       },
       "ink-2": {
         "role": "neutral",
         "displayName": "Ink 2",
-        "canonical": "#4a5170",
-        "oklch": "oklch(44.2% 0.052 274)",
+        "canonical": "#545b7c",
+        "oklch": "oklch(47.9% 0.054 274)",
         "tonalRamp": [
-          "#060820",
-          "#1d233e",
-          "#39405e",
-          "#585f7f",
-          "#7880a2",
-          "#9ba3c6",
-          "#bec7ec",
-          "#eaeefe"
+          "#0f132e",
+          "#282d4b",
+          "#434969",
+          "#606789",
+          "#7f87aa",
+          "#9fa7cc",
+          "#c1c9ef",
+          "#e3edff"
         ]
       },
       "ink-3": {
         "role": "neutral",
         "displayName": "Ink 3",
-        "canonical": "#5f6788",
-        "oklch": "oklch(52.0% 0.053 274)",
+        "canonical": "#5d6485",
+        "oklch": "oklch(51.0% 0.053 275)",
         "tonalRamp": [
-          "#060821",
-          "#1d233f",
-          "#39405e",
-          "#575f80",
-          "#7880a3",
-          "#9aa3c7",
-          "#bec7ed",
-          "#e9eeff"
+          "#10132e",
+          "#282d4a",
+          "#434969",
+          "#606788",
+          "#7f87a9",
+          "#9fa7cc",
+          "#c1c9ef",
+          "#e4edff"
         ]
       },
       "danger": {
         "role": "status",
         "displayName": "Danger",
-        "canonical": "#b42318",
-        "oklch": "oklch(50.0% 0.182 30)",
+        "canonical": "#b3372d",
+        "oklch": "oklch(51.9% 0.162 28)",
         "tonalRamp": [
-          "#1f0000",
-          "#4d0000",
-          "#800200",
-          "#b12015",
-          "#da4a3b",
-          "#fe7462",
-          "#feb3a7",
-          "#fee9e5"
+          "#470000",
+          "#6b0000",
+          "#8f0c0b",
+          "#b4382e",
+          "#d95a4d",
+          "#ff7c6d",
+          "#ff9f8e",
+          "#ffc2b0"
         ]
       },
       "danger-bg": {
         "role": "status",
         "displayName": "Danger Bg",
-        "canonical": "#fdecea",
-        "oklch": "oklch(95.6% 0.019 26)",
+        "canonical": "#fbeceb",
+        "oklch": "oklch(95.5% 0.016 22)",
         "tonalRamp": [
-          "#120807",
-          "#2e2220",
-          "#4c3e3d",
-          "#6c5d5c",
-          "#8d7e7d",
-          "#b1a19f",
-          "#d5c5c3",
-          "#fbeae8"
+          "#1d1313",
+          "#382c2c",
+          "#544847",
+          "#736665",
+          "#928584",
+          "#b4a6a5",
+          "#d6c8c7",
+          "#f9eae9"
         ]
       },
       "warning": {
         "role": "status",
         "displayName": "Warning",
-        "canonical": "#9a4a05",
-        "oklch": "oklch(50.1% 0.127 52)",
+        "canonical": "#93500f",
+        "oklch": "oklch(50.2% 0.114 57)",
         "tonalRamp": [
-          "#170600",
-          "#3d1a01",
-          "#693001",
-          "#974800",
-          "#bd6a31",
-          "#e38d56",
-          "#feb78c",
-          "#feeade"
+          "#370000",
+          "#571800",
+          "#783700",
+          "#995618",
+          "#bc753d",
+          "#e0965e",
+          "#ffb87f",
+          "#ffdba1"
         ]
       },
       "warning-bg": {
         "role": "status",
         "displayName": "Warning Bg",
-        "canonical": "#fef3e2",
-        "oklch": "oklch(96.8% 0.025 79)",
+        "canonical": "#fdf3e3",
+        "oklch": "oklch(96.8% 0.024 79)",
         "tonalRamp": [
-          "#110a02",
-          "#2c2417",
-          "#494133",
-          "#696051",
-          "#8b8172",
-          "#aea494",
-          "#d2c8b7",
-          "#f8eddc"
+          "#1c1509",
+          "#362e22",
+          "#524a3d",
+          "#71685a",
+          "#908779",
+          "#b1a899",
+          "#d4cabb",
+          "#f7eddd"
         ]
       },
       "success": {
         "role": "status",
         "displayName": "Success",
-        "canonical": "#17794a",
-        "oklch": "oklch(51.0% 0.114 156)",
+        "canonical": "#1f7a55",
+        "oklch": "oklch(51.7% 0.103 161)",
         "tonalRamp": [
-          "#000f05",
-          "#012e18",
-          "#01502d",
-          "#0d7445",
-          "#3d9665",
-          "#62ba87",
-          "#87e0ab",
-          "#c5ffda"
+          "#002205",
+          "#003e1e",
+          "#005c39",
+          "#217b56",
+          "#479c75",
+          "#69be95",
+          "#8ce1b6",
+          "#afffd9"
         ]
       },
       "success-bg": {
         "role": "status",
         "displayName": "Success Bg",
-        "canonical": "#e6f4ec",
-        "oklch": "oklch(95.5% 0.018 161)",
+        "canonical": "#e8f4ee",
+        "oklch": "oklch(95.7% 0.015 164)",
         "tonalRamp": [
-          "#050e09",
-          "#1d2822",
-          "#3a453f",
-          "#59655e",
-          "#79867f",
-          "#9ca9a1",
-          "#bfcdc5",
-          "#e5f2eb"
+          "#101814",
+          "#29322e",
+          "#444e49",
+          "#626c67",
+          "#818c86",
+          "#a1ada7",
+          "#c3cfc9",
+          "#e6f2ec"
         ]
       },
       "info": {
         "role": "status",
         "displayName": "Info",
-        "canonical": "#1d5fc4",
-        "oklch": "oklch(50.5% 0.171 259)",
+        "canonical": "#2b62c0",
+        "oklch": "oklch(51.2% 0.159 260)",
         "tonalRamp": [
-          "#000924",
-          "#002156",
-          "#003b8f",
-          "#195bc0",
-          "#3d7fe7",
-          "#6ca5ff",
-          "#aacbff",
-          "#e5efff"
+          "#00005c",
+          "#00237d",
+          "#0c44a0",
+          "#2e65c3",
+          "#4d86e7",
+          "#6da8ff",
+          "#8ecbff",
+          "#b0efff"
         ]
       },
       "info-bg": {
         "role": "status",
         "displayName": "Info Bg",
-        "canonical": "#e8f0fc",
-        "oklch": "oklch(95.3% 0.018 258)",
+        "canonical": "#e9f0fb",
+        "oklch": "oklch(95.3% 0.017 259)",
         "tonalRamp": [
-          "#070b13",
-          "#20252e",
-          "#3c424c",
-          "#5b626c",
-          "#7c838e",
-          "#9ea6b1",
-          "#c2cad5",
-          "#e7effb"
+          "#12161e",
+          "#2b3038",
+          "#464c55",
+          "#646a73",
+          "#838993",
+          "#a3aab4",
+          "#c5ccd7",
+          "#e8effa"
+        ]
+      },
+      "danger-hover": {
+        "role": "status",
+        "displayName": "Danger Pressed",
+        "canonical": "#922c24",
+        "oklch": "oklch(44.8% 0.138 28)",
+        "tonalRamp": [
+          "#420000",
+          "#640000",
+          "#87211a",
+          "#ab4339",
+          "#cf6457",
+          "#f48577",
+          "#ffa798",
+          "#ffcaba"
+        ]
+      },
+      "ink-on-midnight": {
+        "role": "neutral",
+        "displayName": "Ink on Midnight",
+        "canonical": "#c4c9ea",
+        "oklch": "oklch(84.3% 0.046 278)",
+        "tonalRamp": [
+          "#12132a",
+          "#2a2d47",
+          "#464965",
+          "#636784",
+          "#8286a5",
+          "#a2a7c7",
+          "#c4c9ea",
+          "#e7ecff"
         ]
       }
     },
@@ -401,6 +433,10 @@
       "data": {
         "displayName": "Data",
         "purpose": "Job IDs, container numbers, BL numbers."
+      },
+      "nav": {
+        "displayName": "Nav",
+        "purpose": "Sidebar and tab labels: regular (400) at rest, 600 on hover or current, with a smooth weight transition."
       }
     },
     "shadows": [
@@ -459,23 +495,23 @@
       "refersTo": "button-primary",
       "description": "The single navy action per view.",
       "html": "<button class=\"ds-btn ds-btn--primary\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"m5 12.5 4.5 4.5L19 7.5\"/></svg>Create quotation</button>",
-      "css": ".ds-icon{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}.ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--t1m-space-2);height:var(--t1m-control-h);padding:0 var(--t1m-space-4);border:1px solid transparent;border-radius:var(--t1m-radius-sm);font:600 var(--t1m-text-base)/1 var(--t1m-font-body);cursor:pointer;white-space:nowrap;transition:background var(--t1m-dur-fast) var(--t1m-ease),border-color var(--t1m-dur-fast) var(--t1m-ease)}.ds-btn--primary{background:var(--t1m-navy-700);color:var(--t1m-ink-inverse)}.ds-btn--primary:hover{background:var(--t1m-navy-600)}.ds-btn--primary:active{background:var(--t1m-navy-800)}.ds-btn--primary:focus-visible{outline:none;box-shadow:var(--t1m-focus-ring)}"
+      "css": ".ds-icon{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}.ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--t1m-space-2);height:var(--t1m-control-h);padding:0 var(--t1m-space-4);border:1px solid transparent;border-radius:var(--t1m-radius-sm);font:var(--t1m-w-control) var(--t1m-text-base)/1 var(--t1m-font-chrome);cursor:pointer;white-space:nowrap;transition:background var(--t1m-dur-fast) var(--t1m-ease),border-color var(--t1m-dur-fast) var(--t1m-ease)}.ds-btn--primary{background:var(--t1m-navy-700);color:var(--t1m-ink-inverse)}.ds-btn--primary:hover{background:var(--t1m-navy-600)}.ds-btn--primary:active{background:var(--t1m-navy-800)}.ds-btn--primary:focus-visible{outline:none;box-shadow:var(--t1m-focus-ring)}"
     },
     {
       "name": "Secondary Button",
       "kind": "button",
       "refersTo": "button-secondary",
-      "description": "White with strong outline for supporting actions.",
+      "description": "Tonal secondary action: soft navy fill, no outline.",
       "html": "<button class=\"ds-btn ds-btn--secondary\">Save draft</button>",
-      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--t1m-space-2);height:var(--t1m-control-h);padding:0 var(--t1m-space-4);border:1px solid transparent;border-radius:var(--t1m-radius-sm);font:600 var(--t1m-text-base)/1 var(--t1m-font-body);cursor:pointer;white-space:nowrap;transition:background var(--t1m-dur-fast) var(--t1m-ease),border-color var(--t1m-dur-fast) var(--t1m-ease)}.ds-btn--secondary{background:var(--t1m-surface);color:var(--t1m-navy-700);border-color:var(--t1m-border-strong)}.ds-btn--secondary:hover{background:var(--t1m-navy-50);border-color:var(--t1m-navy-700)}.ds-btn--secondary:focus-visible{outline:none;box-shadow:var(--t1m-focus-ring)}"
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--t1m-space-2);height:var(--t1m-control-h);padding:0 var(--t1m-space-4);border:1px solid transparent;border-radius:var(--t1m-radius-sm);font:var(--t1m-w-control) var(--t1m-text-base)/1 var(--t1m-font-chrome);cursor:pointer;white-space:nowrap;transition:background var(--t1m-dur-fast) var(--t1m-ease),border-color var(--t1m-dur-fast) var(--t1m-ease)}.ds-btn--secondary{background:var(--t1m-navy-50);color:var(--t1m-navy-700);border-color:var(--t1m-border-strong)}.ds-btn--secondary:hover{background:var(--t1m-navy-50);border-color:var(--t1m-navy-700)}.ds-btn--secondary:focus-visible{outline:none;box-shadow:var(--t1m-focus-ring)}"
     },
     {
-      "name": "Search Input",
+      "name": "Text Input",
       "kind": "input",
       "refersTo": "input",
-      "description": "36px field, strong border, navy on hover and focus, with a leading icon.",
-      "html": "<div class=\"ds-field\"><label for=\"ds-q\">Search jobs</label><div class=\"ds-search\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"6.5\"/><path d=\"m20 20-4.2-4.2\"/></svg><input id=\"ds-q\" class=\"ds-input\" placeholder=\"TMW-2026-00412\"></div></div>",
-      "css": ".ds-icon{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}.ds-field{display:grid;gap:var(--t1m-space-1)}.ds-field label{font:600 var(--t1m-text-sm) var(--t1m-font-body);color:var(--t1m-ink)}.ds-search{position:relative}.ds-search .ds-icon{position:absolute;left:var(--t1m-space-3);top:50%;translate:0 -50%;color:var(--t1m-ink-3)}.ds-input{width:100%;height:var(--t1m-control-h);padding:0 var(--t1m-space-3) 0 36px;background:var(--t1m-surface);color:var(--t1m-ink);border:1px solid var(--t1m-border-strong);border-radius:var(--t1m-radius-sm);font:400 var(--t1m-text-base) var(--t1m-font-body);transition:border-color var(--t1m-dur-fast) var(--t1m-ease)}.ds-input::placeholder{color:var(--t1m-ink-3)}.ds-input:hover{border-color:var(--t1m-navy-700)}.ds-input:focus,.ds-input:focus-visible{outline:none;border-color:var(--t1m-navy-700);box-shadow:var(--t1m-focus-ring)}"
+      "description": "Field with a soft navy focus halo; error swaps to a red halo.",
+      "html": "<div class=\"ds-field\"><label for=\"c\">Customer</label><input id=\"c\" class=\"ds-input\" placeholder=\"Search customers\"><span class=\"ds-field__hint\">Type at least 3 characters.</span></div>",
+      "css": ".ds-field{display:grid;gap:6px;width:240px}.ds-field label{font-family:var(--t1m-font-chrome);font-size:var(--t1m-text-sm);font-weight:var(--t1m-w-control);color:var(--t1m-ink)}.ds-input{width:100%;height:var(--t1m-control-h);padding:0 var(--t1m-space-3);background:var(--t1m-surface);color:var(--t1m-ink);border:1px solid var(--t1m-border-strong);border-radius:var(--t1m-radius-sm);font:400 var(--t1m-text-base) var(--t1m-font-body);box-shadow:var(--t1m-field-shadow);transition:border-color var(--t1m-dur-fast) var(--t1m-ease),box-shadow var(--t1m-dur-base) var(--t1m-ease)}.ds-input::placeholder{color:var(--t1m-ink-3)}.ds-input:hover{border-color:var(--t1m-ink-3)}.ds-input:focus{outline:none;border-color:var(--t1m-navy-700);box-shadow:var(--t1m-field-focus)}.ds-field__hint{font-size:var(--t1m-text-xs);color:var(--t1m-ink-2)}"
     },
     {
       "name": "Status Pill",
@@ -483,23 +519,23 @@
       "refersTo": "",
       "description": "22px pill: color, icon, and word together.",
       "html": "<span style=\"display:inline-flex;gap:8px;flex-wrap:wrap\"><span class=\"ds-pill ds-pill--info\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"8.5\"/><path d=\"M12 7.5V12l3 2\"/></svg>In progress</span><span class=\"ds-pill ds-pill--success\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"m5 12.5 4.5 4.5L19 7.5\"/></svg>Delivered</span><span class=\"ds-pill ds-pill--warning\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 4 3 19.5h18z\"/><path d=\"M12 10v4.5M12 17.5v.01\"/></svg>Missing</span><span class=\"ds-pill ds-pill--danger\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 4 3 19.5h18z\"/><path d=\"M12 10v4.5M12 17.5v.01\"/></svg>Overdue</span></span>",
-      "css": ".ds-icon{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}.ds-pill{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 var(--t1m-space-2);border-radius:var(--t1m-radius-sm);font:700 var(--t1m-text-xs)/1 var(--t1m-font-body);white-space:nowrap;background:var(--t1m-surface-muted);color:var(--t1m-ink-2)}.ds-pill .ds-icon{width:12px;height:12px;stroke-width:2.25}.ds-pill--info{background:var(--t1m-info-bg);color:var(--t1m-info)}.ds-pill--success{background:var(--t1m-success-bg);color:var(--t1m-success)}.ds-pill--warning{background:var(--t1m-warning-bg);color:var(--t1m-warning)}.ds-pill--danger{background:var(--t1m-danger-bg);color:var(--t1m-danger)}"
+      "css": ".ds-icon{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}.ds-pill{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 var(--t1m-space-2);border-radius:var(--t1m-radius-sm);font:var(--t1m-w-label) var(--t1m-text-xs)/1 var(--t1m-font-chrome);white-space:nowrap;background:var(--t1m-surface-muted);color:var(--t1m-ink-2)}.ds-pill .ds-icon{width:12px;height:12px;stroke-width:2.25}.ds-pill--info{background:var(--t1m-info-bg);color:var(--t1m-info)}.ds-pill--success{background:var(--t1m-success-bg);color:var(--t1m-success)}.ds-pill--warning{background:var(--t1m-warning-bg);color:var(--t1m-warning)}.ds-pill--danger{background:var(--t1m-danger-bg);color:var(--t1m-danger)}"
     },
     {
       "name": "Nav Item (current)",
       "kind": "nav",
       "refersTo": "nav-item-current",
-      "description": "Current item is a solid navy fill; others are quiet with a Navy Tint hover.",
-      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav__item\" href=\"#\" aria-current=\"page\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"4\" y=\"4\" width=\"7\" height=\"8\"/><rect x=\"13\" y=\"4\" width=\"7\" height=\"5\"/><rect x=\"13\" y=\"11\" width=\"7\" height=\"9\"/><rect x=\"4\" y=\"14\" width=\"7\" height=\"6\"/></svg><span>Dashboard</span></a><a class=\"ds-nav__item\" href=\"#\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"m12 3 8 4v10l-8 4-8-4V7z\"/><path d=\"m4 7 8 4 8-4M12 11v10\"/></svg><span>Shipment jobs</span><em class=\"ds-nav__count\">1,284</em></a></nav>",
-      "css": ".ds-icon{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}.ds-nav{display:grid;gap:2px;width:220px}.ds-nav__item{display:flex;align-items:center;gap:var(--t1m-space-3);height:36px;padding:0 var(--t1m-space-3);border-radius:var(--t1m-radius-sm);color:var(--t1m-ink-2);text-decoration:none;font:600 var(--t1m-text-base) var(--t1m-font-body);white-space:nowrap}.ds-nav__item:hover{background:var(--t1m-navy-50);color:var(--t1m-navy-700)}.ds-nav__item:focus-visible{outline:none;box-shadow:var(--t1m-focus-ring)}.ds-nav__item[aria-current=\"page\"]{background:var(--t1m-navy-700);color:var(--t1m-ink-inverse)}.ds-nav__count{margin-left:auto;font:700 var(--t1m-text-xs) var(--t1m-font-body);font-style:normal;background:var(--t1m-surface-muted);color:var(--t1m-ink-2);padding:1px 7px;border-radius:var(--t1m-radius-full)}"
+      "description": "Sidebar item: light weight at rest, heavier on hover, navy wash when current.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav__item\" href=\"#\" aria-current=\"page\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\"><rect x=\"4\" y=\"4\" width=\"7\" height=\"8\"/><rect x=\"13\" y=\"4\" width=\"7\" height=\"5\"/><rect x=\"13\" y=\"11\" width=\"7\" height=\"9\"/><rect x=\"4\" y=\"14\" width=\"7\" height=\"6\"/></svg><span data-text=\"Dashboard\">Dashboard</span></a><a class=\"ds-nav__item\" href=\"#\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\"><path d=\"m12 3 8 4v10l-8 4-8-4V7z\"/><path d=\"m4 7 8 4 8-4M12 11v10\"/></svg><span data-text=\"Shipment jobs\">Shipment jobs</span></a></nav>",
+      "css": ".ds-icon{width:var(--t1m-icon-nav);height:var(--t1m-icon-nav);flex:none;fill:none;stroke:currentColor;stroke-width:var(--t1m-icon-stroke);stroke-linecap:round;stroke-linejoin:round}.ds-nav{display:grid;gap:2px;width:220px}.ds-nav__item{display:flex;align-items:center;gap:var(--t1m-space-3);height:36px;padding:0 var(--t1m-space-3);border-radius:var(--t1m-radius-sm);color:var(--t1m-ink-2);text-decoration:none;font-family:var(--t1m-font-chrome);font-weight:var(--t1m-w-nav);font-size:var(--t1m-text-base);white-space:nowrap;transition:background var(--t1m-dur-base) var(--t1m-ease),color var(--t1m-dur-base) var(--t1m-ease)}.ds-nav__item>span{display:inline-grid;transition:font-weight var(--t1m-dur-base) var(--t1m-ease)}.ds-nav__item>span::after{content:attr(data-text);font-weight:var(--t1m-w-nav-active);height:0;overflow:hidden;visibility:hidden}.ds-nav__item:hover,.ds-nav__item:focus-visible{background:var(--t1m-nav-hover-bg);color:var(--t1m-navy-700)}.ds-nav__item:hover>span,.ds-nav__item:focus-visible>span,.ds-nav__item[aria-current=\"page\"]>span{font-weight:var(--t1m-w-nav-active)}.ds-nav__item:focus-visible{outline:none;box-shadow:var(--t1m-focus-ring)}.ds-nav__item[aria-current=\"page\"]{background:var(--t1m-nav-current-bg);color:var(--t1m-nav-current-ink)}"
     },
     {
       "name": "Table Row",
       "kind": "custom",
       "refersTo": "table-row",
-      "description": "Dense 40px rows on a muted uppercase header; hover Navy Tint, selected Navy Wash.",
-      "html": "<table class=\"ds-table\"><thead><tr><th>Job</th><th>Status</th><th class=\"ds-num\">ETA</th></tr></thead><tbody><tr><td class=\"ds-mono\">TMW-2026-00412</td><td><span class=\"ds-pill ds-pill--info\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"8.5\"/><path d=\"M12 7.5V12l3 2\"/></svg>In progress</span></td><td class=\"ds-num\">12 Mar</td></tr><tr aria-selected=\"true\"><td class=\"ds-mono\">TMW-2026-00409</td><td><span class=\"ds-pill ds-pill--danger\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 4 3 19.5h18z\"/><path d=\"M12 10v4.5M12 17.5v.01\"/></svg>Overdue</span></td><td class=\"ds-num ds-overdue\">04 Mar</td></tr></tbody></table>",
-      "css": ".ds-icon{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}.ds-pill{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 var(--t1m-space-2);border-radius:var(--t1m-radius-sm);font:700 var(--t1m-text-xs)/1 var(--t1m-font-body);white-space:nowrap;background:var(--t1m-surface-muted);color:var(--t1m-ink-2)}.ds-pill .ds-icon{width:12px;height:12px;stroke-width:2.25}.ds-pill--info{background:var(--t1m-info-bg);color:var(--t1m-info)}.ds-pill--success{background:var(--t1m-success-bg);color:var(--t1m-success)}.ds-pill--warning{background:var(--t1m-warning-bg);color:var(--t1m-warning)}.ds-pill--danger{background:var(--t1m-danger-bg);color:var(--t1m-danger)}.ds-table{width:100%;border-collapse:collapse;font:400 var(--t1m-text-sm) var(--t1m-font-body);color:var(--t1m-ink);font-variant-numeric:tabular-nums}.ds-table th{text-align:left;height:var(--t1m-row-h-compact);padding:0 var(--t1m-space-3);background:var(--t1m-surface-muted);color:var(--t1m-ink-2);font-size:var(--t1m-text-xs);font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-bottom:1px solid var(--t1m-border-strong)}.ds-table td{height:var(--t1m-row-h);padding:0 var(--t1m-space-3);border-bottom:1px solid var(--t1m-border)}.ds-table tbody tr{cursor:pointer}.ds-table tbody tr:hover{background:var(--t1m-navy-50)}.ds-table tbody tr[aria-selected=\"true\"]{background:var(--t1m-navy-100)}.ds-table .ds-num{text-align:right}.ds-mono{font-family:var(--t1m-font-mono);font-size:.92em}.ds-overdue{color:var(--t1m-danger);font-weight:700}"
+      "description": "Job row: emphasized ID, two-line customer, inset rounded hover, actions on hover.",
+      "html": "<table class=\"ds-table\"><thead><tr><th>Job ID</th><th>Customer</th><th>Status</th></tr></thead><tbody><tr data-href=\"#\"><td class=\"ds-cell-primary\">TMW-2026-00412</td><td><span class=\"ds-cell-name\">Sample Trading Co.<span class=\"ds-cell-sub\">Import, sea freight</span></span></td><td><span class=\"ds-pill ds-pill--info\">In transit</span></td></tr></tbody></table>",
+      "css": ".ds-table{width:400px;border-collapse:separate;border-spacing:0;font-size:var(--t1m-text-base)}.ds-table th{height:44px;padding:0 var(--t1m-space-4);text-align:left;background:var(--t1m-surface);color:var(--t1m-ink-3);font-family:var(--t1m-font-chrome);font-size:var(--t1m-text-xs);font-weight:var(--t1m-w-label);letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid var(--t1m-border)}.ds-table td{height:var(--t1m-row-h);padding:0 var(--t1m-space-4);border-bottom:1px solid var(--t1m-border);vertical-align:middle;transition:background var(--t1m-dur-fast) var(--t1m-ease)}.ds-table tbody tr:hover td{background:var(--t1m-navy-50);border-bottom-color:transparent}.ds-table tbody tr:hover td:first-child{border-radius:var(--t1m-radius-sm) 0 0 var(--t1m-radius-sm)}.ds-table tbody tr:hover td:last-child{border-radius:0 var(--t1m-radius-sm) var(--t1m-radius-sm) 0}.ds-cell-primary{color:var(--t1m-navy-700);font-weight:var(--t1m-w-control)}.ds-cell-name{display:grid;line-height:1.3}.ds-cell-sub{font-size:var(--t1m-text-xs);color:var(--t1m-ink-3)}.ds-pill{display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:var(--t1m-radius-full);font-size:var(--t1m-text-xs);font-weight:var(--t1m-w-label);background:var(--t1m-info-bg);color:var(--t1m-info)}"
     },
     {
       "name": "Milestone Track",
@@ -507,7 +543,7 @@
       "refersTo": "",
       "description": "Shipment 360 stepper: done, current, overdue, upcoming.",
       "html": "<ol class=\"ds-track\"><li class=\"ds-track__step\" data-state=\"done\">Booked<span class=\"ds-track__date\">02 Mar</span></li><li class=\"ds-track__step\" data-state=\"current\">In transit<span class=\"ds-track__date\">06 Mar</span></li><li class=\"ds-track__step\" data-state=\"overdue\">Customs<span class=\"ds-track__date\">08 Mar</span></li><li class=\"ds-track__step\">Delivered<span class=\"ds-track__date\">14 Mar</span></li></ol>",
-      "css": ".ds-track{list-style:none;margin:0;padding:0;display:flex;width:420px;font-family:var(--t1m-font-body)}.ds-track__step{flex:1;min-width:96px;position:relative;padding-top:28px;text-align:center;font-size:var(--t1m-text-xs);color:var(--t1m-ink-2)}.ds-track__step::before{content:\"\";position:absolute;top:9px;left:-50%;right:50%;height:2px;background:var(--t1m-border-strong)}.ds-track__step:first-child::before{display:none}.ds-track__step::after{content:\"\";position:absolute;top:2px;left:calc(50% - 8px);width:16px;height:16px;border-radius:var(--t1m-radius-full);background:var(--t1m-surface);border:2px solid var(--t1m-border-strong);z-index:1}.ds-track__step[data-state=\"done\"]+.ds-track__step::before{background:var(--t1m-navy-700)}.ds-track__step[data-state=\"done\"]::after{background:var(--t1m-navy-700);border-color:var(--t1m-navy-700)}.ds-track__step[data-state=\"current\"]{color:var(--t1m-navy-700);font-weight:700}.ds-track__step[data-state=\"current\"]::after{border-color:var(--t1m-navy-700);box-shadow:0 0 0 4px var(--t1m-navy-100)}.ds-track__step[data-state=\"overdue\"]{color:var(--t1m-danger);font-weight:700}.ds-track__step[data-state=\"overdue\"]::after{border-color:var(--t1m-danger);background:var(--t1m-danger-bg)}.ds-track__date{display:block;font-weight:400;color:var(--t1m-ink-2)}"
+      "css": ".ds-track{list-style:none;margin:0;padding:0;display:flex;width:420px;font-family:var(--t1m-font-body)}.ds-track__step{flex:1;min-width:96px;position:relative;padding-top:28px;text-align:center;font-size:var(--t1m-text-xs);color:var(--t1m-ink-2)}.ds-track__step::before{content:\"\";position:absolute;top:9px;left:-50%;right:50%;height:2px;background:var(--t1m-border-strong)}.ds-track__step:first-child::before{display:none}.ds-track__step::after{content:\"\";position:absolute;top:2px;left:calc(50% - 8px);width:16px;height:16px;border-radius:var(--t1m-radius-full);background:var(--t1m-surface);border:2px solid var(--t1m-border-strong);z-index:1}.ds-track__step[data-state=\"done\"]+.ds-track__step::before{background:var(--t1m-navy-700)}.ds-track__step[data-state=\"done\"]::after{background:var(--t1m-navy-700);border-color:var(--t1m-navy-700)}.ds-track__step[data-state=\"current\"]{color:var(--t1m-navy-700);font-weight:var(--t1m-w-label)}.ds-track__step[data-state=\"current\"]::after{border-color:var(--t1m-navy-700);box-shadow:0 0 0 4px var(--t1m-navy-100)}.ds-track__step[data-state=\"overdue\"]{color:var(--t1m-danger);font-weight:var(--t1m-w-label)}.ds-track__step[data-state=\"overdue\"]::after{border-color:var(--t1m-danger);background:var(--t1m-danger-bg)}.ds-track__date{display:block;font-weight:400;color:var(--t1m-ink-2)}"
     },
     {
       "name": "Document Checklist Row",
@@ -515,7 +551,7 @@
       "refersTo": "",
       "description": "52px row: file icon, name and meta, status pill, one row action.",
       "html": "<div class=\"ds-doc\"><span class=\"ds-doc__icon\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M7 3.5h6.5L18 8v12.5H7z\"/><path d=\"M13.5 3.5V8H18M9.5 13h6M9.5 16.5h6\"/></svg></span><div><div class=\"ds-doc__name\">Bill of lading</div><div class=\"ds-doc__meta\">v2 - rejected: consignee name mismatch</div></div><span class=\"ds-pill ds-pill--danger\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 4 3 19.5h18z\"/><path d=\"M12 10v4.5M12 17.5v.01\"/></svg>Rejected</span><button class=\"ds-doc__act\">Replace</button></div>",
-      "css": ".ds-icon{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}.ds-pill{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 var(--t1m-space-2);border-radius:var(--t1m-radius-sm);font:700 var(--t1m-text-xs)/1 var(--t1m-font-body);white-space:nowrap;background:var(--t1m-surface-muted);color:var(--t1m-ink-2)}.ds-pill .ds-icon{width:12px;height:12px;stroke-width:2.25}.ds-pill--info{background:var(--t1m-info-bg);color:var(--t1m-info)}.ds-pill--success{background:var(--t1m-success-bg);color:var(--t1m-success)}.ds-pill--warning{background:var(--t1m-warning-bg);color:var(--t1m-warning)}.ds-pill--danger{background:var(--t1m-danger-bg);color:var(--t1m-danger)}.ds-doc{display:grid;grid-template-columns:32px 1fr auto auto;align-items:center;gap:var(--t1m-space-3);min-height:52px;padding:var(--t1m-space-2) var(--t1m-space-4);background:var(--t1m-surface);border:1px solid var(--t1m-border);border-radius:var(--t1m-radius-md);font-family:var(--t1m-font-body);color:var(--t1m-ink)}.ds-doc__icon{width:32px;height:32px;border-radius:var(--t1m-radius-sm);background:var(--t1m-surface-muted);display:grid;place-items:center;color:var(--t1m-ink-2)}.ds-doc__name{font-weight:600}.ds-doc__meta{font-size:var(--t1m-text-xs);color:var(--t1m-ink-2)}.ds-doc__act{height:var(--t1m-control-h-sm);padding:0 var(--t1m-space-3);background:transparent;color:var(--t1m-navy-700);border:1px solid transparent;border-radius:var(--t1m-radius-sm);font:600 var(--t1m-text-sm) var(--t1m-font-body);cursor:pointer}.ds-doc__act:hover{background:var(--t1m-navy-50)}.ds-doc__act:focus-visible{outline:none;box-shadow:var(--t1m-focus-ring)}"
+      "css": ".ds-icon{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}.ds-pill{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 var(--t1m-space-2);border-radius:var(--t1m-radius-sm);font:var(--t1m-w-label) var(--t1m-text-xs)/1 var(--t1m-font-chrome);white-space:nowrap;background:var(--t1m-surface-muted);color:var(--t1m-ink-2)}.ds-pill .ds-icon{width:12px;height:12px;stroke-width:2.25}.ds-pill--info{background:var(--t1m-info-bg);color:var(--t1m-info)}.ds-pill--success{background:var(--t1m-success-bg);color:var(--t1m-success)}.ds-pill--warning{background:var(--t1m-warning-bg);color:var(--t1m-warning)}.ds-pill--danger{background:var(--t1m-danger-bg);color:var(--t1m-danger)}.ds-doc{display:grid;grid-template-columns:32px 1fr auto auto;align-items:center;gap:var(--t1m-space-3);min-height:52px;padding:var(--t1m-space-2) var(--t1m-space-4);background:var(--t1m-surface);border:1px solid var(--t1m-border);border-radius:var(--t1m-radius-md);font-family:var(--t1m-font-body);color:var(--t1m-ink)}.ds-doc__icon{width:32px;height:32px;border-radius:var(--t1m-radius-sm);background:var(--t1m-surface-muted);display:grid;place-items:center;color:var(--t1m-ink-2)}.ds-doc__name{font-weight:var(--t1m-w-control)}.ds-doc__meta{font-size:var(--t1m-text-xs);color:var(--t1m-ink-2)}.ds-doc__act{height:var(--t1m-control-h-sm);padding:0 var(--t1m-space-3);background:transparent;color:var(--t1m-navy-700);border:1px solid transparent;border-radius:var(--t1m-radius-sm);font:var(--t1m-w-control) var(--t1m-text-sm) var(--t1m-font-chrome);cursor:pointer}.ds-doc__act:hover{background:var(--t1m-navy-50)}.ds-doc__act:focus-visible{outline:none;box-shadow:var(--t1m-focus-ring)}"
     },
     {
       "name": "Alert",
@@ -524,28 +560,42 @@
       "description": "Inline notice: tinted status color, icon, bold title, one sentence.",
       "html": "<div class=\"ds-alert ds-alert--warning\" role=\"alert\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 4 3 19.5h18z\"/><path d=\"M12 10v4.5M12 17.5v.01\"/></svg><div><strong>Commercial invoice missing</strong>Upload it before 10 Mar to keep customs on schedule.</div></div>",
       "css": ".ds-icon{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}.ds-alert{display:flex;gap:var(--t1m-space-3);padding:var(--t1m-space-3) var(--t1m-space-4);border-radius:var(--t1m-radius-md);font:400 var(--t1m-text-base) var(--t1m-font-body);border:1px solid}.ds-alert .ds-icon{margin-top:2px}.ds-alert--warning{background:var(--t1m-warning-bg);color:var(--t1m-warning);border-color:color-mix(in srgb,var(--t1m-warning) 25%,transparent)}.ds-alert strong{display:block;color:var(--t1m-ink)}"
+    },
+    {
+      "name": "Dropdown",
+      "kind": "custom",
+      "refersTo": "input",
+      "description": "Field-styled trigger with a floating listbox: check on selected, soft highlight, optional descriptions.",
+      "html": "<div class=\"ds-dd\"><button class=\"ds-trigger\" type=\"button\">Import, sea freight<svg class=\"ds-chev\" viewBox=\"0 0 24 24\"><path d=\"m6 9 6 6 6-6\"/></svg></button><ul class=\"ds-menu\"><li class=\"ds-option is-active\"><span>Import, sea freight<small>Origin port to Manila</small></span></li><li class=\"ds-option is-selected\"><span>Export, sea freight<small>Manila to destination</small></span><svg viewBox=\"0 0 24 24\"><path d=\"m5 12.5 4.5 4.5L19 7.5\"/></svg></li><li class=\"ds-option\"><span>Air freight</span></li></ul></div>",
+      "css": ".ds-dd{position:relative;width:280px;padding-bottom:150px}.ds-trigger{display:flex;align-items:center;justify-content:space-between;width:100%;height:var(--t1m-control-h);padding:0 var(--t1m-space-3);background:var(--t1m-surface);color:var(--t1m-ink);border:1px solid var(--t1m-navy-700);border-radius:var(--t1m-radius-sm);box-shadow:var(--t1m-field-focus);font:400 var(--t1m-text-base) var(--t1m-font-body);text-align:left}.ds-chev{width:16px;height:16px;fill:none;stroke:var(--t1m-navy-700);stroke-width:var(--t1m-icon-stroke);stroke-linecap:round;stroke-linejoin:round;rotate:180deg}.ds-menu{position:absolute;top:calc(36px + 6px);left:0;right:0;margin:0;padding:4px;list-style:none;background:var(--t1m-surface);border:1px solid var(--t1m-border);border-radius:var(--t1m-radius-md);box-shadow:var(--t1m-shadow-float)}.ds-option{display:flex;align-items:center;justify-content:space-between;min-height:36px;padding:6px 10px 6px 12px;border-radius:calc(var(--t1m-radius-md) - 4px);color:var(--t1m-ink);cursor:pointer}.ds-option small{display:block;font-size:var(--t1m-text-xs);color:var(--t1m-ink-3)}.ds-option:hover,.ds-option.is-active{background:var(--t1m-navy-50)}.ds-option.is-selected{color:var(--t1m-navy-700);font-weight:var(--t1m-w-control)}.ds-option svg{width:16px;height:16px;fill:none;stroke:var(--t1m-navy-700);stroke-width:var(--t1m-icon-stroke);stroke-linecap:round;stroke-linejoin:round}"
     }
   ],
   "narrative": {
     "northStar": "The Dispatch Desk",
-    "overview": "A dispatcher's desk at 9 a.m.: everything in reach, nothing decorative, the urgent item visible without hunting. The portal borrows Top1Movers' identity (their deep navy, their League Spartan headlines, their red mark) and puts it to work in a dense, calm, table-first interface that people read for hours.\n\nSurfaces are flat and outlined. Structure comes from borders, tint, and consistent row rhythm, not shadow. Navy carries action; status colors carry meaning and are always backed by an icon and a word. The look is deliberately quiet so overdue tasks, missing documents, and exceptions are the loudest things on any screen.",
+    "overview": "A dispatcher's desk at 9 a.m.: everything in reach, nothing decorative, the urgent item visible without hunting. The portal borrows Top1Movers' identity (their navy and their red mark) and puts it to work in a dense, calm, table-first interface that people read for hours.\n\nSurfaces are flat and outlined. Structure comes from borders, tint, and consistent row rhythm, not shadow. Navy carries action; status colors carry meaning and are always backed by an icon and a word. Type is light and weight follows attention: chrome rests at regular-to-light weights and grows heavier only when it is hovered, current, or urgent. The look is deliberately quiet so overdue tasks, missing documents, and exceptions are the loudest things on any screen.",
     "keyCharacteristics": [
       "Job-centric: the Shipment 360 view is the hub; every module links back to a job.",
       "Two densities from one component set: 36px desktop, 44px touch.",
-      "Quiet chrome: a white, bordered sidebar; the navy fill is spent on the current nav item, primary buttons, and links.",
+      "Quiet chrome: a white, bordered sidebar with light-weight labels; navy is spent on primary buttons, links, and headings.",
+      "Softened color: brand navy and red are lifted and eased in the UI; the exact brand colors live in the logo. Body text is 13.6:1, never harsher.",
       "Light theme only in Phase 1 (daytime offices, lit warehouse floors).",
       "Brand red is an identity mark, not a control color."
     ],
     "rules": [
       {
         "name": "The Navy Works, Red Signs Rule",
-        "body": "Actions are navy. Red #FF0000 only ever marks identity or current location. Trouble is Danger #B42318, always with an icon.",
+        "body": "Actions are navy. Red #E5383B only ever marks identity or current location. Trouble is Danger #B3372D, always with an icon.",
         "section": "colors"
       },
       {
         "name": "The Never Color Alone Rule",
         "body": "A status is a color, an icon, and a word together.",
         "section": "colors"
+      },
+      {
+        "name": "The Weight Follows Attention Rule",
+        "body": "Chrome rests light (nav and tabs 400, controls 500). Weight rises to 600 for hover, focus, and current states, and never as a default. Bold is a signal, so nothing is bold at rest.",
+        "section": "typography"
       },
       {
         "name": "The Tokens Own The Font Rule",
@@ -567,7 +617,7 @@
       "**Do** label all mock data as illustrative (IDs like TMW-2026-00412, \"Sample Trading Co.\")."
     ],
     "donts": [
-      "**Don't** fill a button, badge, banner, or nav item with Signal Red #FF0000, or use it as a side stripe.",
+      "**Don't** fill a button, badge, banner, or nav item with Signal Red #E5383B, or use it as a side stripe.",
       "**Don't** hardcode hex values, px font sizes, or font names in components.",
       "**Don't** nest panels or put every group in a card; don't use colored side stripes on cards or rows.",
       "**Don't** use emoji or text glyphs as icons; add to `icons.svg` in the same 1.75-stroke style.",

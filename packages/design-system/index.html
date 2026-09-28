@@ -10,9 +10,10 @@
   .doc { display: grid; grid-template-columns: 220px minmax(0, 1fr); min-height: 100vh; }
   .doc__nav { position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto; background: var(--t1m-surface); border-right: 1px solid var(--t1m-border); border-top: 3px solid var(--t1m-brand-red); padding: var(--t1m-space-4); display: grid; gap: var(--t1m-space-1); align-content: start; }
   .doc__nav img { width: 100%; margin-bottom: var(--t1m-space-4); }
-  .doc__nav a { color: var(--t1m-ink-2); text-decoration: none; font-weight: 600; padding: 6px var(--t1m-space-3); border-radius: var(--t1m-radius-sm); }
-  .doc__nav a[aria-current="true"] { background: var(--t1m-navy-700); color: #fff; }
-  .doc__nav a:hover { background: var(--t1m-navy-50); color: var(--t1m-navy-700); }
+  .doc__nav a { display: inline-grid; color: var(--t1m-ink-2); text-decoration: none; font-family: var(--t1m-font-chrome); font-weight: var(--t1m-w-nav); padding: 6px var(--t1m-space-3); border-radius: var(--t1m-radius-sm); transition: font-weight var(--t1m-dur-base) var(--t1m-ease), color var(--t1m-dur-base) var(--t1m-ease), background var(--t1m-dur-base) var(--t1m-ease); }
+  .doc__nav a::after { content: attr(data-text); font-weight: var(--t1m-w-nav-active); height: 0; overflow: hidden; visibility: hidden; }
+  .doc__nav a[aria-current="true"] { background: var(--t1m-nav-current-bg); color: var(--t1m-nav-current-ink); font-weight: var(--t1m-w-nav-active); }
+  .doc__nav a:hover { background: var(--t1m-nav-hover-bg); color: var(--t1m-navy-700); font-weight: var(--t1m-w-nav-active); }
   .doc main { padding: var(--t1m-space-10) clamp(16px, 4vw, 56px) 96px; max-width: 1100px; }
   .doc section { margin-top: var(--t1m-space-12); scroll-margin-top: 24px; }
   .doc h1 { font-size: 2rem; }
@@ -21,6 +22,7 @@
   .doc p { max-width: 70ch; margin: var(--t1m-space-2) 0; }
   .demo { background: var(--t1m-surface); border: 1px solid var(--t1m-border); border-radius: var(--t1m-radius-md); padding: var(--t1m-space-5); display: flex; flex-wrap: wrap; gap: var(--t1m-space-3); align-items: center; margin: var(--t1m-space-3) 0; }
   .demo--col { display: grid; align-items: start; }
+  .demo--col .ds-label { display: block; margin-bottom: 2px; }
   .demo--flush { padding: 0; display: block; overflow: hidden; }
   .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: var(--t1m-space-3); }
   .sw { border: 1px solid var(--t1m-border); border-radius: var(--t1m-radius-md); overflow: hidden; background: var(--t1m-surface); }
@@ -76,6 +78,34 @@
 <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s6.5-5.7 6.5-11a6.5 6.5 0 0 0-13 0C5.5 15.300 12 21 12 21z"/><circle cx="12" cy="10" r="2.3"/></symbol>
 <symbol id="i-building" viewBox="0 0 24 24"><path d="M5 20.5V4.5h9v16M14 9.5h5v11M8 8h3M8 11.5h3M8 15h3M3 20.5h18"/></symbol>
 <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.3M12 18.2v2.3M3.5 12h2.3M18.2 12h2.3M6 6l1.6 1.6M16.4 16.4 18 18M18 6l-1.6 1.6M7.6 16.4 6 18"/></symbol>
+<symbol id="i-more" viewBox="0 0 24 24"><circle cx="12" cy="5.5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="18.5" r="1.2"/></symbol>
+</svg>. Add new icons here in the same style; never use emoji or unicode glyphs as icons. -->
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+<symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+<symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4 3 19.5h18z"/><path d="M12 10v4.5M12 17.5v.01"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8v.01"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z"/><path d="M10 21h4"/></symbol>
+<symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></symbol>
+<symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V5M7.5 9.5 12 5l4.5 4.5M5 19h14"/></symbol>
+<symbol id="i-download" viewBox="0 0 24 24"><path d="M12 5v11M7.5 11.5 12 16l4.5-4.5M5 19h14"/></symbol>
+<symbol id="i-file" viewBox="0 0 24 24"><path d="M7 3.5h6.5L18 8v12.5H7z"/><path d="M13.5 3.5V8H18M9.5 13h6M9.5 16.5h6"/></symbol>
+<symbol id="i-box" viewBox="0 0 24 24"><path d="m12 3 8 4v10l-8 4-8-4V7z"/><path d="m4 7 8 4 8-4M12 11v10"/></symbol>
+<symbol id="i-truck" viewBox="0 0 24 24"><path d="M3 6.5h11v10H3zM14 10h4l3 3v3.5h-7"/><circle cx="7.5" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></symbol>
+<symbol id="i-dashboard" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="8"/><rect x="13" y="4" width="7" height="5"/><rect x="13" y="11" width="7" height="9"/><rect x="4" y="14" width="7" height="6"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2"/><path d="M3 19.5c.6-3.3 3-5 6-5s5.4 1.7 6 5"/><path d="M16 5.5a3 3 0 0 1 0 6M18 14.8c1.7.7 2.8 2.3 3 4.7"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.7-3.8 3.4-5.8 7-5.8s6.3 2 7 5.8"/></symbol>
+<symbol id="i-tasks" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="1.5"/><path d="M9 4V3h6v1M9 11l1.5 1.5L14 9M9 17h6"/></symbol>
+<symbol id="i-quote" viewBox="0 0 24 24"><path d="M6 3.5h9l3.5 3.5V20.5H6z"/><path d="M9 11h6M9 14.5h6M9 18h3.5"/></symbol>
+<symbol id="i-receipt" viewBox="0 0 24 24"><path d="M6 3.5h12v17l-2.5-1.7-2 1.7-2-1.7-2 1.7-2-1.7-1.5 1.2z"/><path d="M9 8.5h6M9 12h6"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.5 19 6v5.5c0 4.3-2.8 7.6-7 9-4.2-1.4-7-4.7-7-9V6z"/><path d="m9 12 2.2 2.2L15.5 10"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s6.5-5.7 6.5-11a6.5 6.5 0 0 0-13 0C5.5 15.300 12 21 12 21z"/><circle cx="12" cy="10" r="2.3"/></symbol>
+<symbol id="i-building" viewBox="0 0 24 24"><path d="M5 20.5V4.5h9v16M14 9.5h5v11M8 8h3M8 11.5h3M8 15h3M3 20.5h18"/></symbol>
+<symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.3M12 18.2v2.3M3.5 12h2.3M18.2 12h2.3M6 6l1.6 1.6M16.4 16.4 18 18M18 6l-1.6 1.6M7.6 16.4 6 18"/></symbol>
 </svg>
 
 <div class="doc">
@@ -86,11 +116,11 @@
 <main>
   <h1>Top1Movers Operations Portal: Design System</h1>
   <p class="ds-muted">Version 0.1, September 2026. Phase 1 stakeholder mockup. All names, IDs, and figures in examples are illustrative mock data.</p>
-  <p>A working screen for dispatchers, warehouse crew, and managers who read tables and clear task lists all day. It should feel like Top1Movers (their red, their deep navy, their League Spartan headlines) but behave like a tool: dense, calm, and quick to scan. Everything on this page is built from <code>tokens.css</code> and <code>components.css</code>.</p>
+  <p>A working screen for dispatchers, warehouse crew, and managers who read tables and clear task lists all day. It should feel like Top1Movers (their red, their deep navy, their navy and red) but behave like a tool: dense, calm, and quick to scan. Everything on this page is built from <code>tokens.css</code> and <code>components.css</code>.</p>
 
   <section id="principles">
     <h2>Principles</h2>
-    <div class="rule"><b>Navy works, red signs.</b> Navy carries every action, heading, and link. Brand red <code>#FF0000</code> appears only as identity: the logo, a 3px rule, and the current-location marker. It is never a button fill or small text, so red on screen means "brand" or, in its darker danger shade, "trouble".</div>
+    <div class="rule"><b>Navy works, red signs.</b> Navy carries every action, heading, and link. Brand red <code>#E5383B</code> appears only as identity: the logo, a 3px rule, and the current-location marker. It is never a button fill or small text, so red on screen means "brand" or, in its darker danger shade, "trouble".</div>
     <div class="rule"><b>Scan first, decorate never.</b> 14px body, 40px rows, tabular numbers, sticky headers. Depth comes from borders and tint; shadows exist only on things that float.</div>
     <div class="rule"><b>Never color alone.</b> Every status pairs a color with an icon and a word, so it reads in glare, on a warehouse tablet, and for color-blind staff.</div>
     <div class="rule"><b>Built for the touch and the mouse.</b> Same components, two densities: 36px on desktop, 44px on phones and tablets for the field crew.</div>
@@ -101,41 +131,41 @@
     <p>Neutrals are tinted toward the brand navy so the canvas feels part of the same family as the client's site. Use tokens, never raw hex.</p>
     <h3>Brand</h3>
     <div class="swatches">
-      <div class="sw"><i style="background:var(--t1m-brand-red)"></i><div><b>Signal Red</b><code>--t1m-brand-red #FF0000</code><br>Identity only. White text on it fails small-size contrast (4:1).</div></div>
-      <div class="sw"><i style="background:var(--t1m-navy-950)"></i><div><b>Midnight</b><code>--t1m-navy-950 #02033B</code><br>Login field and full-bleed brand moments. Not the app shell.</div></div>
-      <div class="sw"><i style="background:var(--t1m-navy-700)"></i><div><b>Harbour Navy</b><code>--t1m-navy-700 #191970</code><br>Primary action, headings, links.</div></div>
-      <div class="sw"><i style="background:var(--t1m-navy-600)"></i><div><b>Navy Hover</b><code>--t1m-navy-600 #2C2F95</code></div></div>
-      <div class="sw"><i style="background:var(--t1m-navy-100)"></i><div><b>Navy Wash</b><code>--t1m-navy-100 #E4E7F7</code><br>Selected rows.</div></div>
+      <div class="sw"><i style="background:var(--t1m-brand-red)"></i><div><b>Signal Red</b><code>--t1m-brand-red #E5383B</code><br>Identity only, at UI intensity: the exact brand red #FF0000 lives in the logo. White text on it fails small-size contrast (4.2:1).</div></div>
+      <div class="sw"><i style="background:var(--t1m-navy-950)"></i><div><b>Midnight</b><code>--t1m-navy-950 #1C2050</code><br>Login field and full-bleed brand moments. Not the app shell.</div></div>
+      <div class="sw"><i style="background:var(--t1m-navy-700)"></i><div><b>Harbour Navy</b><code>--t1m-navy-700 #2F3A8F</code><br>Primary action, headings, links. Lifted from brand navy #191970, which lives in the logo.</div></div>
+      <div class="sw"><i style="background:var(--t1m-navy-600)"></i><div><b>Navy Hover</b><code>--t1m-navy-600 #3F4BAB</code></div></div>
+      <div class="sw"><i style="background:var(--t1m-navy-100)"></i><div><b>Navy Wash</b><code>--t1m-navy-100 #E7EAF8</code><br>Selected rows.</div></div>
     </div>
     <h3>Neutrals</h3>
     <div class="swatches">
-      <div class="sw"><i style="background:var(--t1m-bg)"></i><div><b>Canvas</b><code>--t1m-bg #F5F8FC</code></div></div>
+      <div class="sw"><i style="background:var(--t1m-bg)"></i><div><b>Canvas</b><code>--t1m-bg #F6F8FC</code></div></div>
       <div class="sw"><i style="background:var(--t1m-surface)"></i><div><b>Surface</b><code>--t1m-surface #FFFFFF</code></div></div>
-      <div class="sw"><i style="background:var(--t1m-surface-muted)"></i><div><b>Surface Muted</b><code>--t1m-surface-muted #EDF1F7</code></div></div>
-      <div class="sw"><i style="background:var(--t1m-border-strong)"></i><div><b>Border Strong</b><code>--t1m-border-strong #8492AA</code><br>Control outlines, 3.1:1. <code>--t1m-border #DCE3EE</code> for dividers.</div></div>
-      <div class="sw"><i style="background:var(--t1m-ink)"></i><div><b>Ink</b><code>--t1m-ink #14163A</code></div></div>
-      <div class="sw"><i style="background:var(--t1m-ink-2)"></i><div><b>Ink 2</b><code>--t1m-ink-2 #4A5170</code></div></div>
-      <div class="sw"><i style="background:var(--t1m-ink-3)"></i><div><b>Ink 3</b><code>--t1m-ink-3 #5F6788</code><br>Placeholder, meta. 4.5:1+ on canvas.</div></div>
+      <div class="sw"><i style="background:var(--t1m-surface-muted)"></i><div><b>Surface Muted</b><code>--t1m-surface-muted #EFF2F8</code></div></div>
+      <div class="sw"><i style="background:var(--t1m-border-strong)"></i><div><b>Border Strong</b><code>--t1m-border-strong #8794AE</code><br>Control outlines, 3.1:1. <code>--t1m-border #E3E8F1</code> for dividers.</div></div>
+      <div class="sw"><i style="background:var(--t1m-ink)"></i><div><b>Ink</b><code>--t1m-ink #262B52</code></div></div>
+      <div class="sw"><i style="background:var(--t1m-ink-2)"></i><div><b>Ink 2</b><code>--t1m-ink-2 #545B7C</code></div></div>
+      <div class="sw"><i style="background:var(--t1m-ink-3)"></i><div><b>Ink 3</b><code>--t1m-ink-3 #5D6485</code><br>Placeholder, meta. 4.5:1+ on canvas.</div></div>
     </div>
     <h3>Status</h3>
     <div class="swatches">
-      <div class="sw"><i style="background:var(--t1m-danger)"></i><div><b>Danger</b><code>--t1m-danger #B42318</code><br>Overdue, rejected, destructive. Bg <code>--t1m-danger-bg</code>.</div></div>
-      <div class="sw"><i style="background:var(--t1m-warning)"></i><div><b>Warning</b><code>--t1m-warning #9A4A05</code><br>Due soon, missing. Bg <code>--t1m-warning-bg</code>.</div></div>
-      <div class="sw"><i style="background:var(--t1m-success)"></i><div><b>Success</b><code>--t1m-success #17794A</code><br>Delivered, approved. Bg <code>--t1m-success-bg</code>.</div></div>
-      <div class="sw"><i style="background:var(--t1m-info)"></i><div><b>Info</b><code>--t1m-info #1D5FC4</code><br>In progress, neutral notice. Bg <code>--t1m-info-bg</code>.</div></div>
+      <div class="sw"><i style="background:var(--t1m-danger)"></i><div><b>Danger</b><code>--t1m-danger #B3372D</code><br>Overdue, rejected, destructive. Bg <code>--t1m-danger-bg</code>.</div></div>
+      <div class="sw"><i style="background:var(--t1m-warning)"></i><div><b>Warning</b><code>--t1m-warning #93500F</code><br>Due soon, missing. Bg <code>--t1m-warning-bg</code>.</div></div>
+      <div class="sw"><i style="background:var(--t1m-success)"></i><div><b>Success</b><code>--t1m-success #1F7A55</code><br>Delivered, approved. Bg <code>--t1m-success-bg</code>.</div></div>
+      <div class="sw"><i style="background:var(--t1m-info)"></i><div><b>Info</b><code>--t1m-info #2B62C0</code><br>In progress, neutral notice. Bg <code>--t1m-info-bg</code>.</div></div>
     </div>
   </section>
 
   <section id="type">
     <h2>Typography</h2>
-    <p><b>League Spartan</b> (client's headline face, 600/700, bundled in <code>fonts/</code> for now; the source is swappable in <code>tokens.css</code>) for page titles and headings. <b>Helvetica Neue / Arial</b> (their body face) for everything else. <b>System mono</b> only for IDs, container and BL numbers. Numbers are always tabular.</p>
+    <p><b>Inter</b> (variable weight axis, bundled in <code>fonts/</code>; the source is swappable in <code>tokens.css</code>) for everything: headings, nav, buttons, tables, and forms. One family keeps spacing and widths consistent at 12 to 14px, and gives tabular numerals for aligned columns (applied to tables, stats, counts, and inputs only). <b>System mono</b> only for IDs, container and BL numbers. Chrome rests at light-to-regular weights (400 to 500) and grows to 600 for hover, focus, and current states. The client's League Spartan lives in the logo, not in the UI.</p>
     <div class="demo demo--col">
-      <div><span class="ds-label">Page title / xl 24 / display 700</span><h1>Shipment Job TMW-2026-00412</h1></div>
-      <div><span class="ds-label">Section / lg 18 / display 600</span><h2 style="border:0;margin:0;padding:0">Milestones and tasks</h2></div>
-      <div><span class="ds-label">Panel title / md 16 / display 600</span><h3 style="margin:0">Documents</h3></div>
-      <div><span class="ds-label">Body / base 14 / 400</span><p style="margin:0">Consignee has confirmed the delivery window. Container is at the pier awaiting customs release.</p></div>
+      <div><span class="ds-label">Page title / xl 24 / display</span><h1>Shipment Job TMW-2026-00412</h1></div>
+      <div><span class="ds-label">Section / lg 18 / display</span><h2 style="border:0;margin:0;padding:0">Milestones and tasks</h2></div>
+      <div><span class="ds-label">Panel title / md 16 / display</span><h3 style="margin:0">Documents</h3></div>
+      <div><span class="ds-label">Body / base 14 / regular</span><p style="margin:0">Consignee has confirmed the delivery window. Container is at the pier awaiting customs release.</p></div>
       <div><span class="ds-label">Table cell / sm 13</span><span style="font-size:var(--t1m-text-sm)">Manila North Port, Pier 3</span></div>
-      <div><span class="ds-label">Label / xs 12 / 700 caps</span><span class="ds-label">Estimated arrival</span></div>
+      <div><span class="ds-label">Label / xs 12 / caps</span><span class="ds-label">Estimated arrival</span></div>
       <div><span class="ds-label">Data / mono</span><span class="ds-mono">MSKU 748291-3 · BL HLCU-2026-77341</span></div>
     </div>
   </section>
@@ -179,13 +209,36 @@
 
   <section id="forms">
     <h2>Fields</h2>
+    <p>Fields are quiet at rest, darken on hover, and light up with a soft navy halo on focus (a 4px translucent glow plus a navy border), so focus is unmistakable without the hard ring buttons use. Errors swap the halo to red and always carry an icon and a sentence naming the fix.</p>
+    <h3>States</h3>
     <div class="demo" style="align-items:start">
-      <div class="ds-field" style="width:240px"><label for="a">Customer</label><input id="a" class="ds-input" placeholder="Search customers"><span class="ds-field__hint">Type at least 3 characters.</span></div>
-      <div class="ds-field" style="width:240px"><label for="b">Container number</label><input id="b" class="ds-input ds-mono" value="MSKU 748291" aria-invalid="true"><span class="ds-field__error"><svg class="ds-icon"><use href="#i-alert"/></svg>Check digit is missing. Expected 11 characters.</span></div>
-      <div class="ds-field" style="width:240px"><label for="c">Service type</label><select id="c" class="ds-select"><option>Import, sea freight</option><option>Export, sea freight</option></select></div>
-      <div class="ds-field" style="width:240px"><label for="d">Locked field</label><input id="d" class="ds-input" value="Set at conversion" disabled></div>
-      <div class="ds-search" style="width:240px"><svg class="ds-icon"><use href="#i-search"/></svg><input class="ds-input" placeholder="Search job ID, BL, container" aria-label="Search"><kbd class="ds-kbd">/</kbd></div>
+      <div class="ds-field" style="width:240px"><label for="f1">Customer</label><input id="f1" class="ds-input" placeholder="Search customers"><span class="ds-field__hint">Type at least 3 characters.</span></div>
+      <div class="ds-field" style="width:240px"><label for="f2">Customer, focused</label><input id="f2" class="ds-input is-focus" value="Sample Trading"><span class="ds-field__hint">Focus halo (click any field to see it live).</span></div>
+      <div class="ds-field" style="width:240px"><label for="f3">Container number</label><input id="f3" class="ds-input ds-mono" value="MSKU 748291" aria-invalid="true" aria-describedby="f3e"><span id="f3e" class="ds-field__error"><svg class="ds-icon"><use href="#i-alert"/></svg>Check digit is missing. Expected 11 characters.</span></div>
+      <div class="ds-field" style="width:240px"><label for="f4">Set at conversion</label><input id="f4" class="ds-input" value="TMW-2026-00412" disabled><span class="ds-field__hint">Locked once a job is created.</span></div>
+      <div class="ds-field" style="width:240px"><label for="f5">Job owner <span class="ds-opt">optional</span></label><input id="f5" class="ds-input" value="Sample User" readonly></div>
+    </div>
+    <h3>Dropdown, prefix and suffix, search</h3>
+    <p>The dropdown is a custom listbox: a field-styled trigger, a floating panel with a check on the selected option, a soft highlight for hover and keyboard, optional descriptions and groups, disabled options, and a flip-up placement (<code>data-placement="top"</code>) near the bottom of a panel. Arrow keys, Home/End, type-ahead, Enter, and Escape all work. On touch, prefer the native <code>&lt;select&gt;</code>; its picker is better on phones.</p>
+    <div class="demo" style="align-items:start">
+      <div class="ds-field" style="width:280px"><label id="dd-service-lbl">Service type</label><div class="ds-select-wrap ds-dropdown" data-dropdown><button type="button" id="dd-service" class="ds-select" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="dd-service-list" aria-labelledby="dd-service-lbl dd-service"><span class="ds-dropdown__value">Import, sea freight</span></button><svg class="ds-icon"><use href="#i-chevron-down"/></svg><ul class="ds-menu" role="listbox" id="dd-service-list" tabindex="-1"><li class="ds-option" role="option" id="dd-s1" aria-selected="true"><span class="ds-option__text">Import, sea freight<span class="ds-option__sub">Container from origin port to Manila</span></span><svg class="ds-icon"><use href="#i-check"/></svg></li><li class="ds-option" role="option" id="dd-s2" aria-selected="false"><span class="ds-option__text">Export, sea freight<span class="ds-option__sub">Container from Manila to destination</span></span><svg class="ds-icon"><use href="#i-check"/></svg></li><li class="ds-option" role="option" id="dd-s3" aria-selected="false"><span class="ds-option__text">Air freight<span class="ds-option__sub">Consolidated or direct</span></span><svg class="ds-icon"><use href="#i-check"/></svg></li><li class="ds-menu__sep" role="separator"></li><li class="ds-option" role="option" id="dd-s4" aria-selected="false"><span class="ds-option__text">Domestic trucking<span class="ds-option__sub">Within the Philippines</span></span><svg class="ds-icon"><use href="#i-check"/></svg></li><li class="ds-option" role="option" id="dd-s5" aria-selected="false" aria-disabled="true"><span class="ds-option__text">Warehousing<span class="ds-option__sub">Coming in Phase 2</span></span><svg class="ds-icon"><use href="#i-check"/></svg></li></ul></div></div>
+      <div class="ds-field" style="width:240px"><label id="dd-owner-lbl">Job owner</label><div class="ds-select-wrap ds-dropdown" data-dropdown><button type="button" id="dd-owner" class="ds-select" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="dd-owner-list" aria-labelledby="dd-owner-lbl dd-owner"><span class="ds-dropdown__value">Sample User</span></button><svg class="ds-icon"><use href="#i-chevron-down"/></svg><ul class="ds-menu" role="listbox" id="dd-owner-list" tabindex="-1"><li class="ds-menu__group" role="presentation">Operations</li><li class="ds-option" role="option" id="dd-o1" aria-selected="true"><span class="ds-option__text">Sample User</span><svg class="ds-icon"><use href="#i-check"/></svg></li><li class="ds-option" role="option" id="dd-o2" aria-selected="false"><span class="ds-option__text">Demo Coordinator</span><svg class="ds-icon"><use href="#i-check"/></svg></li><li class="ds-menu__group" role="presentation">Warehouse</li><li class="ds-option" role="option" id="dd-o3" aria-selected="false"><span class="ds-option__text">Example Supervisor</span><svg class="ds-icon"><use href="#i-check"/></svg></li><li class="ds-option" role="option" id="dd-o4" aria-selected="false"><span class="ds-option__text">Sample Checker</span><svg class="ds-icon"><use href="#i-check"/></svg></li></ul></div></div>
+      <div class="ds-field" style="width:240px"><label for="g1">Quoted amount</label><div class="ds-input-group"><span class="ds-affix">PHP</span><input id="g1" class="ds-input" inputmode="decimal" value="48,500.00"></div></div>
+      <div class="ds-field" style="width:240px"><label for="g2">Gross weight</label><div class="ds-input-group"><input id="g2" class="ds-input" inputmode="decimal" value="1,240"><span class="ds-affix">kg</span></div></div>
+      <div class="ds-search" style="width:240px;align-self:end"><svg class="ds-icon"><use href="#i-search"/></svg><input class="ds-input" placeholder="Search job ID, BL, container" aria-label="Search"><kbd class="ds-kbd">/</kbd></div>
+    </div>
+    <h3>Text area</h3>
+    <div class="demo" style="align-items:start">
+      <div class="ds-field" style="width:min(520px,100%)"><label for="t1">Delivery instructions</label><textarea id="t1" class="ds-textarea" placeholder="Gate, contact person, time window"></textarea><span class="ds-field__count">0 / 500</span></div>
+    </div>
+    <h3>Checkbox, radio, switch</h3>
+    <div class="demo">
       <label class="ds-check"><input type="checkbox" checked> Notify customer</label>
+      <label class="ds-check"><input type="checkbox"> Attach packing list</label>
+      <label class="ds-check"><input type="radio" name="rd" checked> Air</label>
+      <label class="ds-check"><input type="radio" name="rd"> Sea</label>
+      <label class="ds-switch"><input type="checkbox" role="switch" checked><span class="ds-switch__track"></span>Email overdue reminders</label>
+      <label class="ds-switch"><input type="checkbox" role="switch" disabled><span class="ds-switch__track"></span>Disabled</label>
     </div>
   </section>
 
@@ -204,22 +257,22 @@
 
   <section id="tables">
     <h2>Tables</h2>
-    <p>The core surface. Sticky uppercase header, 40px rows, right-aligned tabular numbers, hover tint, navy-wash selection. Row click opens the record; never make only an icon clickable. Power tools: sortable headers (<code>aria-sort</code>), row checkboxes with a bulk bar, page size, and <span class="ds-kbd">/</span> to focus search. Under 640px, <code>ds-table--stack</code> turns rows into labeled cards.</p>
-    <div class="demo demo--flush">
-      <div class="ds-panel__head"><h3>Active shipment jobs</h3><div style="display:flex;gap:8px"><button class="ds-btn ds-btn--secondary ds-btn--sm"><svg class="ds-icon"><use href="#i-filter"/></svg>Filter</button><button class="ds-btn ds-btn--primary ds-btn--sm"><svg class="ds-icon"><use href="#i-plus"/></svg>New job</button></div></div>
+    <p>The core surface. 52px rows at 14px text by default, with a Compact (40) and Comfortable (60) switch. The header is a quiet caps label on a hairline, not a grey band. Hover and selection are inset rounded highlights, and the ID column is emphasized so identity is found first. Row actions appear on hover. Sortable headers (<code>aria-sort</code>), checkboxes with a bulk bar, page size, and <span class="ds-kbd">/</span> to focus search round out the power tools. Under 640px, <code>ds-table--stack</code> turns rows into labeled cards.</p>
+    <div class="demo demo--flush" id="jobs-demo">
+      <div class="ds-panel__head"><h3>Active shipment jobs</h3><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><fieldset class="ds-seg" aria-label="Row density" id="density"><label><input type="radio" name="density" value="compact">Compact</label><label><input type="radio" name="density" value="default" checked>Default</label><label><input type="radio" name="density" value="comfortable">Comfortable</label></fieldset><button class="ds-btn ds-btn--secondary ds-btn--sm"><svg class="ds-icon"><use href="#i-filter"/></svg>Filter</button><button class="ds-btn ds-btn--primary ds-btn--sm"><svg class="ds-icon"><use href="#i-plus"/></svg>New job</button></div></div>
       <div class="ds-bulkbar"><span>1 selected</span><button class="ds-btn ds-btn--secondary ds-btn--sm">Assign owner</button><button class="ds-btn ds-btn--secondary ds-btn--sm">Export</button><button class="ds-btn ds-btn--ghost ds-btn--sm">Clear</button></div>
-      <div class="ds-table-wrap"><table class="ds-table ds-table--stack">
-        <thead><tr><th class="ds-check-col"><input type="checkbox" aria-label="Select all"></th><th aria-sort="ascending"><button class="ds-sort">Job ID <svg class="ds-icon"><use href="#i-chevron-down"/></svg></button></th><th>Customer</th><th>Route</th><th>Status</th><th aria-sort="none"><button class="ds-sort">Next task due</button></th><th class="ds-num">Containers</th></tr></thead>
+      <div class="ds-table-wrap"><table class="ds-table ds-table--stack" id="jobs-table">
+        <thead><tr><th class="ds-check-col"><input type="checkbox" aria-label="Select all"></th><th aria-sort="ascending"><button class="ds-sort">Job ID <svg class="ds-icon"><use href="#i-chevron-down"/></svg></button></th><th>Customer</th><th>Route</th><th>Status</th><th aria-sort="none"><button class="ds-sort">Next task due</button></th><th class="ds-num">Containers</th><th class="ds-actions-col"><span class="ds-vh">Actions</span></th></tr></thead>
         <tbody>
-          <tr data-href="#"><td class="ds-check-col"><input type="checkbox" aria-label="Select TMW-2026-00412"></td><td class="ds-mono" data-label="Job ID">TMW-2026-00412</td><td data-label="Customer">Sample Trading Co.</td><td data-label="Route">Yantian to Manila</td><td data-label="Status"><span class="ds-pill ds-pill--info"><svg class="ds-icon"><use href="#i-truck"/></svg>In transit</span></td><td data-label="Next task due">Sep 30</td><td class="ds-num" data-label="Containers">2</td></tr>
-          <tr aria-selected="true" data-href="#"><td class="ds-check-col"><input type="checkbox" checked aria-label="Select TMW-2026-00409"></td><td class="ds-mono" data-label="Job ID">TMW-2026-00409</td><td data-label="Customer">Demo Foods Inc.</td><td data-label="Route">Busan to Cebu</td><td data-label="Status"><span class="ds-pill ds-pill--warning"><svg class="ds-icon"><use href="#i-file"/></svg>Missing document</span></td><td data-label="Next task due">Sep 29</td><td class="ds-num" data-label="Containers">1</td></tr>
-          <tr data-href="#"><td class="ds-check-col"><input type="checkbox" aria-label="Select TMW-2026-00401"></td><td class="ds-mono" data-label="Job ID">TMW-2026-00401</td><td data-label="Customer">Example Hardware</td><td data-label="Route">Shanghai to Manila</td><td data-label="Status"><span class="ds-pill ds-pill--danger"><svg class="ds-icon"><use href="#i-alert"/></svg>Overdue</span></td><td class="ds-overdue" data-label="Next task due">Sep 24</td><td class="ds-num" data-label="Containers">4</td></tr>
-          <tr data-href="#"><td class="ds-check-col"><input type="checkbox" aria-label="Select TMW-2026-00388"></td><td class="ds-mono" data-label="Job ID">TMW-2026-00388</td><td data-label="Customer">Sample Trading Co.</td><td data-label="Route">Manila to Davao</td><td data-label="Status"><span class="ds-pill ds-pill--success"><svg class="ds-icon"><use href="#i-check"/></svg>Delivered</span></td><td data-label="Next task due">Done</td><td class="ds-num" data-label="Containers">1</td></tr>
+          <tr data-href="#"><td class="ds-check-col"><input type="checkbox" aria-label="Select TMW-2026-00412"></td><td class="ds-mono ds-cell-primary" data-label="Job ID">TMW-2026-00412</td><td data-label="Customer"><span class="ds-cell-name">Sample Trading Co.<span class="ds-cell-sub">Import, sea freight</span></span></td><td data-label="Route">Yantian to Manila</td><td data-label="Status"><span class="ds-pill ds-pill--info"><svg class="ds-icon"><use href="#i-truck"/></svg>In transit</span></td><td data-label="Next task due">Sep 30</td><td class="ds-num" data-label="Containers">2</td><td class="ds-actions-col"><button class="ds-row-action" aria-label="Row actions for TMW-2026-00412"><svg class="ds-icon"><use href="#i-more"/></svg></button></td></tr>
+          <tr aria-selected="true" data-href="#"><td class="ds-check-col"><input type="checkbox" checked aria-label="Select TMW-2026-00409"></td><td class="ds-mono ds-cell-primary" data-label="Job ID">TMW-2026-00409</td><td data-label="Customer"><span class="ds-cell-name">Demo Foods Inc.<span class="ds-cell-sub">Import, sea freight</span></span></td><td data-label="Route">Busan to Cebu</td><td data-label="Status"><span class="ds-pill ds-pill--warning"><svg class="ds-icon"><use href="#i-file"/></svg>Missing document</span></td><td data-label="Next task due">Sep 29</td><td class="ds-num" data-label="Containers">1</td><td class="ds-actions-col"><button class="ds-row-action" aria-label="Row actions for TMW-2026-00409"><svg class="ds-icon"><use href="#i-more"/></svg></button></td></tr>
+          <tr data-href="#"><td class="ds-check-col"><input type="checkbox" aria-label="Select TMW-2026-00401"></td><td class="ds-mono ds-cell-primary" data-label="Job ID">TMW-2026-00401</td><td data-label="Customer"><span class="ds-cell-name">Example Hardware<span class="ds-cell-sub">Export, air freight</span></span></td><td data-label="Route">Shanghai to Manila</td><td data-label="Status"><span class="ds-pill ds-pill--danger"><svg class="ds-icon"><use href="#i-alert"/></svg>Overdue</span></td><td class="ds-overdue" data-label="Next task due">Sep 24</td><td class="ds-num" data-label="Containers">4</td><td class="ds-actions-col"><button class="ds-row-action" aria-label="Row actions for TMW-2026-00401"><svg class="ds-icon"><use href="#i-more"/></svg></button></td></tr>
+          <tr data-href="#"><td class="ds-check-col"><input type="checkbox" aria-label="Select TMW-2026-00388"></td><td class="ds-mono ds-cell-primary" data-label="Job ID">TMW-2026-00388</td><td data-label="Customer"><span class="ds-cell-name">Sample Trading Co.<span class="ds-cell-sub">Domestic trucking</span></span></td><td data-label="Route">Manila to Davao</td><td data-label="Status"><span class="ds-pill ds-pill--success"><svg class="ds-icon"><use href="#i-check"/></svg>Delivered</span></td><td data-label="Next task due">Done</td><td class="ds-num" data-label="Containers">1</td><td class="ds-actions-col"><button class="ds-row-action" aria-label="Row actions for TMW-2026-00388"><svg class="ds-icon"><use href="#i-more"/></svg></button></td></tr>
         </tbody></table></div>
-      <div class="ds-pager"><span>1 to 4 of 1,284 jobs</span><span style="display:flex;gap:8px;align-items:center"><label for="ps" class="ds-muted">Rows</label><select id="ps" class="ds-select" style="width:72px;height:30px"><option>25</option><option>50</option><option>100</option></select><button class="ds-btn ds-btn--secondary ds-btn--sm" disabled>Previous</button><button class="ds-btn ds-btn--secondary ds-btn--sm">Next</button></span></div>
+      <div class="ds-pager"><span>1 to 4 of 1,284 jobs</span><span style="display:flex;gap:8px;align-items:center"><span class="ds-muted" id="ps-lbl">Rows</span><div class="ds-select-wrap ds-dropdown" data-dropdown data-placement="top" style="width:84px"><button type="button" id="ps" class="ds-select ds-select--sm" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="ps-list"><span class="ds-dropdown__value">25</span></button><svg class="ds-icon"><use href="#i-chevron-down"/></svg><ul class="ds-menu" role="listbox" id="ps-list" tabindex="-1"><li class="ds-option" role="option" id="ps1" aria-selected="true"><span class="ds-option__text">25</span><svg class="ds-icon"><use href="#i-check"/></svg></li><li class="ds-option" role="option" id="ps2" aria-selected="false"><span class="ds-option__text">50</span><svg class="ds-icon"><use href="#i-check"/></svg></li><li class="ds-option" role="option" id="ps3" aria-selected="false"><span class="ds-option__text">100</span><svg class="ds-icon"><use href="#i-check"/></svg></li></ul></div><button class="ds-btn ds-btn--secondary ds-btn--sm" disabled>Previous</button><button class="ds-btn ds-btn--secondary ds-btn--sm">Next</button></span></div>
     </div>
     <h3>Tabs</h3>
-    <div class="demo demo--flush"><div class="ds-tabs" role="tablist" style="padding:0 16px"><button class="ds-tab" role="tab" aria-selected="true">Overview</button><button class="ds-tab" role="tab" aria-selected="false">Tasks</button><button class="ds-tab" role="tab" aria-selected="false">Documents</button><button class="ds-tab" role="tab" aria-selected="false">Charges</button><button class="ds-tab" role="tab" aria-selected="false">Audit trail</button></div></div>
+    <div class="demo demo--flush"><div class="ds-tabs" role="tablist" style="padding:0 16px"><button class="ds-tab" data-text="Overview" role="tab" aria-selected="true">Overview</button><button class="ds-tab" data-text="Tasks" role="tab" aria-selected="false">Tasks</button><button class="ds-tab" data-text="Documents" role="tab" aria-selected="false">Documents</button><button class="ds-tab" data-text="Charges" role="tab" aria-selected="false">Charges</button><button class="ds-tab" data-text="Audit trail" role="tab" aria-selected="false">Audit trail</button></div></div>
     <h3>Empty state</h3>
     <div class="demo demo--flush"><div class="ds-empty"><svg class="ds-icon"><use href="#i-file"/></svg><h3>No documents uploaded yet</h3><p>Upload the bill of lading to start the checklist. Missing required documents will show on the dashboard.</p><button class="ds-btn ds-btn--primary"><svg class="ds-icon"><use href="#i-upload"/></svg>Upload document</button></div></div>
   <h3>Drawer</h3>
@@ -227,7 +280,7 @@
     <div class="demo" style="background:var(--t1m-surface-muted);justify-content:flex-end;padding:0;overflow:hidden"><aside class="ds-drawer" aria-label="Job detail preview">
       <div class="ds-panel__head"><div><span class="ds-label">Shipment job</span><h3 class="ds-mono" style="margin:0;font-family:var(--t1m-font-mono)">TMW-2026-00409</h3></div><button class="ds-btn ds-btn--ghost ds-btn--sm" aria-label="Close"><svg class="ds-icon"><use href="#i-x"/></svg></button></div>
       <div class="ds-panel__body" style="display:grid;gap:16px"><span class="ds-pill ds-pill--warning" style="justify-self:start"><svg class="ds-icon"><use href="#i-file"/></svg>Missing document</span>
-        <div class="ds-field"><label for="dr1">Owner</label><select id="dr1" class="ds-select"><option>Sample User</option><option>Demo Coordinator</option></select></div>
+        <div class="ds-field"><label id="dd-drawer-lbl">Owner</label><div class="ds-select-wrap ds-dropdown" data-dropdown><button type="button" id="dd-drawer" class="ds-select" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="dd-drawer-list" aria-labelledby="dd-drawer-lbl dd-drawer"><span class="ds-dropdown__value">Sample User</span></button><svg class="ds-icon"><use href="#i-chevron-down"/></svg><ul class="ds-menu" role="listbox" id="dd-drawer-list" tabindex="-1"><li class="ds-option" role="option" id="dd-d1" aria-selected="true"><span class="ds-option__text">Sample User</span><svg class="ds-icon"><use href="#i-check"/></svg></li><li class="ds-option" role="option" id="dd-d2" aria-selected="false"><span class="ds-option__text">Demo Coordinator</span><svg class="ds-icon"><use href="#i-check"/></svg></li></ul></div></div>
         <div class="ds-field"><label for="dr2">Note</label><textarea id="dr2" class="ds-textarea" placeholder="Add an update for the team"></textarea></div>
         <div style="display:flex;gap:8px;justify-content:flex-end"><button class="ds-btn ds-btn--ghost">Cancel</button><button class="ds-btn ds-btn--primary">Save note</button></div></div>
     </aside></div>
@@ -235,19 +288,19 @@
 
   <section id="nav">
     <h2>App shell and navigation</h2>
-    <p>White sidebar with a right border (240px, icons-only at 960px and below, bottom bar under 640px), 56px top bar, content capped at 1440px. The sidebar carries the 3px brand-red rule on top; the current item is a solid navy fill with white text.</p>
+    <p>White sidebar with a right border (240px, icons-only at 960px and below, bottom bar under 640px), 56px top bar, content capped at 1440px. The sidebar carries the 3px brand-red rule on top; the current item is a navy wash with navy text at weight 600. Hover grows the label heavier instead of changing the background.</p>
     <p class="mini-note ds-muted">Shell preview is hidden on phone-width screens. At this width the sidebar becomes a bottom bar and controls switch to 44px.</p>
     <div class="mini-shell"><div class="ds-shell">
       <aside class="ds-sidebar">
         <div class="ds-sidebar__brand"><img src="./assets/top1movers-logo.png" alt="Top1Movers"></div>
         <nav class="ds-nav" aria-label="Main">
-          <a class="ds-nav__item" href="#nav" aria-current="page" title="Dashboard"><svg class="ds-icon"><use href="#i-dashboard"/></svg><span>Dashboard</span></a>
-          <a class="ds-nav__item" href="#nav" title="Shipment jobs"><svg class="ds-icon"><use href="#i-box"/></svg><span>Shipment jobs</span><em class="ds-nav__count" style="font-style:normal">1,284</em></a>
-          <a class="ds-nav__item" href="#nav" title="My tasks"><svg class="ds-icon"><use href="#i-tasks"/></svg><span>My tasks</span><em class="ds-nav__count ds-nav__count--alert" style="font-style:normal">7</em></a>
-          <a class="ds-nav__item" href="#nav" title="Inquiries"><svg class="ds-icon"><use href="#i-quote"/></svg><span>Inquiries</span></a>
+          <a class="ds-nav__item" href="#nav" aria-current="page" title="Dashboard"><svg class="ds-icon"><use href="#i-dashboard"/></svg><span data-text="Dashboard">Dashboard</span></a>
+          <a class="ds-nav__item" href="#nav" title="Shipment jobs"><svg class="ds-icon"><use href="#i-box"/></svg><span data-text="Shipment jobs">Shipment jobs</span><em class="ds-nav__count" style="font-style:normal">1,284</em></a>
+          <a class="ds-nav__item" href="#nav" title="My tasks"><svg class="ds-icon"><use href="#i-tasks"/></svg><span data-text="My tasks">My tasks</span><em class="ds-nav__count ds-nav__count--alert" style="font-style:normal">7</em></a>
+          <a class="ds-nav__item" href="#nav" title="Inquiries"><svg class="ds-icon"><use href="#i-quote"/></svg><span data-text="Inquiries">Inquiries</span></a>
           <div class="ds-nav__group">Admin</div>
-          <a class="ds-nav__item" href="#nav" title="Users and roles"><svg class="ds-icon"><use href="#i-users"/></svg><span>Users and roles</span></a>
-          <a class="ds-nav__item" href="#nav" title="Audit trail"><svg class="ds-icon"><use href="#i-shield"/></svg><span>Audit trail</span></a>
+          <a class="ds-nav__item" href="#nav" title="Users and roles"><svg class="ds-icon"><use href="#i-users"/></svg><span data-text="Users and roles">Users and roles</span></a>
+          <a class="ds-nav__item" href="#nav" title="Audit trail"><svg class="ds-icon"><use href="#i-shield"/></svg><span data-text="Audit trail">Audit trail</span></a>
         </nav>
       </aside>
       <header class="ds-topbar"><div class="ds-search" style="width:min(360px,100%)"><svg class="ds-icon"><use href="#i-search"/></svg><input class="ds-input" placeholder="Search job ID, BL, container" aria-label="Search"><kbd class="ds-kbd">/</kbd></div><span style="margin-left:auto;display:flex;gap:12px;align-items:center"><button class="ds-btn ds-btn--ghost ds-btn--sm" aria-label="Notifications"><svg class="ds-icon"><use href="#i-bell"/></svg></button><span class="ds-avatar" aria-label="Signed in as Sample User">SU</span></span></header>
@@ -262,10 +315,10 @@
     <div class="demo" style="align-items:flex-end">
       <div class="ds-panel" style="width:min(390px,100%);overflow:hidden"><div style="padding:16px;height:96px" class="ds-muted">Page content</div>
         <aside class="ds-sidebar ds-sidebar--bar" aria-label="Phone navigation preview"><nav class="ds-nav" aria-label="Main (phone preview)">
-          <a class="ds-nav__item" href="#nav" aria-current="page" title="Dashboard"><svg class="ds-icon"><use href="#i-dashboard"/></svg><span>Dashboard</span></a>
-          <a class="ds-nav__item" href="#nav" title="Shipment jobs"><svg class="ds-icon"><use href="#i-box"/></svg><span>Shipment jobs</span></a>
-          <a class="ds-nav__item" href="#nav" title="My tasks, 7 open"><svg class="ds-icon"><use href="#i-tasks"/></svg><span>My tasks</span><em class="ds-nav__count ds-nav__count--alert" style="font-style:normal">7</em></a>
-          <a class="ds-nav__item" href="#nav" title="Inquiries"><svg class="ds-icon"><use href="#i-quote"/></svg><span>Inquiries</span></a>
+          <a class="ds-nav__item" href="#nav" aria-current="page" title="Dashboard"><svg class="ds-icon"><use href="#i-dashboard"/></svg><span data-text="Dashboard">Dashboard</span></a>
+          <a class="ds-nav__item" href="#nav" title="Shipment jobs"><svg class="ds-icon"><use href="#i-box"/></svg><span data-text="Shipment jobs">Shipment jobs</span></a>
+          <a class="ds-nav__item" href="#nav" title="My tasks, 7 open"><svg class="ds-icon"><use href="#i-tasks"/></svg><span data-text="My tasks">My tasks</span><em class="ds-nav__count ds-nav__count--alert" style="font-style:normal">7</em></a>
+          <a class="ds-nav__item" href="#nav" title="Inquiries"><svg class="ds-icon"><use href="#i-quote"/></svg><span data-text="Inquiries">Inquiries</span></a>
         </nav></aside></div>
       <div class="ds-panel rail-demo" style="width:64px;overflow:hidden"><aside class="ds-sidebar" style="border:0;border-top:3px solid var(--t1m-brand-red);min-height:196px"><nav class="ds-nav" aria-label="Main (rail preview)" style="padding-top:12px;padding-left:0;padding-right:0">
           <a class="ds-nav__item" href="#nav" aria-current="page" title="Dashboard" style="justify-content:center;padding:0"><svg class="ds-icon"><use href="#i-dashboard"/></svg></a>
@@ -342,9 +395,62 @@
   document.querySelectorAll('symbol').forEach(s => {
     const id = s.id.replace('i-', '');
     const d = document.createElement('div');
-    d.innerHTML = `<svg class="ds-icon" style="width:22px;height:22px"><use href="#${s.id}"/></svg><span>${id}</span>`;
+    d.innerHTML = `<svg class="ds-icon" style="width:22px;height:22px"><use href="#${s.id}"/></svg><span data-text="${id}">${id}</span>`;
     grid.appendChild(d);
   });
+  // Dropdown (ARIA listbox pattern). Reference behavior for the guide; production uses a headless library.
+  document.querySelectorAll('[data-dropdown]').forEach(dd => {
+    const btn = dd.querySelector('button'), list = dd.querySelector('[role=listbox]');
+    const opts = [...list.querySelectorAll('[role=option]')];
+    let active = Math.max(0, opts.findIndex(o => o.getAttribute('aria-selected') === 'true')), buf = '', bufT;
+    const enabled = i => opts[i] && opts[i].getAttribute('aria-disabled') !== 'true';
+    const setActive = (i, dir = 1) => {
+      for (let n = 0; n < opts.length && !enabled((i + opts.length) % opts.length); n++) i += dir;
+      active = (i + opts.length) % opts.length;
+      opts.forEach(o => o.removeAttribute('data-active'));
+      opts[active].setAttribute('data-active', '');
+      btn.setAttribute('aria-activedescendant', opts[active].id);
+      opts[active].scrollIntoView({ block: 'nearest' });
+    };
+    const isOpen = () => dd.hasAttribute('data-open');
+    const open = () => { dd.setAttribute('data-open', ''); btn.setAttribute('aria-expanded', 'true'); setActive(active); };
+    const close = () => { dd.removeAttribute('data-open'); btn.setAttribute('aria-expanded', 'false'); btn.removeAttribute('aria-activedescendant'); };
+    const choose = i => {
+      if (!enabled(i)) return;
+      opts.forEach(o => o.setAttribute('aria-selected', String(o === opts[i])));
+      btn.querySelector('.ds-dropdown__value').textContent = opts[i].querySelector('.ds-option__text').firstChild.textContent.trim();
+      close(); btn.focus();
+    };
+    btn.addEventListener('click', () => isOpen() ? close() : open());
+    btn.addEventListener('keydown', e => {
+      const k = e.key;
+      if (k === 'ArrowDown' || k === 'ArrowUp') { e.preventDefault(); if (!isOpen()) return open(); setActive(active + (k === 'ArrowDown' ? 1 : -1), k === 'ArrowDown' ? 1 : -1); }
+      else if (k === 'Home' || k === 'End') { if (isOpen()) { e.preventDefault(); setActive(k === 'Home' ? 0 : opts.length - 1, k === 'Home' ? 1 : -1); } }
+      else if (k === 'Enter' || k === ' ') { e.preventDefault(); isOpen() ? choose(active) : open(); }
+      else if (k === 'Escape') { if (isOpen()) { e.preventDefault(); close(); } }
+      else if (k === 'Tab') { close(); }
+      else if (k.length === 1 && !e.ctrlKey && !e.metaKey) {
+        clearTimeout(bufT); buf += k.toLowerCase(); bufT = setTimeout(() => buf = '', 600);
+        const hit = opts.findIndex((o, i) => enabled(i) && o.textContent.trim().toLowerCase().startsWith(buf));
+        if (hit >= 0) { if (!isOpen()) open(); setActive(hit); }
+      }
+    });
+    opts.forEach((o, i) => { o.addEventListener('mousemove', () => enabled(i) && setActive(i)); o.addEventListener('mousedown', e => e.preventDefault()); o.addEventListener('click', () => choose(i)); });
+    document.addEventListener('click', e => { if (!dd.contains(e.target)) close(); });
+  });
+
+  // Density switch for the table demo.
+  document.querySelectorAll('input[name=density]').forEach(i => i.addEventListener('change', () => {
+    const tb = document.getElementById('jobs-table');
+    tb.classList.toggle('ds-table--compact', i.value === 'compact');
+    tb.classList.toggle('ds-table--comfortable', i.value === 'comfortable');
+  }));
+
+  // Swatch labels read the live token values so they never disagree with the swatch.
+  const cs = getComputedStyle(document.documentElement);
+  document.querySelectorAll('.sw code').forEach(c => { c.innerHTML = c.innerHTML.replace(/(--t1m-[\w-]+)\s+#[0-9A-Fa-f]{6}/, (m, name) => { const val = cs.getPropertyValue(name).trim(); return /^#[0-9a-f]{6}$/i.test(val) ? name + ' ' + val.toUpperCase() : m; }); });
+  document.querySelectorAll('.doc__nav a').forEach(a => a.dataset.text = a.textContent);
+
   // Highlight the current section in the guide nav.
   const links = [...document.querySelectorAll('.doc__nav a')];
   const io = new IntersectionObserver(es => es.forEach(e => {

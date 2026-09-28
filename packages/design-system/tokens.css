@@ -7,56 +7,50 @@
 
 /* Self-hosted by choice (fast, no third-party dependency), not because the portal is offline. */
 @font-face {
-  font-family: "League Spartan";
-  src: url("./fonts/LeagueSpartan-600.ttf") format("truetype");
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "League Spartan";
-  src: url("./fonts/LeagueSpartan-700.ttf") format("truetype");
-  font-weight: 700;
+  font-family: "Inter";
+  src: url("./fonts/Inter-latin-wght.woff2") format("woff2-variations"), url("./fonts/Inter-latin-wght.woff2") format("woff2");
+  font-weight: 100 900; /* variable: light weights and smooth weight transitions */
   font-style: normal;
   font-display: swap;
 }
 
 :root {
   /* ---- Brand (from top1movers.com) ---- */
-  --t1m-brand-red: #ff0000;        /* identity marks ONLY: logo, 3px rules. Never a button/badge fill, never small text. */
-  --t1m-navy-950: #02033b;         /* login field and full-bleed brand moments; not the app shell */
-  --t1m-navy-800: #0d0f55;         /* pressed / hover-deep */
-  --t1m-navy-700: #191970;         /* primary action, headings, links */
-  --t1m-navy-600: #2c2f95;         /* primary hover */
-  --t1m-navy-100: #e4e7f7;         /* selected row / tinted fill */
-  --t1m-navy-50: #f0f2fb;
+  --t1m-brand-red: #e5383b;        /* UI echo of the brand red (#FF0000). The exact brand red lives in the logo asset. Marks only: 3px rules, tab underline. */
+  --t1m-navy-950: #1c2050;         /* login field and full-bleed brand moments; not the app shell */
+  --t1m-navy-800: #272d78;         /* pressed / hover-deep */
+  --t1m-navy-700: #2f3a8f;         /* primary action, headings, links (lifted from brand navy #191970, which lives in the logo) */
+  --t1m-navy-600: #3f4bab;         /* primary hover */
+  --t1m-navy-100: #e7eaf8;         /* selected row / tinted fill */
+  --t1m-navy-50: #f2f4fc;
 
   /* ---- Neutrals (navy-tinted, never pure gray) ---- */
-  --t1m-bg: #f5f8fc;               /* app canvas */
+  --t1m-bg: #f6f8fc;               /* app canvas */
   --t1m-surface: #ffffff;          /* panels, tables, inputs */
-  --t1m-surface-muted: #edf1f7;    /* table header, disabled, hover row */
-  --t1m-border: #dce3ee;
-  --t1m-border-strong: #8492aa;    /* control outlines: 3.1:1 vs surface (WCAG 1.4.11) */
-  --t1m-ink: #14163a;              /* primary text */
-  --t1m-ink-2: #4a5170;            /* secondary text */
-  --t1m-ink-3: #5f6788;            /* tertiary / placeholder (>=4.5:1 on bg + surface) */
+  --t1m-surface-muted: #eff2f8;    /* table header, disabled, hover row */
+  --t1m-border: #e3e8f1;
+  --t1m-border-strong: #8794ae;    /* control outlines: 3.05:1 vs surface (WCAG 1.4.11) */
+  --t1m-ink: #262b52;              /* primary text */
+  --t1m-ink-2: #545b7c;            /* secondary text */
+  --t1m-ink-3: #5d6485;            /* tertiary / placeholder (>=4.5:1 on bg + surface) */
   --t1m-ink-inverse: #ffffff;
-  --t1m-ink-inverse-2: #b9bfe6;    /* secondary text on navy */
+  --t1m-ink-inverse-2: #c4c9ea;    /* secondary text on navy */
 
   /* ---- Semantic status (always paired with icon + text, never color alone) ---- */
-  --t1m-danger: #b42318;
-  --t1m-danger-hover: #8f1c12;
-  --t1m-danger-bg: #fdecea;
-  --t1m-warning: #9a4a05;
-  --t1m-warning-bg: #fef3e2;
-  --t1m-success: #17794a;
-  --t1m-success-bg: #e6f4ec;
-  --t1m-info: #1d5fc4;
-  --t1m-info-bg: #e8f0fc;
+  --t1m-danger: #b3372d;
+  --t1m-danger-hover: #922c24;
+  --t1m-danger-bg: #fbeceb;
+  --t1m-warning: #93500f;
+  --t1m-warning-bg: #fdf3e3;
+  --t1m-success: #1f7a55;
+  --t1m-success-bg: #e8f4ee;
+  --t1m-info: #2b62c0;
+  --t1m-info-bg: #e9f0fb;
 
   /* ---- Type ---- */
-  --t1m-font-display: "League Spartan", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --t1m-font-body: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --t1m-font-display: var(--t1m-font-body); /* one family for headings and chrome: consistent spacing at small sizes */
+  --t1m-font-body: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --t1m-font-chrome: var(--t1m-font-display); /* buttons, nav, tabs, labels, pills */
   --t1m-font-mono: ui-monospace, "Cascadia Mono", Consolas, "Courier New", monospace; /* IDs, container/BL numbers, quantities only */
 
   --t1m-text-xs: 0.75rem;    /* 12 labels, table meta */
@@ -68,6 +62,25 @@
   --t1m-text-2xl: 2rem;      /* 32 login / empty-hero only */
   --t1m-leading-tight: 1.2;
   --t1m-leading-base: 1.5;
+
+  /* ---- Weights: light chrome; weight grows with attention ---- */
+  --t1m-w-title: 600;
+  --t1m-w-heading: 600;
+  --t1m-w-control: 500;
+  --t1m-w-label: 600;
+  --t1m-w-nav: 400;
+  --t1m-w-nav-active: 600;   /* hover, focus, current */
+  --t1m-w-tab: 400;
+  --t1m-w-tab-active: 600;
+
+  /* ---- Icons ---- */
+  --t1m-icon-nav: 20px;
+  --t1m-icon-stroke: 1.5;
+
+  /* ---- Nav states ---- */
+  --t1m-nav-hover-bg: transparent;
+  --t1m-nav-current-bg: var(--t1m-navy-100);
+  --t1m-nav-current-ink: var(--t1m-navy-700);
 
   /* ---- Space (4px base) ---- */
   --t1m-space-1: 4px;
@@ -89,13 +102,20 @@
   /* ---- Elevation: flat by default; shadow only on things that float ---- */
   --t1m-shadow-float: 0 2px 6px rgba(2, 3, 59, 0.08), 0 8px 24px rgba(2, 3, 59, 0.12);
   --t1m-focus-ring: 0 0 0 2px var(--t1m-surface), 0 0 0 4px var(--t1m-navy-700);
+  --t1m-focus-glow: color-mix(in srgb, var(--t1m-navy-700) 18%, transparent);   /* soft halo for form fields */
+  --t1m-danger-glow: color-mix(in srgb, var(--t1m-danger) 18%, transparent);
+  --t1m-field-focus: 0 0 0 4px var(--t1m-focus-glow);
+  --t1m-field-shadow: 0 1px 1px color-mix(in srgb, var(--t1m-ink) 6%, transparent);
+  --t1m-btn-lift: inset 0 1px 0 color-mix(in srgb, white 16%, transparent), 0 1px 2px color-mix(in srgb, var(--t1m-navy-950) 28%, transparent);   /* primary: edge highlight + soft drop */
+  --t1m-btn-lift-hover: inset 0 1px 0 color-mix(in srgb, white 18%, transparent), 0 3px 8px color-mix(in srgb, var(--t1m-navy-950) 26%, transparent);
 
   /* ---- Density (control + row heights) ---- */
   --t1m-control-h: 36px;     /* default desktop */
   --t1m-control-h-sm: 30px;  /* compact tables / filter bars */
   --t1m-control-h-touch: 44px; /* field crew, tablets, phones */
-  --t1m-row-h: 40px;
-  --t1m-row-h-compact: 32px;
+  --t1m-row-h: 52px;           /* default: room to breathe at 14px text */
+  --t1m-row-h-compact: 40px;
+  --t1m-row-h-comfort: 60px;
 
   /* ---- Layout ---- */
   --t1m-sidebar-w: 240px;
