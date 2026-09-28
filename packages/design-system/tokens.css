@@ -1,0 +1,122 @@
+/*
+ * Top1Movers Operations Portal — design tokens
+ * SINGLE SOURCE OF TRUTH for every color, size, and motion value.
+ * Never hardcode a hex, px size, or font in app code: use a var(--t1m-*) below.
+ * Human doc: ./index.html   Agent doc: /DESIGN.md   Rules: /docs/ai/ui-rules.md
+ */
+
+/* Self-hosted by choice (fast, no third-party dependency), not because the portal is offline. */
+@font-face {
+  font-family: "League Spartan";
+  src: url("./fonts/LeagueSpartan-600.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "League Spartan";
+  src: url("./fonts/LeagueSpartan-700.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* ---- Brand (from top1movers.com) ---- */
+  --t1m-brand-red: #ff0000;        /* identity marks ONLY: logo, 3px rules. Never a button/badge fill, never small text. */
+  --t1m-navy-950: #02033b;         /* login field and full-bleed brand moments; not the app shell */
+  --t1m-navy-800: #0d0f55;         /* pressed / hover-deep */
+  --t1m-navy-700: #191970;         /* primary action, headings, links */
+  --t1m-navy-600: #2c2f95;         /* primary hover */
+  --t1m-navy-100: #e4e7f7;         /* selected row / tinted fill */
+  --t1m-navy-50: #f0f2fb;
+
+  /* ---- Neutrals (navy-tinted, never pure gray) ---- */
+  --t1m-bg: #f5f8fc;               /* app canvas */
+  --t1m-surface: #ffffff;          /* panels, tables, inputs */
+  --t1m-surface-muted: #edf1f7;    /* table header, disabled, hover row */
+  --t1m-border: #dce3ee;
+  --t1m-border-strong: #8492aa;    /* control outlines: 3.1:1 vs surface (WCAG 1.4.11) */
+  --t1m-ink: #14163a;              /* primary text */
+  --t1m-ink-2: #4a5170;            /* secondary text */
+  --t1m-ink-3: #5f6788;            /* tertiary / placeholder (>=4.5:1 on bg + surface) */
+  --t1m-ink-inverse: #ffffff;
+  --t1m-ink-inverse-2: #b9bfe6;    /* secondary text on navy */
+
+  /* ---- Semantic status (always paired with icon + text, never color alone) ---- */
+  --t1m-danger: #b42318;
+  --t1m-danger-hover: #8f1c12;
+  --t1m-danger-bg: #fdecea;
+  --t1m-warning: #9a4a05;
+  --t1m-warning-bg: #fef3e2;
+  --t1m-success: #17794a;
+  --t1m-success-bg: #e6f4ec;
+  --t1m-info: #1d5fc4;
+  --t1m-info-bg: #e8f0fc;
+
+  /* ---- Type ---- */
+  --t1m-font-display: "League Spartan", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --t1m-font-body: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --t1m-font-mono: ui-monospace, "Cascadia Mono", Consolas, "Courier New", monospace; /* IDs, container/BL numbers, quantities only */
+
+  --t1m-text-xs: 0.75rem;    /* 12 labels, table meta */
+  --t1m-text-sm: 0.8125rem;  /* 13 dense table cells */
+  --t1m-text-base: 0.875rem; /* 14 default body */
+  --t1m-text-md: 1rem;       /* 16 panel titles, inputs on touch */
+  --t1m-text-lg: 1.125rem;   /* 18 section heading */
+  --t1m-text-xl: 1.5rem;     /* 24 page title */
+  --t1m-text-2xl: 2rem;      /* 32 login / empty-hero only */
+  --t1m-leading-tight: 1.2;
+  --t1m-leading-base: 1.5;
+
+  /* ---- Space (4px base) ---- */
+  --t1m-space-1: 4px;
+  --t1m-space-2: 8px;
+  --t1m-space-3: 12px;
+  --t1m-space-4: 16px;
+  --t1m-space-5: 20px;
+  --t1m-space-6: 24px;
+  --t1m-space-8: 32px;
+  --t1m-space-10: 40px;
+  --t1m-space-12: 48px;
+
+  /* ---- Shape ---- */
+  --t1m-radius-sm: 4px;      /* inputs, buttons, pills-not-round */
+  --t1m-radius-md: 6px;      /* panels, menus */
+  --t1m-radius-lg: 10px;     /* drawers, dialogs */
+  --t1m-radius-full: 999px;  /* avatars, status dots only */
+
+  /* ---- Elevation: flat by default; shadow only on things that float ---- */
+  --t1m-shadow-float: 0 2px 6px rgba(2, 3, 59, 0.08), 0 8px 24px rgba(2, 3, 59, 0.12);
+  --t1m-focus-ring: 0 0 0 2px var(--t1m-surface), 0 0 0 4px var(--t1m-navy-700);
+
+  /* ---- Density (control + row heights) ---- */
+  --t1m-control-h: 36px;     /* default desktop */
+  --t1m-control-h-sm: 30px;  /* compact tables / filter bars */
+  --t1m-control-h-touch: 44px; /* field crew, tablets, phones */
+  --t1m-row-h: 40px;
+  --t1m-row-h-compact: 32px;
+
+  /* ---- Layout ---- */
+  --t1m-sidebar-w: 240px;
+  --t1m-sidebar-w-collapsed: 64px;
+  --t1m-topbar-h: 56px;
+  --t1m-content-max: 1440px;
+  --t1m-gutter: 24px;
+  --t1m-bp-sm: 640px;   /* reference only: CSS vars can't be used in @media */
+  --t1m-bp-md: 960px;
+  --t1m-bp-lg: 1280px;
+
+  /* ---- Motion ---- */
+  --t1m-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --t1m-dur-fast: 120ms;
+  --t1m-dur-base: 200ms;
+}
+
+@media (max-width: 640px) {
+  :root { --t1m-gutter: 16px; --t1m-control-h: var(--t1m-control-h-touch); --t1m-row-h: 48px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --t1m-dur-fast: 0ms; --t1m-dur-base: 0ms; }
+}

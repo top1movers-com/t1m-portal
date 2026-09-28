@@ -1,0 +1,7 @@
+{
+  "name": "@t1m/design-system",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Top1Movers Operations Portal design tokens, component styles, icons, and style guide.",
+  "files": ["tokens.css", "components.css", "icons.svg", "fonts", "assets"]
+}

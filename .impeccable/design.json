@@ -1,0 +1,579 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-28T13:31:17.122Z",
+  "title": "Design System: Top1Movers Operations Portal",
+  "extensions": {
+    "colorMeta": {
+      "brand-red": {
+        "role": "accent",
+        "displayName": "Signal Red",
+        "canonical": "#ff0000",
+        "oklch": "oklch(62.8% 0.258 29)",
+        "tonalRamp": [
+          "#1f0000",
+          "#4d0100",
+          "#800201",
+          "#b90101",
+          "#f30503",
+          "#fe7463",
+          "#feb3a7",
+          "#fee9e5"
+        ]
+      },
+      "midnight": {
+        "role": "primary",
+        "displayName": "Midnight",
+        "canonical": "#02033b",
+        "oklch": "oklch(16.9% 0.104 267)",
+        "tonalRamp": [
+          "#020035",
+          "#0e1e56",
+          "#293e79",
+          "#465e9c",
+          "#6680c1",
+          "#87a3e7",
+          "#b2c8fe",
+          "#e8eefe"
+        ]
+      },
+      "navy-deep": {
+        "role": "primary",
+        "displayName": "Navy Deep",
+        "canonical": "#0d0f55",
+        "oklch": "oklch(23.3% 0.121 271)",
+        "tonalRamp": [
+          "#040033",
+          "#13195e",
+          "#2b3a81",
+          "#485ba6",
+          "#677dcb",
+          "#89a0f1",
+          "#b6c7fe",
+          "#e8eeff"
+        ]
+      },
+      "harbour-navy": {
+        "role": "primary",
+        "displayName": "Harbour Navy",
+        "canonical": "#191970",
+        "oklch": "oklch(28.8% 0.144 273)",
+        "tonalRamp": [
+          "#050032",
+          "#151069",
+          "#2c358c",
+          "#4857b1",
+          "#667ad7",
+          "#879dfe",
+          "#b7c6fe",
+          "#e9eeff"
+        ]
+      },
+      "navy-hover": {
+        "role": "primary",
+        "displayName": "Navy Hover",
+        "canonical": "#2c2f95",
+        "oklch": "oklch(37.6% 0.163 274)",
+        "tonalRamp": [
+          "#050032",
+          "#180371",
+          "#2d3096",
+          "#4853bc",
+          "#6676e2",
+          "#8a9dfe",
+          "#b8c6ff",
+          "#e9eefe"
+        ]
+      },
+      "navy-wash": {
+        "role": "primary",
+        "displayName": "Navy Wash",
+        "canonical": "#e4e7f7",
+        "oklch": "oklch(93.0% 0.022 277)",
+        "tonalRamp": [
+          "#090a14",
+          "#222430",
+          "#3f414e",
+          "#5e606e",
+          "#7f8190",
+          "#a1a4b3",
+          "#c5c8d8",
+          "#eaedfe"
+        ]
+      },
+      "navy-tint": {
+        "role": "primary",
+        "displayName": "Navy Tint",
+        "canonical": "#f0f2fb",
+        "oklch": "oklch(96.2% 0.012 276)",
+        "tonalRamp": [
+          "#0a0b10",
+          "#23252b",
+          "#404249",
+          "#5f6168",
+          "#80828a",
+          "#a3a5ad",
+          "#c7c9d1",
+          "#eceef7"
+        ]
+      },
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Canvas",
+        "canonical": "#f5f8fc",
+        "oklch": "oklch(97.8% 0.006 255)",
+        "tonalRamp": [
+          "#090b0e",
+          "#232528",
+          "#404245",
+          "#5f6165",
+          "#808286",
+          "#a2a5a9",
+          "#c6c9cd",
+          "#eceff3"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface",
+        "canonical": "#ffffff",
+        "oklch": "oklch(100.0% 0.000 90)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#a5a5a5",
+          "#c9c9c9",
+          "#eeeeee"
+        ]
+      },
+      "surface-muted": {
+        "role": "neutral",
+        "displayName": "Surface Muted",
+        "canonical": "#edf1f7",
+        "oklch": "oklch(95.7% 0.009 258)",
+        "tonalRamp": [
+          "#090b0f",
+          "#22252a",
+          "#3f4247",
+          "#5e6166",
+          "#7f8388",
+          "#a2a5ab",
+          "#c5c9cf",
+          "#ebeff5"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Border",
+        "canonical": "#dce3ee",
+        "oklch": "oklch(91.4% 0.017 259)",
+        "tonalRamp": [
+          "#070b12",
+          "#20252d",
+          "#3d424b",
+          "#5c626b",
+          "#7c838d",
+          "#9fa5b0",
+          "#c3cad4",
+          "#e8effa"
+        ]
+      },
+      "border-strong": {
+        "role": "neutral",
+        "displayName": "Border Strong",
+        "canonical": "#8492aa",
+        "oklch": "oklch(84.6% 0.025 260)",
+        "tonalRamp": [
+          "#0c1628",
+          "#243044",
+          "#404c61",
+          "#5d6a81",
+          "#7c89a1",
+          "#9caac3",
+          "#bdcce6",
+          "#e0efff"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#14163a",
+        "oklch": "oklch(22.2% 0.068 277)",
+        "tonalRamp": [
+          "#060527",
+          "#1d2046",
+          "#393e66",
+          "#575e88",
+          "#787fac",
+          "#9aa2d0",
+          "#bdc6f6",
+          "#eaeefe"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Ink 2",
+        "canonical": "#4a5170",
+        "oklch": "oklch(44.2% 0.052 274)",
+        "tonalRamp": [
+          "#060820",
+          "#1d233e",
+          "#39405e",
+          "#585f7f",
+          "#7880a2",
+          "#9ba3c6",
+          "#bec7ec",
+          "#eaeefe"
+        ]
+      },
+      "ink-3": {
+        "role": "neutral",
+        "displayName": "Ink 3",
+        "canonical": "#5f6788",
+        "oklch": "oklch(52.0% 0.053 274)",
+        "tonalRamp": [
+          "#060821",
+          "#1d233f",
+          "#39405e",
+          "#575f80",
+          "#7880a3",
+          "#9aa3c7",
+          "#bec7ed",
+          "#e9eeff"
+        ]
+      },
+      "danger": {
+        "role": "status",
+        "displayName": "Danger",
+        "canonical": "#b42318",
+        "oklch": "oklch(50.0% 0.182 30)",
+        "tonalRamp": [
+          "#1f0000",
+          "#4d0000",
+          "#800200",
+          "#b12015",
+          "#da4a3b",
+          "#fe7462",
+          "#feb3a7",
+          "#fee9e5"
+        ]
+      },
+      "danger-bg": {
+        "role": "status",
+        "displayName": "Danger Bg",
+        "canonical": "#fdecea",
+        "oklch": "oklch(95.6% 0.019 26)",
+        "tonalRamp": [
+          "#120807",
+          "#2e2220",
+          "#4c3e3d",
+          "#6c5d5c",
+          "#8d7e7d",
+          "#b1a19f",
+          "#d5c5c3",
+          "#fbeae8"
+        ]
+      },
+      "warning": {
+        "role": "status",
+        "displayName": "Warning",
+        "canonical": "#9a4a05",
+        "oklch": "oklch(50.1% 0.127 52)",
+        "tonalRamp": [
+          "#170600",
+          "#3d1a01",
+          "#693001",
+          "#974800",
+          "#bd6a31",
+          "#e38d56",
+          "#feb78c",
+          "#feeade"
+        ]
+      },
+      "warning-bg": {
+        "role": "status",
+        "displayName": "Warning Bg",
+        "canonical": "#fef3e2",
+        "oklch": "oklch(96.8% 0.025 79)",
+        "tonalRamp": [
+          "#110a02",
+          "#2c2417",
+          "#494133",
+          "#696051",
+          "#8b8172",
+          "#aea494",
+          "#d2c8b7",
+          "#f8eddc"
+        ]
+      },
+      "success": {
+        "role": "status",
+        "displayName": "Success",
+        "canonical": "#17794a",
+        "oklch": "oklch(51.0% 0.114 156)",
+        "tonalRamp": [
+          "#000f05",
+          "#012e18",
+          "#01502d",
+          "#0d7445",
+          "#3d9665",
+          "#62ba87",
+          "#87e0ab",
+          "#c5ffda"
+        ]
+      },
+      "success-bg": {
+        "role": "status",
+        "displayName": "Success Bg",
+        "canonical": "#e6f4ec",
+        "oklch": "oklch(95.5% 0.018 161)",
+        "tonalRamp": [
+          "#050e09",
+          "#1d2822",
+          "#3a453f",
+          "#59655e",
+          "#79867f",
+          "#9ca9a1",
+          "#bfcdc5",
+          "#e5f2eb"
+        ]
+      },
+      "info": {
+        "role": "status",
+        "displayName": "Info",
+        "canonical": "#1d5fc4",
+        "oklch": "oklch(50.5% 0.171 259)",
+        "tonalRamp": [
+          "#000924",
+          "#002156",
+          "#003b8f",
+          "#195bc0",
+          "#3d7fe7",
+          "#6ca5ff",
+          "#aacbff",
+          "#e5efff"
+        ]
+      },
+      "info-bg": {
+        "role": "status",
+        "displayName": "Info Bg",
+        "canonical": "#e8f0fc",
+        "oklch": "oklch(95.3% 0.018 258)",
+        "tonalRamp": [
+          "#070b13",
+          "#20252e",
+          "#3c424c",
+          "#5b626c",
+          "#7c838e",
+          "#9ea6b1",
+          "#c2cad5",
+          "#e7effb"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "title": {
+        "displayName": "Title",
+        "purpose": "Page title, one per screen."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section headings."
+      },
+      "panel-title": {
+        "displayName": "Panel title",
+        "purpose": "Panel and drawer headings."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Default text; measure max 70ch for prose."
+      },
+      "table": {
+        "displayName": "Table",
+        "purpose": "Dense table cells."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Table headers, stat labels, field groups; uppercase."
+      },
+      "data": {
+        "displayName": "Data",
+        "purpose": "Job IDs, container numbers, BL numbers."
+      }
+    },
+    "shadows": [
+      {
+        "name": "shadow-float",
+        "token": "--t1m-shadow-float",
+        "value": "0 2px 6px rgba(2, 3, 59, 0.08), 0 8px 24px rgba(2, 3, 59, 0.12)",
+        "purpose": "Only for elements that float over the page: menus, drawers, toasts."
+      },
+      {
+        "name": "focus-ring",
+        "token": "--t1m-focus-ring",
+        "value": "0 0 0 2px var(--t1m-surface), 0 0 0 4px var(--t1m-navy-700)",
+        "purpose": "Keyboard focus: 2px navy ring offset by 2px of surface."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease",
+        "token": "--t1m-ease",
+        "value": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+        "purpose": "Default easing for state transitions."
+      },
+      {
+        "name": "dur-fast",
+        "token": "--t1m-dur-fast",
+        "value": "120ms",
+        "purpose": "Hover and border/fill shifts."
+      },
+      {
+        "name": "dur-base",
+        "token": "--t1m-dur-base",
+        "value": "200ms",
+        "purpose": "Larger transitions. Both durations drop to 0ms under prefers-reduced-motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "960px"
+      },
+      {
+        "name": "lg",
+        "value": "1280px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single navy action per view.",
+      "html": "<button class=\"ds-btn ds-btn--primary\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"m5 12.5 4.5 4.5L19 7.5\"/></svg>Create quotation</button>",
+      "css": ".ds-icon{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}.ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--t1m-space-2);height:var(--t1m-control-h);padding:0 var(--t1m-space-4);border:1px solid transparent;border-radius:var(--t1m-radius-sm);font:600 var(--t1m-text-base)/1 var(--t1m-font-body);cursor:pointer;white-space:nowrap;transition:background var(--t1m-dur-fast) var(--t1m-ease),border-color var(--t1m-dur-fast) var(--t1m-ease)}.ds-btn--primary{background:var(--t1m-navy-700);color:var(--t1m-ink-inverse)}.ds-btn--primary:hover{background:var(--t1m-navy-600)}.ds-btn--primary:active{background:var(--t1m-navy-800)}.ds-btn--primary:focus-visible{outline:none;box-shadow:var(--t1m-focus-ring)}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "White with strong outline for supporting actions.",
+      "html": "<button class=\"ds-btn ds-btn--secondary\">Save draft</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--t1m-space-2);height:var(--t1m-control-h);padding:0 var(--t1m-space-4);border:1px solid transparent;border-radius:var(--t1m-radius-sm);font:600 var(--t1m-text-base)/1 var(--t1m-font-body);cursor:pointer;white-space:nowrap;transition:background var(--t1m-dur-fast) var(--t1m-ease),border-color var(--t1m-dur-fast) var(--t1m-ease)}.ds-btn--secondary{background:var(--t1m-surface);color:var(--t1m-navy-700);border-color:var(--t1m-border-strong)}.ds-btn--secondary:hover{background:var(--t1m-navy-50);border-color:var(--t1m-navy-700)}.ds-btn--secondary:focus-visible{outline:none;box-shadow:var(--t1m-focus-ring)}"
+    },
+    {
+      "name": "Search Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "36px field, strong border, navy on hover and focus, with a leading icon.",
+      "html": "<div class=\"ds-field\"><label for=\"ds-q\">Search jobs</label><div class=\"ds-search\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"6.5\"/><path d=\"m20 20-4.2-4.2\"/></svg><input id=\"ds-q\" class=\"ds-input\" placeholder=\"TMW-2026-00412\"></div></div>",
+      "css": ".ds-icon{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}.ds-field{display:grid;gap:var(--t1m-space-1)}.ds-field label{font:600 var(--t1m-text-sm) var(--t1m-font-body);color:var(--t1m-ink)}.ds-search{position:relative}.ds-search .ds-icon{position:absolute;left:var(--t1m-space-3);top:50%;translate:0 -50%;color:var(--t1m-ink-3)}.ds-input{width:100%;height:var(--t1m-control-h);padding:0 var(--t1m-space-3) 0 36px;background:var(--t1m-surface);color:var(--t1m-ink);border:1px solid var(--t1m-border-strong);border-radius:var(--t1m-radius-sm);font:400 var(--t1m-text-base) var(--t1m-font-body);transition:border-color var(--t1m-dur-fast) var(--t1m-ease)}.ds-input::placeholder{color:var(--t1m-ink-3)}.ds-input:hover{border-color:var(--t1m-navy-700)}.ds-input:focus,.ds-input:focus-visible{outline:none;border-color:var(--t1m-navy-700);box-shadow:var(--t1m-focus-ring)}"
+    },
+    {
+      "name": "Status Pill",
+      "kind": "chip",
+      "refersTo": "",
+      "description": "22px pill: color, icon, and word together.",
+      "html": "<span style=\"display:inline-flex;gap:8px;flex-wrap:wrap\"><span class=\"ds-pill ds-pill--info\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"8.5\"/><path d=\"M12 7.5V12l3 2\"/></svg>In progress</span><span class=\"ds-pill ds-pill--success\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"m5 12.5 4.5 4.5L19 7.5\"/></svg>Delivered</span><span class=\"ds-pill ds-pill--warning\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 4 3 19.5h18z\"/><path d=\"M12 10v4.5M12 17.5v.01\"/></svg>Missing</span><span class=\"ds-pill ds-pill--danger\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 4 3 19.5h18z\"/><path d=\"M12 10v4.5M12 17.5v.01\"/></svg>Overdue</span></span>",
+      "css": ".ds-icon{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}.ds-pill{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 var(--t1m-space-2);border-radius:var(--t1m-radius-sm);font:700 var(--t1m-text-xs)/1 var(--t1m-font-body);white-space:nowrap;background:var(--t1m-surface-muted);color:var(--t1m-ink-2)}.ds-pill .ds-icon{width:12px;height:12px;stroke-width:2.25}.ds-pill--info{background:var(--t1m-info-bg);color:var(--t1m-info)}.ds-pill--success{background:var(--t1m-success-bg);color:var(--t1m-success)}.ds-pill--warning{background:var(--t1m-warning-bg);color:var(--t1m-warning)}.ds-pill--danger{background:var(--t1m-danger-bg);color:var(--t1m-danger)}"
+    },
+    {
+      "name": "Nav Item (current)",
+      "kind": "nav",
+      "refersTo": "nav-item-current",
+      "description": "Current item is a solid navy fill; others are quiet with a Navy Tint hover.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav__item\" href=\"#\" aria-current=\"page\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"4\" y=\"4\" width=\"7\" height=\"8\"/><rect x=\"13\" y=\"4\" width=\"7\" height=\"5\"/><rect x=\"13\" y=\"11\" width=\"7\" height=\"9\"/><rect x=\"4\" y=\"14\" width=\"7\" height=\"6\"/></svg><span>Dashboard</span></a><a class=\"ds-nav__item\" href=\"#\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"m12 3 8 4v10l-8 4-8-4V7z\"/><path d=\"m4 7 8 4 8-4M12 11v10\"/></svg><span>Shipment jobs</span><em class=\"ds-nav__count\">1,284</em></a></nav>",
+      "css": ".ds-icon{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}.ds-nav{display:grid;gap:2px;width:220px}.ds-nav__item{display:flex;align-items:center;gap:var(--t1m-space-3);height:36px;padding:0 var(--t1m-space-3);border-radius:var(--t1m-radius-sm);color:var(--t1m-ink-2);text-decoration:none;font:600 var(--t1m-text-base) var(--t1m-font-body);white-space:nowrap}.ds-nav__item:hover{background:var(--t1m-navy-50);color:var(--t1m-navy-700)}.ds-nav__item:focus-visible{outline:none;box-shadow:var(--t1m-focus-ring)}.ds-nav__item[aria-current=\"page\"]{background:var(--t1m-navy-700);color:var(--t1m-ink-inverse)}.ds-nav__count{margin-left:auto;font:700 var(--t1m-text-xs) var(--t1m-font-body);font-style:normal;background:var(--t1m-surface-muted);color:var(--t1m-ink-2);padding:1px 7px;border-radius:var(--t1m-radius-full)}"
+    },
+    {
+      "name": "Table Row",
+      "kind": "custom",
+      "refersTo": "table-row",
+      "description": "Dense 40px rows on a muted uppercase header; hover Navy Tint, selected Navy Wash.",
+      "html": "<table class=\"ds-table\"><thead><tr><th>Job</th><th>Status</th><th class=\"ds-num\">ETA</th></tr></thead><tbody><tr><td class=\"ds-mono\">TMW-2026-00412</td><td><span class=\"ds-pill ds-pill--info\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"8.5\"/><path d=\"M12 7.5V12l3 2\"/></svg>In progress</span></td><td class=\"ds-num\">12 Mar</td></tr><tr aria-selected=\"true\"><td class=\"ds-mono\">TMW-2026-00409</td><td><span class=\"ds-pill ds-pill--danger\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 4 3 19.5h18z\"/><path d=\"M12 10v4.5M12 17.5v.01\"/></svg>Overdue</span></td><td class=\"ds-num ds-overdue\">04 Mar</td></tr></tbody></table>",
+      "css": ".ds-icon{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}.ds-pill{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 var(--t1m-space-2);border-radius:var(--t1m-radius-sm);font:700 var(--t1m-text-xs)/1 var(--t1m-font-body);white-space:nowrap;background:var(--t1m-surface-muted);color:var(--t1m-ink-2)}.ds-pill .ds-icon{width:12px;height:12px;stroke-width:2.25}.ds-pill--info{background:var(--t1m-info-bg);color:var(--t1m-info)}.ds-pill--success{background:var(--t1m-success-bg);color:var(--t1m-success)}.ds-pill--warning{background:var(--t1m-warning-bg);color:var(--t1m-warning)}.ds-pill--danger{background:var(--t1m-danger-bg);color:var(--t1m-danger)}.ds-table{width:100%;border-collapse:collapse;font:400 var(--t1m-text-sm) var(--t1m-font-body);color:var(--t1m-ink);font-variant-numeric:tabular-nums}.ds-table th{text-align:left;height:var(--t1m-row-h-compact);padding:0 var(--t1m-space-3);background:var(--t1m-surface-muted);color:var(--t1m-ink-2);font-size:var(--t1m-text-xs);font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-bottom:1px solid var(--t1m-border-strong)}.ds-table td{height:var(--t1m-row-h);padding:0 var(--t1m-space-3);border-bottom:1px solid var(--t1m-border)}.ds-table tbody tr{cursor:pointer}.ds-table tbody tr:hover{background:var(--t1m-navy-50)}.ds-table tbody tr[aria-selected=\"true\"]{background:var(--t1m-navy-100)}.ds-table .ds-num{text-align:right}.ds-mono{font-family:var(--t1m-font-mono);font-size:.92em}.ds-overdue{color:var(--t1m-danger);font-weight:700}"
+    },
+    {
+      "name": "Milestone Track",
+      "kind": "custom",
+      "refersTo": "",
+      "description": "Shipment 360 stepper: done, current, overdue, upcoming.",
+      "html": "<ol class=\"ds-track\"><li class=\"ds-track__step\" data-state=\"done\">Booked<span class=\"ds-track__date\">02 Mar</span></li><li class=\"ds-track__step\" data-state=\"current\">In transit<span class=\"ds-track__date\">06 Mar</span></li><li class=\"ds-track__step\" data-state=\"overdue\">Customs<span class=\"ds-track__date\">08 Mar</span></li><li class=\"ds-track__step\">Delivered<span class=\"ds-track__date\">14 Mar</span></li></ol>",
+      "css": ".ds-track{list-style:none;margin:0;padding:0;display:flex;width:420px;font-family:var(--t1m-font-body)}.ds-track__step{flex:1;min-width:96px;position:relative;padding-top:28px;text-align:center;font-size:var(--t1m-text-xs);color:var(--t1m-ink-2)}.ds-track__step::before{content:\"\";position:absolute;top:9px;left:-50%;right:50%;height:2px;background:var(--t1m-border-strong)}.ds-track__step:first-child::before{display:none}.ds-track__step::after{content:\"\";position:absolute;top:2px;left:calc(50% - 8px);width:16px;height:16px;border-radius:var(--t1m-radius-full);background:var(--t1m-surface);border:2px solid var(--t1m-border-strong);z-index:1}.ds-track__step[data-state=\"done\"]+.ds-track__step::before{background:var(--t1m-navy-700)}.ds-track__step[data-state=\"done\"]::after{background:var(--t1m-navy-700);border-color:var(--t1m-navy-700)}.ds-track__step[data-state=\"current\"]{color:var(--t1m-navy-700);font-weight:700}.ds-track__step[data-state=\"current\"]::after{border-color:var(--t1m-navy-700);box-shadow:0 0 0 4px var(--t1m-navy-100)}.ds-track__step[data-state=\"overdue\"]{color:var(--t1m-danger);font-weight:700}.ds-track__step[data-state=\"overdue\"]::after{border-color:var(--t1m-danger);background:var(--t1m-danger-bg)}.ds-track__date{display:block;font-weight:400;color:var(--t1m-ink-2)}"
+    },
+    {
+      "name": "Document Checklist Row",
+      "kind": "custom",
+      "refersTo": "",
+      "description": "52px row: file icon, name and meta, status pill, one row action.",
+      "html": "<div class=\"ds-doc\"><span class=\"ds-doc__icon\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M7 3.5h6.5L18 8v12.5H7z\"/><path d=\"M13.5 3.5V8H18M9.5 13h6M9.5 16.5h6\"/></svg></span><div><div class=\"ds-doc__name\">Bill of lading</div><div class=\"ds-doc__meta\">v2 - rejected: consignee name mismatch</div></div><span class=\"ds-pill ds-pill--danger\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 4 3 19.5h18z\"/><path d=\"M12 10v4.5M12 17.5v.01\"/></svg>Rejected</span><button class=\"ds-doc__act\">Replace</button></div>",
+      "css": ".ds-icon{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}.ds-pill{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 var(--t1m-space-2);border-radius:var(--t1m-radius-sm);font:700 var(--t1m-text-xs)/1 var(--t1m-font-body);white-space:nowrap;background:var(--t1m-surface-muted);color:var(--t1m-ink-2)}.ds-pill .ds-icon{width:12px;height:12px;stroke-width:2.25}.ds-pill--info{background:var(--t1m-info-bg);color:var(--t1m-info)}.ds-pill--success{background:var(--t1m-success-bg);color:var(--t1m-success)}.ds-pill--warning{background:var(--t1m-warning-bg);color:var(--t1m-warning)}.ds-pill--danger{background:var(--t1m-danger-bg);color:var(--t1m-danger)}.ds-doc{display:grid;grid-template-columns:32px 1fr auto auto;align-items:center;gap:var(--t1m-space-3);min-height:52px;padding:var(--t1m-space-2) var(--t1m-space-4);background:var(--t1m-surface);border:1px solid var(--t1m-border);border-radius:var(--t1m-radius-md);font-family:var(--t1m-font-body);color:var(--t1m-ink)}.ds-doc__icon{width:32px;height:32px;border-radius:var(--t1m-radius-sm);background:var(--t1m-surface-muted);display:grid;place-items:center;color:var(--t1m-ink-2)}.ds-doc__name{font-weight:600}.ds-doc__meta{font-size:var(--t1m-text-xs);color:var(--t1m-ink-2)}.ds-doc__act{height:var(--t1m-control-h-sm);padding:0 var(--t1m-space-3);background:transparent;color:var(--t1m-navy-700);border:1px solid transparent;border-radius:var(--t1m-radius-sm);font:600 var(--t1m-text-sm) var(--t1m-font-body);cursor:pointer}.ds-doc__act:hover{background:var(--t1m-navy-50)}.ds-doc__act:focus-visible{outline:none;box-shadow:var(--t1m-focus-ring)}"
+    },
+    {
+      "name": "Alert",
+      "kind": "custom",
+      "refersTo": "",
+      "description": "Inline notice: tinted status color, icon, bold title, one sentence.",
+      "html": "<div class=\"ds-alert ds-alert--warning\" role=\"alert\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 4 3 19.5h18z\"/><path d=\"M12 10v4.5M12 17.5v.01\"/></svg><div><strong>Commercial invoice missing</strong>Upload it before 10 Mar to keep customs on schedule.</div></div>",
+      "css": ".ds-icon{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}.ds-alert{display:flex;gap:var(--t1m-space-3);padding:var(--t1m-space-3) var(--t1m-space-4);border-radius:var(--t1m-radius-md);font:400 var(--t1m-text-base) var(--t1m-font-body);border:1px solid}.ds-alert .ds-icon{margin-top:2px}.ds-alert--warning{background:var(--t1m-warning-bg);color:var(--t1m-warning);border-color:color-mix(in srgb,var(--t1m-warning) 25%,transparent)}.ds-alert strong{display:block;color:var(--t1m-ink)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Dispatch Desk",
+    "overview": "A dispatcher's desk at 9 a.m.: everything in reach, nothing decorative, the urgent item visible without hunting. The portal borrows Top1Movers' identity (their deep navy, their League Spartan headlines, their red mark) and puts it to work in a dense, calm, table-first interface that people read for hours.\n\nSurfaces are flat and outlined. Structure comes from borders, tint, and consistent row rhythm, not shadow. Navy carries action; status colors carry meaning and are always backed by an icon and a word. The look is deliberately quiet so overdue tasks, missing documents, and exceptions are the loudest things on any screen.",
+    "keyCharacteristics": [
+      "Job-centric: the Shipment 360 view is the hub; every module links back to a job.",
+      "Two densities from one component set: 36px desktop, 44px touch.",
+      "Quiet chrome: a white, bordered sidebar; the navy fill is spent on the current nav item, primary buttons, and links.",
+      "Light theme only in Phase 1 (daytime offices, lit warehouse floors).",
+      "Brand red is an identity mark, not a control color."
+    ],
+    "rules": [
+      {
+        "name": "The Navy Works, Red Signs Rule",
+        "body": "Actions are navy. Red #FF0000 only ever marks identity or current location. Trouble is Danger #B42318, always with an icon.",
+        "section": "colors"
+      },
+      {
+        "name": "The Never Color Alone Rule",
+        "body": "A status is a color, an icon, and a word together.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tokens Own The Font Rule",
+        "body": "Font families are declared once as `--t1m-font-*` in tokens.css. Components never name a font. The source (bundled file, Google Fonts, CDN) can change there without touching components.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-Until-Floating Rule",
+        "body": "If it doesn't overlay other content, it has no shadow.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** use only `var(--t1m-*)` tokens for color, size, space, radius, and font.",
+      "**Do** pair every status color with an icon and a word.",
+      "**Do** keep one navy primary button per view and name the action (\"Create quotation\").",
+      "**Do** build empty, loading, error, disabled, and focus states for every component.",
+      "**Do** surface overdue tasks, missing documents, and exceptions in list rows and on Shipment 360.",
+      "**Do** label all mock data as illustrative (IDs like TMW-2026-00412, \"Sample Trading Co.\")."
+    ],
+    "donts": [
+      "**Don't** fill a button, badge, banner, or nav item with Signal Red #FF0000, or use it as a side stripe.",
+      "**Don't** hardcode hex values, px font sizes, or font names in components.",
+      "**Don't** nest panels or put every group in a card; don't use colored side stripes on cards or rows.",
+      "**Don't** use emoji or text glyphs as icons; add to `icons.svg` in the same 1.75-stroke style.",
+      "**Don't** use gradient text, glassmorphism, or decorative shadows.",
+      "**Don't** open a modal for what a drawer, inline edit, or page can do.",
+      "**Don't** invent components: check `index.html` first, and if it's missing, add it to the system (tokens.css, components.css, index.html, this file) before using it."
+    ]
+  }
+}

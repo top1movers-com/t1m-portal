@@ -1,0 +1,5 @@
+{
+  "name": "t1m-portal",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"]
+}

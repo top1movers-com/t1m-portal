@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>T1M Design System</title>
+<link rel="stylesheet" href="./components.css">
+<style>
+  /* Doc-page chrome only. Not part of the system. */
+  .doc { display: grid; grid-template-columns: 220px minmax(0, 1fr); min-height: 100vh; }
+  .doc__nav { position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto; background: var(--t1m-surface); border-right: 1px solid var(--t1m-border); border-top: 3px solid var(--t1m-brand-red); padding: var(--t1m-space-4); display: grid; gap: var(--t1m-space-1); align-content: start; }
+  .doc__nav img { width: 100%; margin-bottom: var(--t1m-space-4); }
+  .doc__nav a { color: var(--t1m-ink-2); text-decoration: none; font-weight: 600; padding: 6px var(--t1m-space-3); border-radius: var(--t1m-radius-sm); }
+  .doc__nav a[aria-current="true"] { background: var(--t1m-navy-700); color: #fff; }
+  .doc__nav a:hover { background: var(--t1m-navy-50); color: var(--t1m-navy-700); }
+  .doc main { padding: var(--t1m-space-10) clamp(16px, 4vw, 56px) 96px; max-width: 1100px; }
+  .doc section { margin-top: var(--t1m-space-12); scroll-margin-top: 24px; }
+  .doc h1 { font-size: 2rem; }
+  .doc h2 { font-size: 1.5rem; padding-bottom: var(--t1m-space-2); border-bottom: 1px solid var(--t1m-border); margin-bottom: var(--t1m-space-4); }
+  .doc h3 { margin: var(--t1m-space-6) 0 var(--t1m-space-2); }
+  .doc p { max-width: 70ch; margin: var(--t1m-space-2) 0; }
+  .demo { background: var(--t1m-surface); border: 1px solid var(--t1m-border); border-radius: var(--t1m-radius-md); padding: var(--t1m-space-5); display: flex; flex-wrap: wrap; gap: var(--t1m-space-3); align-items: center; margin: var(--t1m-space-3) 0; }
+  .demo--col { display: grid; align-items: start; }
+  .demo--flush { padding: 0; display: block; overflow: hidden; }
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: var(--t1m-space-3); }
+  .sw { border: 1px solid var(--t1m-border); border-radius: var(--t1m-radius-md); overflow: hidden; background: var(--t1m-surface); }
+  .sw i { display: block; height: 56px; border-bottom: 1px solid var(--t1m-border); }
+  .sw div { padding: var(--t1m-space-2) var(--t1m-space-3); font-size: var(--t1m-text-xs); }
+  .sw b { display: block; font-size: var(--t1m-text-sm); }
+  .sw code, .doc code { font-family: var(--t1m-font-mono); font-size: 0.9em; color: var(--t1m-ink-2); }
+  .rule { background: var(--t1m-surface); border: 1px solid var(--t1m-border); border-radius: var(--t1m-radius-md); padding: var(--t1m-space-3) var(--t1m-space-4); margin: var(--t1m-space-2) 0; }
+  .rule b { color: var(--t1m-navy-700); }
+  .dd { display: grid; grid-template-columns: 1fr 1fr; gap: var(--t1m-space-4); }
+  .dd ul { margin: 0; padding-left: 1.1em; display: grid; gap: var(--t1m-space-2); }
+  .spec td:first-child { font-family: var(--t1m-font-mono); font-size: var(--t1m-text-xs); white-space: nowrap; }
+  .space-bar { display: inline-block; height: 12px; background: var(--t1m-navy-700); vertical-align: middle; margin-right: var(--t1m-space-2); }
+  .mini-shell { border: 1px solid var(--t1m-border); border-radius: var(--t1m-radius-md); overflow: hidden; }
+  .mini-shell .ds-shell { min-height: 420px; }
+  .icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: var(--t1m-space-2); width: 100%; }
+  .icons div { display: grid; justify-items: center; gap: 6px; padding: var(--t1m-space-3) 4px; border: 1px solid var(--t1m-border); border-radius: var(--t1m-radius-sm); font-size: var(--t1m-text-xs); color: var(--t1m-ink-2); }
+  .icons svg { width: 22px; height: 22px; color: var(--t1m-navy-700); }
+  .doc main { min-width: 0; }
+  .mini-note { display: none; }
+  @media (max-width: 640px) { .rail-demo { display: none; } }
+  .ds-vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  @media (max-width: 640px) { .mini-shell { display: none; } .mini-note { display: block; } .doc__nav img { width: 160px; } }
+  @media (max-width: 860px) { .doc { grid-template-columns: minmax(0, 1fr); } .doc__nav { position: static; height: auto; display: flex; flex-wrap: wrap; } .doc__nav img { width: 200px; } .dd { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+<!-- Top1Movers icon set. 24x24 grid, 1.75 stroke, round caps/joins, currentColor. Use via <svg class="ds-icon"><use href="#i-NAME"/></svg>. Add new icons here in the same style; never use emoji or unicode glyphs as icons. -->
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+<symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+<symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4 3 19.5h18z"/><path d="M12 10v4.5M12 17.5v.01"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8v.01"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z"/><path d="M10 21h4"/></symbol>
+<symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></symbol>
+<symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V5M7.5 9.5 12 5l4.5 4.5M5 19h14"/></symbol>
+<symbol id="i-download" viewBox="0 0 24 24"><path d="M12 5v11M7.5 11.5 12 16l4.5-4.5M5 19h14"/></symbol>
+<symbol id="i-file" viewBox="0 0 24 24"><path d="M7 3.5h6.5L18 8v12.5H7z"/><path d="M13.5 3.5V8H18M9.5 13h6M9.5 16.5h6"/></symbol>
+<symbol id="i-box" viewBox="0 0 24 24"><path d="m12 3 8 4v10l-8 4-8-4V7z"/><path d="m4 7 8 4 8-4M12 11v10"/></symbol>
+<symbol id="i-truck" viewBox="0 0 24 24"><path d="M3 6.5h11v10H3zM14 10h4l3 3v3.5h-7"/><circle cx="7.5" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></symbol>
+<symbol id="i-dashboard" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="8"/><rect x="13" y="4" width="7" height="5"/><rect x="13" y="11" width="7" height="9"/><rect x="4" y="14" width="7" height="6"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2"/><path d="M3 19.5c.6-3.3 3-5 6-5s5.4 1.7 6 5"/><path d="M16 5.5a3 3 0 0 1 0 6M18 14.8c1.7.7 2.8 2.3 3 4.7"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.7-3.8 3.4-5.8 7-5.8s6.3 2 7 5.8"/></symbol>
+<symbol id="i-tasks" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="1.5"/><path d="M9 4V3h6v1M9 11l1.5 1.5L14 9M9 17h6"/></symbol>
+<symbol id="i-quote" viewBox="0 0 24 24"><path d="M6 3.5h9l3.5 3.5V20.5H6z"/><path d="M9 11h6M9 14.5h6M9 18h3.5"/></symbol>
+<symbol id="i-receipt" viewBox="0 0 24 24"><path d="M6 3.5h12v17l-2.5-1.7-2 1.7-2-1.7-2 1.7-2-1.7-1.5 1.2z"/><path d="M9 8.5h6M9 12h6"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.5 19 6v5.5c0 4.3-2.8 7.6-7 9-4.2-1.4-7-4.7-7-9V6z"/><path d="m9 12 2.2 2.2L15.5 10"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s6.5-5.7 6.5-11a6.5 6.5 0 0 0-13 0C5.5 15.300 12 21 12 21z"/><circle cx="12" cy="10" r="2.3"/></symbol>
+<symbol id="i-building" viewBox="0 0 24 24"><path d="M5 20.5V4.5h9v16M14 9.5h5v11M8 8h3M8 11.5h3M8 15h3M3 20.5h18"/></symbol>
+<symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.3M12 18.2v2.3M3.5 12h2.3M18.2 12h2.3M6 6l1.6 1.6M16.4 16.4 18 18M18 6l-1.6 1.6M7.6 16.4 6 18"/></symbol>
+</svg>
+
+<div class="doc">
+<nav class="doc__nav" aria-label="Sections">
+  <img src="./assets/top1movers-logo.png" alt="Top1Movers Worldwide Inc.">
+  <a href="#principles">Principles</a><a href="#color">Color</a><a href="#type">Typography</a><a href="#space">Space &amp; shape</a><a href="#icons">Icons</a><a href="#buttons">Buttons</a><a href="#forms">Fields</a><a href="#status">Status</a><a href="#tables">Tables</a><a href="#nav">Shell &amp; nav</a><a href="#signature">Shipment patterns</a><a href="#feedback">Feedback</a><a href="#rules">Do &amp; don't</a><a href="#use">Using it</a>
+</nav>
+<main>
+  <h1>Top1Movers Operations Portal: Design System</h1>
+  <p class="ds-muted">Version 0.1, September 2026. Phase 1 stakeholder mockup. All names, IDs, and figures in examples are illustrative mock data.</p>
+  <p>A working screen for dispatchers, warehouse crew, and managers who read tables and clear task lists all day. It should feel like Top1Movers (their red, their deep navy, their League Spartan headlines) but behave like a tool: dense, calm, and quick to scan. Everything on this page is built from <code>tokens.css</code> and <code>components.css</code>.</p>
+
+  <section id="principles">
+    <h2>Principles</h2>
+    <div class="rule"><b>Navy works, red signs.</b> Navy carries every action, heading, and link. Brand red <code>#FF0000</code> appears only as identity: the logo, a 3px rule, and the current-location marker. It is never a button fill or small text, so red on screen means "brand" or, in its darker danger shade, "trouble".</div>
+    <div class="rule"><b>Scan first, decorate never.</b> 14px body, 40px rows, tabular numbers, sticky headers. Depth comes from borders and tint; shadows exist only on things that float.</div>
+    <div class="rule"><b>Never color alone.</b> Every status pairs a color with an icon and a word, so it reads in glare, on a warehouse tablet, and for color-blind staff.</div>
+    <div class="rule"><b>Built for the touch and the mouse.</b> Same components, two densities: 36px on desktop, 44px on phones and tablets for the field crew.</div>
+  </section>
+
+  <section id="color">
+    <h2>Color</h2>
+    <p>Neutrals are tinted toward the brand navy so the canvas feels part of the same family as the client's site. Use tokens, never raw hex.</p>
+    <h3>Brand</h3>
+    <div class="swatches">
+      <div class="sw"><i style="background:var(--t1m-brand-red)"></i><div><b>Signal Red</b><code>--t1m-brand-red #FF0000</code><br>Identity only. White text on it fails small-size contrast (4:1).</div></div>
+      <div class="sw"><i style="background:var(--t1m-navy-950)"></i><div><b>Midnight</b><code>--t1m-navy-950 #02033B</code><br>Login field and full-bleed brand moments. Not the app shell.</div></div>
+      <div class="sw"><i style="background:var(--t1m-navy-700)"></i><div><b>Harbour Navy</b><code>--t1m-navy-700 #191970</code><br>Primary action, headings, links.</div></div>
+      <div class="sw"><i style="background:var(--t1m-navy-600)"></i><div><b>Navy Hover</b><code>--t1m-navy-600 #2C2F95</code></div></div>
+      <div class="sw"><i style="background:var(--t1m-navy-100)"></i><div><b>Navy Wash</b><code>--t1m-navy-100 #E4E7F7</code><br>Selected rows.</div></div>
+    </div>
+    <h3>Neutrals</h3>
+    <div class="swatches">
+      <div class="sw"><i style="background:var(--t1m-bg)"></i><div><b>Canvas</b><code>--t1m-bg #F5F8FC</code></div></div>
+      <div class="sw"><i style="background:var(--t1m-surface)"></i><div><b>Surface</b><code>--t1m-surface #FFFFFF</code></div></div>
+      <div class="sw"><i style="background:var(--t1m-surface-muted)"></i><div><b>Surface Muted</b><code>--t1m-surface-muted #EDF1F7</code></div></div>
+      <div class="sw"><i style="background:var(--t1m-border-strong)"></i><div><b>Border Strong</b><code>--t1m-border-strong #8492AA</code><br>Control outlines, 3.1:1. <code>--t1m-border #DCE3EE</code> for dividers.</div></div>
+      <div class="sw"><i style="background:var(--t1m-ink)"></i><div><b>Ink</b><code>--t1m-ink #14163A</code></div></div>
+      <div class="sw"><i style="background:var(--t1m-ink-2)"></i><div><b>Ink 2</b><code>--t1m-ink-2 #4A5170</code></div></div>
+      <div class="sw"><i style="background:var(--t1m-ink-3)"></i><div><b>Ink 3</b><code>--t1m-ink-3 #5F6788</code><br>Placeholder, meta. 4.5:1+ on canvas.</div></div>
+    </div>
+    <h3>Status</h3>
+    <div class="swatches">
+      <div class="sw"><i style="background:var(--t1m-danger)"></i><div><b>Danger</b><code>--t1m-danger #B42318</code><br>Overdue, rejected, destructive. Bg <code>--t1m-danger-bg</code>.</div></div>
+      <div class="sw"><i style="background:var(--t1m-warning)"></i><div><b>Warning</b><code>--t1m-warning #9A4A05</code><br>Due soon, missing. Bg <code>--t1m-warning-bg</code>.</div></div>
+      <div class="sw"><i style="background:var(--t1m-success)"></i><div><b>Success</b><code>--t1m-success #17794A</code><br>Delivered, approved. Bg <code>--t1m-success-bg</code>.</div></div>
+      <div class="sw"><i style="background:var(--t1m-info)"></i><div><b>Info</b><code>--t1m-info #1D5FC4</code><br>In progress, neutral notice. Bg <code>--t1m-info-bg</code>.</div></div>
+    </div>
+  </section>
+
+  <section id="type">
+    <h2>Typography</h2>
+    <p><b>League Spartan</b> (client's headline face, 600/700, bundled in <code>fonts/</code> for now; the source is swappable in <code>tokens.css</code>) for page titles and headings. <b>Helvetica Neue / Arial</b> (their body face) for everything else. <b>System mono</b> only for IDs, container and BL numbers. Numbers are always tabular.</p>
+    <div class="demo demo--col">
+      <div><span class="ds-label">Page title / xl 24 / display 700</span><h1>Shipment Job TMW-2026-00412</h1></div>
+      <div><span class="ds-label">Section / lg 18 / display 600</span><h2 style="border:0;margin:0;padding:0">Milestones and tasks</h2></div>
+      <div><span class="ds-label">Panel title / md 16 / display 600</span><h3 style="margin:0">Documents</h3></div>
+      <div><span class="ds-label">Body / base 14 / 400</span><p style="margin:0">Consignee has confirmed the delivery window. Container is at the pier awaiting customs release.</p></div>
+      <div><span class="ds-label">Table cell / sm 13</span><span style="font-size:var(--t1m-text-sm)">Manila North Port, Pier 3</span></div>
+      <div><span class="ds-label">Label / xs 12 / 700 caps</span><span class="ds-label">Estimated arrival</span></div>
+      <div><span class="ds-label">Data / mono</span><span class="ds-mono">MSKU 748291-3 · BL HLCU-2026-77341</span></div>
+    </div>
+  </section>
+
+  <section id="space">
+    <h2>Space, shape, elevation</h2>
+    <p>4px base. Tight inside groups (4 to 8), generous between them (24 to 48). More space above a heading than below it.</p>
+    <div class="demo demo--col">
+      <div><span class="ds-mono">space-1 4</span> <i class="space-bar" style="width:4px"></i> <span class="ds-mono">space-2 8</span> <i class="space-bar" style="width:8px"></i> <span class="ds-mono">space-3 12</span> <i class="space-bar" style="width:12px"></i> <span class="ds-mono">space-4 16</span> <i class="space-bar" style="width:16px"></i> <span class="ds-mono">space-6 24</span> <i class="space-bar" style="width:24px"></i> <span class="ds-mono">space-8 32</span> <i class="space-bar" style="width:32px"></i> <span class="ds-mono">space-12 48</span> <i class="space-bar" style="width:48px"></i></div>
+    </div>
+    <p>Radius: <code>sm 4</code> controls and pills, <code>md 6</code> panels and menus, <code>lg 10</code> drawers. Only avatars and status dots are round. Elevation is flat: panels are outlined, not shadowed. <code>--t1m-shadow-float</code> is reserved for menus, drawers, and toasts.</p>
+    <div class="demo">
+      <div class="ds-panel" style="padding:16px 24px">Panel: 1px border, radius md, no shadow</div>
+      <div class="ds-panel" style="padding:16px 24px; box-shadow:var(--t1m-shadow-float)">Floating: menu, drawer, toast</div>
+    </div>
+  </section>
+
+  <section id="icons">
+    <h2>Icons</h2>
+    <p>One family: 24 grid, 1.75 stroke, round joins, <code>currentColor</code>. Rendered at 16px inline, 20px in navigation. Source: <code>icons.svg</code> (this page inlines the same sprite). Add new icons in the same style; never use emoji or text glyphs.</p>
+    <div class="demo"><div class="icons" id="icon-grid"></div></div>
+  </section>
+
+  <section id="buttons">
+    <h2>Buttons</h2>
+    <p>One primary per view. Labels name the action ("Create quotation", not "Submit").</p>
+    <div class="demo">
+      <button class="ds-btn ds-btn--primary"><svg class="ds-icon"><use href="#i-plus"/></svg>New shipment job</button>
+      <button class="ds-btn ds-btn--secondary">Save draft</button>
+      <button class="ds-btn ds-btn--ghost">Cancel</button>
+      <button class="ds-btn ds-btn--danger">Reject document</button>
+      <button class="ds-btn ds-btn--primary" disabled>Disabled</button>
+      <button class="ds-btn ds-btn--primary ds-btn--loading">Saving</button>
+    </div>
+    <div class="demo">
+      <button class="ds-btn ds-btn--primary ds-btn--sm">Small 30</button>
+      <button class="ds-btn ds-btn--primary">Default 36</button>
+      <button class="ds-btn ds-btn--primary ds-btn--touch">Touch 44</button>
+    </div>
+  </section>
+
+  <section id="forms">
+    <h2>Fields</h2>
+    <div class="demo" style="align-items:start">
+      <div class="ds-field" style="width:240px"><label for="a">Customer</label><input id="a" class="ds-input" placeholder="Search customers"><span class="ds-field__hint">Type at least 3 characters.</span></div>
+      <div class="ds-field" style="width:240px"><label for="b">Container number</label><input id="b" class="ds-input ds-mono" value="MSKU 748291" aria-invalid="true"><span class="ds-field__error"><svg class="ds-icon"><use href="#i-alert"/></svg>Check digit is missing. Expected 11 characters.</span></div>
+      <div class="ds-field" style="width:240px"><label for="c">Service type</label><select id="c" class="ds-select"><option>Import, sea freight</option><option>Export, sea freight</option></select></div>
+      <div class="ds-field" style="width:240px"><label for="d">Locked field</label><input id="d" class="ds-input" value="Set at conversion" disabled></div>
+      <div class="ds-search" style="width:240px"><svg class="ds-icon"><use href="#i-search"/></svg><input class="ds-input" placeholder="Search job ID, BL, container" aria-label="Search"><kbd class="ds-kbd">/</kbd></div>
+      <label class="ds-check"><input type="checkbox" checked> Notify customer</label>
+    </div>
+  </section>
+
+  <section id="status">
+    <h2>Status pills</h2>
+    <p>Always icon + word. Map by meaning: info = in progress, success = done, warning = needs attention soon, danger = overdue or rejected, neutral = not started.</p>
+    <div class="demo">
+      <span class="ds-pill"><svg class="ds-icon"><use href="#i-clock"/></svg>Not started</span>
+      <span class="ds-pill ds-pill--info"><svg class="ds-icon"><use href="#i-truck"/></svg>In transit</span>
+      <span class="ds-pill ds-pill--warning"><svg class="ds-icon"><use href="#i-file"/></svg>Missing document</span>
+      <span class="ds-pill ds-pill--danger"><svg class="ds-icon"><use href="#i-alert"/></svg>Overdue</span>
+      <span class="ds-pill ds-pill--success"><svg class="ds-icon"><use href="#i-check"/></svg>Delivered</span>
+      <span class="ds-pill ds-pill--brand"><svg class="ds-icon"><use href="#i-receipt"/></svg>Billing ready</span>
+    </div>
+  </section>
+
+  <section id="tables">
+    <h2>Tables</h2>
+    <p>The core surface. Sticky uppercase header, 40px rows, right-aligned tabular numbers, hover tint, navy-wash selection. Row click opens the record; never make only an icon clickable. Power tools: sortable headers (<code>aria-sort</code>), row checkboxes with a bulk bar, page size, and <span class="ds-kbd">/</span> to focus search. Under 640px, <code>ds-table--stack</code> turns rows into labeled cards.</p>
+    <div class="demo demo--flush">
+      <div class="ds-panel__head"><h3>Active shipment jobs</h3><div style="display:flex;gap:8px"><button class="ds-btn ds-btn--secondary ds-btn--sm"><svg class="ds-icon"><use href="#i-filter"/></svg>Filter</button><button class="ds-btn ds-btn--primary ds-btn--sm"><svg class="ds-icon"><use href="#i-plus"/></svg>New job</button></div></div>
+      <div class="ds-bulkbar"><span>1 selected</span><button class="ds-btn ds-btn--secondary ds-btn--sm">Assign owner</button><button class="ds-btn ds-btn--secondary ds-btn--sm">Export</button><button class="ds-btn ds-btn--ghost ds-btn--sm">Clear</button></div>
+      <div class="ds-table-wrap"><table class="ds-table ds-table--stack">
+        <thead><tr><th class="ds-check-col"><input type="checkbox" aria-label="Select all"></th><th aria-sort="ascending"><button class="ds-sort">Job ID <svg class="ds-icon"><use href="#i-chevron-down"/></svg></button></th><th>Customer</th><th>Route</th><th>Status</th><th aria-sort="none"><button class="ds-sort">Next task due</button></th><th class="ds-num">Containers</th></tr></thead>
+        <tbody>
+          <tr data-href="#"><td class="ds-check-col"><input type="checkbox" aria-label="Select TMW-2026-00412"></td><td class="ds-mono" data-label="Job ID">TMW-2026-00412</td><td data-label="Customer">Sample Trading Co.</td><td data-label="Route">Yantian to Manila</td><td data-label="Status"><span class="ds-pill ds-pill--info"><svg class="ds-icon"><use href="#i-truck"/></svg>In transit</span></td><td data-label="Next task due">Sep 30</td><td class="ds-num" data-label="Containers">2</td></tr>
+          <tr aria-selected="true" data-href="#"><td class="ds-check-col"><input type="checkbox" checked aria-label="Select TMW-2026-00409"></td><td class="ds-mono" data-label="Job ID">TMW-2026-00409</td><td data-label="Customer">Demo Foods Inc.</td><td data-label="Route">Busan to Cebu</td><td data-label="Status"><span class="ds-pill ds-pill--warning"><svg class="ds-icon"><use href="#i-file"/></svg>Missing document</span></td><td data-label="Next task due">Sep 29</td><td class="ds-num" data-label="Containers">1</td></tr>
+          <tr data-href="#"><td class="ds-check-col"><input type="checkbox" aria-label="Select TMW-2026-00401"></td><td class="ds-mono" data-label="Job ID">TMW-2026-00401</td><td data-label="Customer">Example Hardware</td><td data-label="Route">Shanghai to Manila</td><td data-label="Status"><span class="ds-pill ds-pill--danger"><svg class="ds-icon"><use href="#i-alert"/></svg>Overdue</span></td><td class="ds-overdue" data-label="Next task due">Sep 24</td><td class="ds-num" data-label="Containers">4</td></tr>
+          <tr data-href="#"><td class="ds-check-col"><input type="checkbox" aria-label="Select TMW-2026-00388"></td><td class="ds-mono" data-label="Job ID">TMW-2026-00388</td><td data-label="Customer">Sample Trading Co.</td><td data-label="Route">Manila to Davao</td><td data-label="Status"><span class="ds-pill ds-pill--success"><svg class="ds-icon"><use href="#i-check"/></svg>Delivered</span></td><td data-label="Next task due">Done</td><td class="ds-num" data-label="Containers">1</td></tr>
+        </tbody></table></div>
+      <div class="ds-pager"><span>1 to 4 of 1,284 jobs</span><span style="display:flex;gap:8px;align-items:center"><label for="ps" class="ds-muted">Rows</label><select id="ps" class="ds-select" style="width:72px;height:30px"><option>25</option><option>50</option><option>100</option></select><button class="ds-btn ds-btn--secondary ds-btn--sm" disabled>Previous</button><button class="ds-btn ds-btn--secondary ds-btn--sm">Next</button></span></div>
+    </div>
+    <h3>Tabs</h3>
+    <div class="demo demo--flush"><div class="ds-tabs" role="tablist" style="padding:0 16px"><button class="ds-tab" role="tab" aria-selected="true">Overview</button><button class="ds-tab" role="tab" aria-selected="false">Tasks</button><button class="ds-tab" role="tab" aria-selected="false">Documents</button><button class="ds-tab" role="tab" aria-selected="false">Charges</button><button class="ds-tab" role="tab" aria-selected="false">Audit trail</button></div></div>
+    <h3>Empty state</h3>
+    <div class="demo demo--flush"><div class="ds-empty"><svg class="ds-icon"><use href="#i-file"/></svg><h3>No documents uploaded yet</h3><p>Upload the bill of lading to start the checklist. Missing required documents will show on the dashboard.</p><button class="ds-btn ds-btn--primary"><svg class="ds-icon"><use href="#i-upload"/></svg>Upload document</button></div></div>
+  <h3>Drawer</h3>
+    <p>Record detail and quick edit open in a right-side drawer over the list, not a modal. Up to 480px wide; the only place besides menus and toasts that floats.</p>
+    <div class="demo" style="background:var(--t1m-surface-muted);justify-content:flex-end;padding:0;overflow:hidden"><aside class="ds-drawer" aria-label="Job detail preview">
+      <div class="ds-panel__head"><div><span class="ds-label">Shipment job</span><h3 class="ds-mono" style="margin:0;font-family:var(--t1m-font-mono)">TMW-2026-00409</h3></div><button class="ds-btn ds-btn--ghost ds-btn--sm" aria-label="Close"><svg class="ds-icon"><use href="#i-x"/></svg></button></div>
+      <div class="ds-panel__body" style="display:grid;gap:16px"><span class="ds-pill ds-pill--warning" style="justify-self:start"><svg class="ds-icon"><use href="#i-file"/></svg>Missing document</span>
+        <div class="ds-field"><label for="dr1">Owner</label><select id="dr1" class="ds-select"><option>Sample User</option><option>Demo Coordinator</option></select></div>
+        <div class="ds-field"><label for="dr2">Note</label><textarea id="dr2" class="ds-textarea" placeholder="Add an update for the team"></textarea></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end"><button class="ds-btn ds-btn--ghost">Cancel</button><button class="ds-btn ds-btn--primary">Save note</button></div></div>
+    </aside></div>
+  </section>
+
+  <section id="nav">
+    <h2>App shell and navigation</h2>
+    <p>White sidebar with a right border (240px, icons-only at 960px and below, bottom bar under 640px), 56px top bar, content capped at 1440px. The sidebar carries the 3px brand-red rule on top; the current item is a solid navy fill with white text.</p>
+    <p class="mini-note ds-muted">Shell preview is hidden on phone-width screens. At this width the sidebar becomes a bottom bar and controls switch to 44px.</p>
+    <div class="mini-shell"><div class="ds-shell">
+      <aside class="ds-sidebar">
+        <div class="ds-sidebar__brand"><img src="./assets/top1movers-logo.png" alt="Top1Movers"></div>
+        <nav class="ds-nav" aria-label="Main">
+          <a class="ds-nav__item" href="#nav" aria-current="page" title="Dashboard"><svg class="ds-icon"><use href="#i-dashboard"/></svg><span>Dashboard</span></a>
+          <a class="ds-nav__item" href="#nav" title="Shipment jobs"><svg class="ds-icon"><use href="#i-box"/></svg><span>Shipment jobs</span><em class="ds-nav__count" style="font-style:normal">1,284</em></a>
+          <a class="ds-nav__item" href="#nav" title="My tasks"><svg class="ds-icon"><use href="#i-tasks"/></svg><span>My tasks</span><em class="ds-nav__count ds-nav__count--alert" style="font-style:normal">7</em></a>
+          <a class="ds-nav__item" href="#nav" title="Inquiries"><svg class="ds-icon"><use href="#i-quote"/></svg><span>Inquiries</span></a>
+          <div class="ds-nav__group">Admin</div>
+          <a class="ds-nav__item" href="#nav" title="Users and roles"><svg class="ds-icon"><use href="#i-users"/></svg><span>Users and roles</span></a>
+          <a class="ds-nav__item" href="#nav" title="Audit trail"><svg class="ds-icon"><use href="#i-shield"/></svg><span>Audit trail</span></a>
+        </nav>
+      </aside>
+      <header class="ds-topbar"><div class="ds-search" style="width:min(360px,100%)"><svg class="ds-icon"><use href="#i-search"/></svg><input class="ds-input" placeholder="Search job ID, BL, container" aria-label="Search"><kbd class="ds-kbd">/</kbd></div><span style="margin-left:auto;display:flex;gap:12px;align-items:center"><button class="ds-btn ds-btn--ghost ds-btn--sm" aria-label="Notifications"><svg class="ds-icon"><use href="#i-bell"/></svg></button><span class="ds-avatar" aria-label="Signed in as Sample User">SU</span></span></header>
+      <div class="ds-content">
+        <div class="ds-crumbs">Shipment jobs <svg class="ds-icon"><use href="#i-chevron-right"/></svg> <span class="ds-mono">TMW-2026-00412</span></div>
+        <div class="ds-page-head"><h1>Shipment 360</h1><button class="ds-btn ds-btn--primary">Update status</button></div>
+        <div class="ds-stats"><div class="ds-stat"><span class="ds-label">Open tasks</span><div class="ds-stat__value">6</div></div><div class="ds-stat"><span class="ds-label">Overdue</span><div class="ds-stat__value ds-stat__value--danger">1</div></div><div class="ds-stat"><span class="ds-label">Missing docs</span><div class="ds-stat__value">2</div></div></div>
+      </div>
+    </div></div>
+  <h3>Icon rail and phone bottom bar</h3>
+    <p>At 960px and below the sidebar becomes a 64px icon rail; under 640px it becomes a bottom bar with 44px targets. Labels stay in the accessibility tree and each link needs a <code>title</code>. The actionable count becomes a dot on the icon.</p>
+    <div class="demo" style="align-items:flex-end">
+      <div class="ds-panel" style="width:min(390px,100%);overflow:hidden"><div style="padding:16px;height:96px" class="ds-muted">Page content</div>
+        <aside class="ds-sidebar ds-sidebar--bar" aria-label="Phone navigation preview"><nav class="ds-nav" aria-label="Main (phone preview)">
+          <a class="ds-nav__item" href="#nav" aria-current="page" title="Dashboard"><svg class="ds-icon"><use href="#i-dashboard"/></svg><span>Dashboard</span></a>
+          <a class="ds-nav__item" href="#nav" title="Shipment jobs"><svg class="ds-icon"><use href="#i-box"/></svg><span>Shipment jobs</span></a>
+          <a class="ds-nav__item" href="#nav" title="My tasks, 7 open"><svg class="ds-icon"><use href="#i-tasks"/></svg><span>My tasks</span><em class="ds-nav__count ds-nav__count--alert" style="font-style:normal">7</em></a>
+          <a class="ds-nav__item" href="#nav" title="Inquiries"><svg class="ds-icon"><use href="#i-quote"/></svg><span>Inquiries</span></a>
+        </nav></aside></div>
+      <div class="ds-panel rail-demo" style="width:64px;overflow:hidden"><aside class="ds-sidebar" style="border:0;border-top:3px solid var(--t1m-brand-red);min-height:196px"><nav class="ds-nav" aria-label="Main (rail preview)" style="padding-top:12px;padding-left:0;padding-right:0">
+          <a class="ds-nav__item" href="#nav" aria-current="page" title="Dashboard" style="justify-content:center;padding:0"><svg class="ds-icon"><use href="#i-dashboard"/></svg></a>
+          <a class="ds-nav__item" href="#nav" title="Shipment jobs" style="justify-content:center;padding:0"><svg class="ds-icon"><use href="#i-box"/></svg></a>
+          <a class="ds-nav__item" href="#nav" title="My tasks, 7 open" style="justify-content:center;padding:0;position:relative"><svg class="ds-icon"><use href="#i-tasks"/></svg><span class="ds-vh">My tasks</span><span style="position:absolute;top:6px;right:12px;width:9px;height:9px;border-radius:99px;background:var(--t1m-navy-700);border:2px solid var(--t1m-surface);box-sizing:content-box"></span></a>
+        </nav></aside></div>
+    </div>
+  </section>
+
+  <section id="signature">
+    <h2>Shipment patterns</h2>
+    <p>Two components exist only in this product. Both are job-centric: they show where a shipment is and what is blocking it.</p>
+    <h3>Milestone track</h3>
+    <div class="demo demo--col"><ol class="ds-track" aria-label="Milestones">
+      <li class="ds-track__step" data-state="done">Inquiry<span class="ds-track__date">Sep 2</span></li>
+      <li class="ds-track__step" data-state="done">Quotation approved<span class="ds-track__date">Sep 5</span></li>
+      <li class="ds-track__step" data-state="done">Booking<span class="ds-track__date">Sep 8</span></li>
+      <li class="ds-track__step" data-state="overdue">Customs release<span class="ds-track__date">Due Sep 24</span></li>
+      <li class="ds-track__step" data-state="current">Trucking<span class="ds-track__date">Sep 30</span></li>
+      <li class="ds-track__step" data-state="">Delivery and POD<span class="ds-track__date">Oct 3</span></li>
+    </ol></div>
+    <h3>Document checklist</h3>
+    <div class="demo demo--flush"><div class="ds-panel" style="border:0">
+      <div class="ds-doc"><span class="ds-doc__icon"><svg class="ds-icon"><use href="#i-file"/></svg></span><div><div class="ds-doc__name">Bill of Lading</div><div class="ds-doc__meta">v2 · uploaded Sep 8 by Sample User</div></div><span class="ds-pill ds-pill--success"><svg class="ds-icon"><use href="#i-check"/></svg>Approved</span><button class="ds-btn ds-btn--ghost ds-btn--sm">View</button></div>
+      <div class="ds-doc"><span class="ds-doc__icon"><svg class="ds-icon"><use href="#i-file"/></svg></span><div><div class="ds-doc__name">Commercial Invoice</div><div class="ds-doc__meta">Rejected: amounts do not match packing list</div></div><span class="ds-pill ds-pill--danger"><svg class="ds-icon"><use href="#i-x"/></svg>Rejected</span><button class="ds-btn ds-btn--secondary ds-btn--sm"><svg class="ds-icon"><use href="#i-upload"/></svg>Replace</button></div>
+      <div class="ds-doc"><span class="ds-doc__icon"><svg class="ds-icon"><use href="#i-file"/></svg></span><div><div class="ds-doc__name">Packing List</div><div class="ds-doc__meta">Required · not yet uploaded</div></div><span class="ds-pill ds-pill--warning"><svg class="ds-icon"><use href="#i-alert"/></svg>Missing</span><button class="ds-btn ds-btn--secondary ds-btn--sm"><svg class="ds-icon"><use href="#i-upload"/></svg>Upload</button></div>
+    </div></div>
+  </section>
+
+  <section id="feedback">
+    <h2>Feedback</h2>
+    <p>Name the problem and the recovery. Inline alerts for page-level notices; field errors beside the field; no modal unless the user must decide before continuing.</p>
+    <div class="demo demo--col">
+      <div class="ds-alert ds-alert--warning"><svg class="ds-icon"><use href="#i-alert"/></svg><div><strong>2 required documents are missing</strong>Billing readiness cannot start until the packing list and commercial invoice are approved.</div></div>
+      <div class="ds-alert ds-alert--danger"><svg class="ds-icon"><use href="#i-alert"/></svg><div><strong>Could not save the quotation</strong>The connection dropped. Your changes are kept on this page. Try again.</div></div>
+      <div class="ds-alert ds-alert--success"><svg class="ds-icon"><use href="#i-check"/></svg><div><strong>Inquiry converted to job TMW-2026-00413</strong>Customer, routing, and cargo details were carried over.</div></div>
+      <div class="ds-alert ds-alert--info"><svg class="ds-icon"><use href="#i-info"/></svg><div><strong>Sample data</strong>This portal is a stakeholder mockup. Nothing here is saved.</div></div>
+    </div>
+  </section>
+
+  <section id="rules">
+    <h2>Do and don't</h2>
+    <div class="dd">
+      <div class="ds-panel ds-panel__body"><h3 style="margin-top:0">Do</h3><ul>
+        <li>Use <code>var(--t1m-*)</code> tokens for every color, size, space, and radius.</li>
+        <li>Pair every status color with an icon and a word.</li>
+        <li>Keep one primary button per view, in navy.</li>
+        <li>Use tabular numbers and right-align quantities.</li>
+        <li>Show overdue work and missing documents where people already look (list rows, dashboard, Shipment 360).</li>
+        <li>Give every control hover, focus-visible, disabled, and loading states.</li>
+        <li>Use a drawer for record detail; keep the list visible behind it.</li>
+      </ul></div>
+      <div class="ds-panel ds-panel__body"><h3 style="margin-top:0">Don't</h3><ul>
+        <li>Fill buttons, badges, or banners with brand red. Red is a mark, not a control color.</li>
+        <li>Hardcode hex values, px font sizes, or font names in components. Fonts (bundled, Google Fonts, or any CDN) are declared once in <code>tokens.css</code>.</li>
+        <li>Nest panels inside panels, or wrap every field group in a card.</li>
+        <li>Use emoji or text glyphs as icons.</li>
+        <li>Put a colored side stripe on cards or rows.</li>
+        <li>Use gradient text, glass, or decorative shadows.</li>
+        <li>Open a modal for something a drawer, inline edit, or page can do.</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <section id="use">
+    <h2>Using it</h2>
+    <p>In the React app: <code>import "@t1m/design-system/components.css"</code> (which pulls in tokens and fonts), then build components that render the <code>ds-*</code> classes documented above. Humans read this page; AI agents read <code>/DESIGN.md</code> and follow <code>/docs/ai/ui-rules.md</code>. If a needed component or value is missing, add it here and to DESIGN.md first, then use it.</p>
+  </section>
+</main>
+</div>
+<script>
+  // Render the icon grid from the inlined sprite so the doc never drifts from icons.svg.
+  const grid = document.getElementById('icon-grid');
+  document.querySelectorAll('symbol').forEach(s => {
+    const id = s.id.replace('i-', '');
+    const d = document.createElement('div');
+    d.innerHTML = `<svg class="ds-icon" style="width:22px;height:22px"><use href="#${s.id}"/></svg><span>${id}</span>`;
+    grid.appendChild(d);
+  });
+  // Highlight the current section in the guide nav.
+  const links = [...document.querySelectorAll('.doc__nav a')];
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return;
+    links.forEach(l => l.getAttribute('href') === '#' + e.target.id ? l.setAttribute('aria-current', 'true') : l.removeAttribute('aria-current'));
+  }), { rootMargin: '-20% 0px -70% 0px' });
+  document.querySelectorAll('.doc section').forEach(s => io.observe(s));
+</script>
+</body>
+</html>
