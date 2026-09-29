@@ -4,6 +4,7 @@
 **Build under test:** `apps/mockup/index.html` (single file, mock data only)
 **Document type:** scenario-based user acceptance test (UAT) plan
 **Status:** Draft v1.0
+**Tracking sheet:** `docs/testing/UAT-test-cases.xlsx` holds every case below with Status, Tester, Date and Defect columns and a live progress summary. Use the spreadsheet to record results; keep this document as the reference.
 
 This plan tells a tester exactly what to do, as which user, and what should happen. It covers every role's point of view (Dispatcher, Warehouse Crew, Manager, Admin, Finance, and the outside Customer), every feature in the mockup, and three kinds of scenario for each: things that go right, things that go wrong, and awkward edge cases.
 
