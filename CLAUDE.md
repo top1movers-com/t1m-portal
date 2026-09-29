@@ -10,4 +10,5 @@ Before writing or changing any UI, read `docs/ai/ui-rules.md`, then `DESIGN.md` 
 
 - `packages/design-system/`: tokens, component CSS, icons, fonts, logo, HTML style guide
 - `docs/ai/`: rules and documents written for AI agents
+- `docs/testing/`: UAT test plan (scenario-based test cases for every role)
 - `apps/`: applications (React + Vite frontend goes here)
