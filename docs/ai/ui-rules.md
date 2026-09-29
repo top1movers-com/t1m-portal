@@ -46,4 +46,5 @@ Then use it. If the change alters an existing look (not just adds), stop and ask
 | Visual style guide (humans) | `/packages/design-system/index.html` |
 | Icons | `/packages/design-system/icons.svg` |
 | Client logo | `/packages/design-system/assets/top1movers-logo.png` |
+| Mockup sources (edit these) | `/apps/mockup/src/*.js`, built by `node apps/mockup/build.mjs` into `apps/mockup/index.html` (generated; never edit it directly) |
 | Product truth | `/PRODUCT.md` |

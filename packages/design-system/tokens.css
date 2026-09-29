@@ -53,6 +53,7 @@
   --t1m-font-chrome: var(--t1m-font-display); /* buttons, nav, tabs, labels, pills */
   --t1m-font-mono: ui-monospace, "Cascadia Mono", Consolas, "Courier New", monospace; /* IDs, container/BL numbers, quantities only */
 
+  --t1m-text-2xs: 0.6875rem; /* 11 phone nav labels, count badges only; never body text */
   --t1m-text-xs: 0.75rem;    /* 12 labels, table meta */
   --t1m-text-sm: 0.8125rem;  /* 13 dense table cells */
   --t1m-text-base: 0.875rem; /* 14 default body */
@@ -102,6 +103,8 @@
   /* ---- Elevation: flat by default; shadow only on things that float ---- */
   --t1m-shadow-float: 0 2px 6px rgba(2, 3, 59, 0.08), 0 8px 24px rgba(2, 3, 59, 0.12);
   --t1m-shadow-card: 0 1px 2px color-mix(in srgb, var(--t1m-ink) 6%, transparent), 0 8px 24px -12px color-mix(in srgb, var(--t1m-navy-950) 18%, transparent); /* soft lift for hero-overlapping and elevated panels */
+  --t1m-shadow-card-hover: 0 2px 4px color-mix(in srgb, var(--t1m-ink) 8%, transparent), 0 14px 32px -12px color-mix(in srgb, var(--t1m-navy-950) 26%, transparent); /* a clickable card under the pointer */
+  --t1m-scrim: color-mix(in srgb, var(--t1m-navy-950) 45%, transparent); /* behind drawers, sheets, the command palette and the account chooser */
   --t1m-focus-ring: 0 0 0 2px var(--t1m-surface), 0 0 0 4px var(--t1m-navy-700);
   --t1m-focus-glow: color-mix(in srgb, var(--t1m-navy-700) 18%, transparent);   /* soft halo for form fields */
   --t1m-danger-glow: color-mix(in srgb, var(--t1m-danger) 18%, transparent);
@@ -124,6 +127,8 @@
   --t1m-topbar-h: 56px;
   --t1m-content-max: 1440px;
   --t1m-gutter: 24px;
+  --t1m-bottomnav-h: 60px;   /* phone bottom navigation: icon + short label, >=44px targets */
+  --t1m-drawer-w: 480px;
   --t1m-bp-sm: 640px;   /* reference only: CSS vars can't be used in @media */
   --t1m-bp-md: 960px;
   --t1m-bp-lg: 1280px;
@@ -132,6 +137,8 @@
   --t1m-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --t1m-dur-fast: 120ms;
   --t1m-dur-base: 200ms;
+  --t1m-dur-slow: 480ms;     /* progress that is worth watching: a stage filling in, a clock draining */
+  --t1m-stagger: 40ms;       /* delay step between list items entering */
 }
 
 @media (max-width: 640px) {
@@ -139,5 +146,5 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :root { --t1m-dur-fast: 0ms; --t1m-dur-base: 0ms; }
+  :root { --t1m-dur-fast: 0ms; --t1m-dur-base: 0ms; --t1m-dur-slow: 0ms; --t1m-stagger: 0ms; }
 }

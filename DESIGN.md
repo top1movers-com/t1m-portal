@@ -171,6 +171,7 @@ Restrained palette: navy plus navy-tinted neutrals, one set of four status color
 ### Named Rules
 **The Navy Works, Red Signs Rule.** Actions are navy. Red #E5383B only ever marks identity or current location. Trouble is Danger #B3372D, always with an icon.
 **The Never Color Alone Rule.** A status is a color, an icon, and a word together.
+**The Two Questions Rule.** *Where is it?* and *is it OK?* are separate signals. A job's stage is a place, shown as a neutral navy outline pill (`.ds-pill--stage`) and never tinted. Its health (On track = Success, Needs attention = Warning, Blocked = Danger, With Finance = Brand) is the only thing that gets status color. Before v3 every stage was an Info pill, so color carried no meaning.
 
 ## Typography
 
@@ -195,7 +196,7 @@ Restrained palette: navy plus navy-tinted neutrals, one set of four status color
 
 ## Layout
 
-Fixed app shell: 240px white sidebar with a 1px right border, 56px top bar, content capped at 1440px with 24px gutters (16px under 640px). Both the sidebar and top bar are sticky (`position: sticky; top: 0`) so they stay in view while the content column scrolls — only `.ds-content` scrolls, never the whole page. At 960px and below the sidebar collapses to a 64px icon rail; under 640px it becomes a bottom bar (sticky to the bottom instead) and controls switch to the 44px touch height. Spacing is a 4px base scale (4, 8, 12, 16, 20, 24, 32, 40, 48): tight inside a group, 24 to 48 between groups, more space above a heading than below it. Tables scroll horizontally inside their panel rather than shrinking type. Prefer one panel per topic over nested containers.
+Fixed app shell: 240px white sidebar with a 1px right border, 56px top bar, content capped at 1440px with 24px gutters (16px under 640px). Both the sidebar and top bar are sticky (`position: sticky; top: 0`) so they stay in view while the content column scrolls — only `.ds-content` scrolls, never the whole page. At 960px and below the sidebar collapses to a 64px icon rail; under 640px it becomes a fixed bottom navigation (`--t1m-bottomnav-h`, 60px) with a short label under every icon, and controls switch to the 44px touch height. Secondary destinations (Customers, Users, Audit) move into the avatar menu on phones so the bar never holds more than five items. Spacing is a 4px base scale (4, 8, 12, 16, 20, 24, 32, 40, 48): tight inside a group, 24 to 48 between groups, more space above a heading than below it. Tables scroll horizontally inside their panel rather than shrinking type. Prefer one panel per topic over nested containers.
 
 ## Elevation & Depth
 
@@ -224,13 +225,13 @@ Soft, modern radii: 8px (`--t1m-radius-sm`) for controls and nav items, 12px (`-
 - **Checkbox and radio:** 18px, Border Strong outline, filled Harbour Navy when on (check mark or inner dot); focus uses the same halo. **Switch:** 38x22 track, white knob, Harbour Navy when on, for settings that take effect immediately.
 
 ### Status pill
-- 28px tall with 12px horizontal padding, fully round (pill), 12px/600 text with a 12px icon. Info = in progress, Success = done, Warning = needs attention soon, Danger = overdue or rejected, Brand = billing ready, neutral = not started.
+- 28px tall with 12px horizontal padding, fully round (pill), 12px/600 text with a 12px icon. Info = in progress, Success = done, Warning = needs attention soon, Danger = overdue or rejected, Brand = billing ready, neutral = not started. `--sm` (22px) is for pills inside dense rows and cards. `--stage` is the neutral navy outline used only for a job's stage (see The Two Questions Rule).
 
 ### Tables
 - Quiet header: a 44px sticky row on white with 12px caps labels in Ink 3 over a hairline (no grey band). Rows are 52px at 14px text by default; Compact is 40px at 13px, Comfortable is 60px; density is a user switch (segmented control), not a page setting. Cells have 16px horizontal padding. Row dividers are 1px Border. Hover (Navy Tint) and selection (Navy Wash) are inset rounded highlights (8px on the row ends) and the neighbouring dividers fade out so the highlight reads clean. The ID column is Harbour Navy at weight 500 in the monospace data face; a customer cell may carry a secondary line in 12px Ink 3. Numbers are right-aligned. A trailing 32px kebab button appears on row hover or focus (always visible on touch). Checkboxes are 18px, 5px radius, filled Harbour Navy with a white check. The whole row opens the record. Overdue dates are Danger at weight 500.
 
 ### Navigation
-- White sidebar (1px right border, 3px Signal Red rule across the top), 36px items with 20px icons (1.5 stroke) and Ink 2 labels at weight 400. Group labels are 12px caps in Ink 3. Hover does not change the background: the label turns navy and grows to weight 600 over 200ms (width is reserved, so nothing shifts). The current item is a Navy Wash fill with navy text at weight 600 (no side stripe); its count chip turns white. Only an actionable count (for example My tasks) gets a navy chip; other counts are quiet grey. At 960px and below the sidebar is a 64px icon rail: labels are visually hidden but stay in the accessibility tree, and every link must carry a title tooltip. Under 640px it becomes a bottom bar with 44px targets.
+- White sidebar (1px right border, 3px Signal Red rule across the top), 36px items with 20px icons (1.5 stroke) and Ink 2 labels at weight 400. Group labels are 12px caps in Ink 3. Hover does not change the background: the label turns navy and grows to weight 600 over 200ms (width is reserved, so nothing shifts). The current item is a Navy Wash fill with navy text at weight 600 (no side stripe); its count chip turns white. Only an actionable count (for example My tasks) gets a navy chip; other counts are quiet grey. At 960px and below the sidebar is a 64px icon rail: labels are visually hidden but stay in the accessibility tree, and every link must carry a title tooltip. Under 640px it becomes a bottom navigation with visible short labels (icon-only bars make people guess, and a wrong tap costs a trip back). No side stripe marks the current item at any size.
 
 ### Table power tools
 - Sortable headers are buttons inside `th` with `aria-sort` and a chevron; a checkbox column feeds a bulk bar (Navy Wash, count + actions) above the table; the pager carries a page-size select; `/` focuses search (shown as a `kbd` hint). Under 640px, `ds-table--stack` turns rows into labeled cards.
@@ -295,12 +296,41 @@ Soft, modern radii: 8px (`--t1m-radius-sm`) for controls and nav items, 12px (`-
 - `.ds-avatar` fills with a two-stop Navy gradient (varied per person from the existing Navy scale, never a new hardcoded hue) holding a plain `i-user` glyph, standing in for a real Microsoft Graph profile photo (`GET /me/photo/$value`, `User.Read` scope — genuinely available for most work accounts). This mockup never uses an actual photograph of a real person for a fictional persona; the illustrated placeholder is the honest stand-in. A real integration keeps the same fallback this component already implies: no Graph photo (404) → plain initials, exactly like Teams or Outlook. `.ds-avatar--sm` (24px) is for inline use next to a name, e.g. a table row.
 - Mockup-only disclaimer belongs in the picker's footer (small, muted, centered) and in the login page's alert, not hidden in a tooltip — the whole point is that a reviewer never has to wonder whether this hits a real directory.
 
+### v3 workflow components
+The v3 idea: every screen answers **what needs me?** first and **what is the state?** second. Visible examples: Workflow (v3) in `index.html`.
+
+**The What-Now Rule.** Any record that moves through stages (a shipment job, an inquiry) leads with a Next step panel, not a status dropdown. The rule that governs the move is shown, not remembered.
+
+- **Next step (`.ds-next`)**: head (40px icon disc, uppercase eyebrow, lg title, one-sentence *why*), body (optional context strip, then the gate), foot (who acts or what unlocks on the left; the Override ghost and the view's single primary button on the right). Tones: default ready (Navy), `--waiting` (Warning: someone else's move, such as the client), `--blocked` (Danger: a hold or an exception freezes it), `--done` (Success). `--enter` eases it in after a change so the new state is noticed.
+- **Gate (`.ds-gate`)**: the checklist that must be true to leave a stage. Each item is an icon (check = met, hollow circle = open, lock = blocked by someone else), a label with a muted sub-line naming the specific problem, and the secondary button that fixes it (white on the tinted row). Met items lose their tint. The page's primary button is the first fix the current role can perform; the stage move stays locked until every item is met.
+- **KPI tile (`.ds-kpi`)**: a number that is also a door. Label, value, one-line hint, tone icon; clicking opens the filtered list behind the number. **No invented trends**: mock data cannot back a "+2 vs last week", so tiles never show one.
+- **Pipeline (`.ds-pipeline`)**: the stages as a left-to-right road with a count disc per stop (empty stops hollow), a red lock badge for blocked jobs, and phase labels underneath. It teaches the workflow and reports on it at once; each stop opens its jobs.
+- **Action queue (`.ds-queue`)**: one row per thing that needs a person, sorted by consequence (frozen jobs, late work, money, clocks, good news). Icon chip in the row's tone, title, mono ID meta, a *why* sentence (tinted only for Warning or Danger), one secondary action. Rows stagger in (`--t1m-stagger`).
+- **Filter chips (`.ds-chip`)**: pill buttons with `aria-pressed` and a count. `--warning` and `--danger` tint the text of chips whose set is a problem. `.ds-chips--scroll` scrolls sideways on phones instead of wrapping.
+- **Fee clock (`.ds-clock`)**: free storage or detention days as a large number and a draining 6px bar (full = 7 or more free days). Neutral while comfortable, Warning at 2 days or fewer, Danger once fees are running.
+- **Work card (`.ds-workcard`)**: touch-first task or delivery card for My work: title, meta row (mono ID, customer, due pill, Needs proof pill), actions that go full width at 44px on phones.
+- **Deal stepper (`.ds-deal`)**: numbered steps with a connector; done = solid navy disc with a check, current = ringed, later = dashed outline panel. Inquiry, quotation, client approval and shipment job on one page.
+- **Tab count (`.ds-tab__count`)**: a quiet number beside a tab label, tinted Warning or Danger only when it is work waiting.
+- **Overlay (`.ds-overlay` + `.ds-drawer__head/__body/__foot`)**: drawer on desktop, bottom sheet under 640px; the footer holds Cancel and the primary action and never scrolls away.
+- **Now in the system** (previously only in the mockup's private copy): layout utilities (`.ds-stack`, `.ds-row`, `.ds-grid-2`, `.ds-split`), `.ds-toast`, `.ds-cmdk`, `.ds-popover`, `.ds-login`, `.ds-activity`, `.ds-email`, `.ds-mockbadge`, `.ds-panel--elevated`, `.ds-readonly`, `.ds-facts`, `.ds-jobhead`, `.ds-bar-row`.
+
+### Motion, and why it moves
+Motion only marks a change the user caused or must notice: a stage connector fills once when a job moves (`data-just`, `--t1m-dur-slow`), the Next step panel eases in with its new state, queue rows and cards stagger in so the eye reads top-down, bars grow from their baseline, the current stage breathes. Nothing loops except "in progress" signals. All of it switches off under `prefers-reduced-motion`.
+
+### Charts
+Single series, one hue (Navy 700), labelled in ink, with a one-sentence *what this tells you* note. Status colors appear only where the bars **are** statuses (job health, document status). Hover shows the exact value (`data-tip`). The old status-colored donut was removed because it used status colors as categories.
+
+## Building the mockup
+`apps/mockup/index.html` is generated by `node apps/mockup/build.mjs` from this package (tokens, components, icons, font, logo) and `apps/mockup/src/*.js`. Never edit the generated file; building from the package makes drift between the mockup and the system impossible.
+
 ## Do's and Don'ts
 
 ### Do:
 - **Do** use only `var(--t1m-*)` tokens for color, size, space, radius, and font.
 - **Do** pair every status color with an icon and a word.
 - **Do** keep one navy primary button per view and name the action ("Create quotation").
+- **Do** lead any staged record with a Next step panel that shows its gate, with the fix next to each unmet line.
+- **Do** keep stage (neutral) and health (status color) as two separate signals.
 - **Do** build empty, loading, error, disabled, and focus states for every component.
 - **Do** surface overdue tasks, missing documents, and exceptions in list rows and on Shipment 360.
 - **Do** label all mock data as illustrative (IDs like TMW-2026-00412, "Sample Trading Co.").
@@ -312,4 +342,5 @@ Soft, modern radii: 8px (`--t1m-radius-sm`) for controls and nav items, 12px (`-
 - **Don't** use emoji or text glyphs as icons; add to `icons.svg` in the same 1.75-stroke style.
 - **Don't** use gradient text, glassmorphism, or decorative shadows.
 - **Don't** open a modal for what a drawer, inline edit, or page can do.
+- **Don't** show trends, deltas or claims the data cannot back.
 - **Don't** invent components: check `index.html` first, and if it's missing, add it to the system (tokens.css, components.css, index.html, this file) before using it.

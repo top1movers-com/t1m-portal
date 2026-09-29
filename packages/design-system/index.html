@@ -84,15 +84,28 @@
 <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M4.5 7.5v-1a2 2 0 0 1 2-2h9"/><path d="M4.5 7.5h13a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2h-11a2 2 0 0 1-2-2z"/><path d="M16 13.2h.01"/></symbol>
 <symbol id="i-arrow-in" viewBox="0 0 24 24"><path d="M17.5 6.5 6.5 17.5M6.5 9v8.5H15"/></symbol>
 <symbol id="i-arrow-out" viewBox="0 0 24 24"><path d="M6.5 17.5 17.5 6.5M9 6.5h8.5V15"/></symbol>
+<symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M13.5 6.5 19 12l-5.5 5.5"/></symbol>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5V20H4z"/><path d="M9.5 20v-5.5h5V20"/></symbol>
+<symbol id="i-ship" viewBox="0 0 24 24"><path d="M3.5 14.5h17l-2.2 4.5H5.7z"/><path d="M6 14.5V10h12v4.5M9 10V6.5h6V10M12 6.5V4"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 4v16h16"/><path d="M8 16v-4M12 16V8M16 16v-6"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="m10 8.8 5 3.2-5 3.2z"/></symbol>
+<symbol id="i-refresh" viewBox="0 0 24 24"><path d="M19 12a7 7 0 1 1-2.05-4.95"/><path d="M19 4.5V9h-4.5"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="5.5" y="10.5" width="13" height="9.5" rx="1.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></symbol>
+<symbol id="i-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></symbol>
+<symbol id="i-book" viewBox="0 0 24 24"><path d="M12 6.5c-1.8-1.3-4.3-2-7.5-2v14c3.2 0 5.7.7 7.5 2 1.8-1.3 4.3-2 7.5-2v-14c-3.2 0-5.7.7-7.5 2zM12 6.5v14"/></symbol>
+<symbol id="i-phone" viewBox="0 0 24 24"><path d="M6.5 4h3l1.5 4-2 1.3a10 10 0 0 0 5.7 5.7l1.3-2 4 1.5v3a1.5 1.5 0 0 1-1.6 1.5A15 15 0 0 1 5 5.6 1.5 1.5 0 0 1 6.5 4z"/></symbol>
+<symbol id="i-flag" viewBox="0 0 24 24"><path d="M5.5 21V4M5.5 4.5h11l-2 4 2 4h-11"/></symbol>
+<symbol id="i-anchor" viewBox="0 0 24 24"><circle cx="12" cy="5.5" r="2"/><path d="M12 7.5V20M8 11h8M4.5 13a7.5 7.5 0 0 0 15 0"/></symbol>
 </svg>
 <div class="doc">
 <nav class="doc__nav" aria-label="Sections">
   <img src="./assets/top1movers-logo.png" alt="Top1Movers Worldwide Inc.">
-  <a href="#principles">Principles</a><a href="#color">Color</a><a href="#type">Typography</a><a href="#space">Space &amp; shape</a><a href="#icons">Icons</a><a href="#buttons">Buttons</a><a href="#forms">Fields</a><a href="#status">Status</a><a href="#tables">Tables</a><a href="#print">Print</a><a href="#nav">Shell &amp; nav</a><a href="#signature">Shipment patterns</a><a href="#feedback">Feedback</a><a href="#rules">Do &amp; don't</a><a href="#use">Using it</a>
+  <a href="#principles">Principles</a><a href="#color">Color</a><a href="#type">Typography</a><a href="#space">Space &amp; shape</a><a href="#icons">Icons</a><a href="#buttons">Buttons</a><a href="#forms">Fields</a><a href="#status">Status</a><a href="#tables">Tables</a><a href="#print">Print</a><a href="#nav">Shell &amp; nav</a><a href="#signature">Shipment patterns</a><a href="#workflow">Workflow (v3)</a><a href="#feedback">Feedback</a><a href="#rules">Do &amp; don't</a><a href="#use">Using it</a>
 </nav>
 <main>
   <h1>Top1Movers Operations Portal: Design System</h1>
-  <p class="ds-muted">Version 0.1, September 2026. Phase 1 stakeholder mockup. All names, IDs, and figures in examples are illustrative mock data.</p>
+  <p class="ds-muted">Version 0.3, September 2026. Phase 1 stakeholder mockup. All names, IDs, and figures in examples are illustrative mock data.</p>
   <p>A working screen for dispatchers, warehouse crew, and managers who read tables and clear task lists all day. It should feel like Top1Movers (their navy and red) but behave like a tool: dense, calm, and quick to scan. Everything on this page is built from <code>tokens.css</code> and <code>components.css</code>.</p>
 
   <section id="principles">
@@ -451,6 +464,78 @@
       <div class="ds-doc"><span class="ds-doc__icon"><svg class="ds-icon"><use href="#i-file"/></svg></span><div><div class="ds-doc__name">Commercial Invoice</div><div class="ds-doc__meta">Rejected: amounts do not match packing list</div></div><span class="ds-pill ds-pill--danger"><svg class="ds-icon"><use href="#i-x"/></svg>Rejected</span><button class="ds-btn ds-btn--secondary ds-btn--sm"><svg class="ds-icon"><use href="#i-upload"/></svg>Replace</button></div>
       <div class="ds-doc"><span class="ds-doc__icon"><svg class="ds-icon"><use href="#i-file"/></svg></span><div><div class="ds-doc__name">Packing List</div><div class="ds-doc__meta">Required · not yet uploaded</div></div><span class="ds-pill ds-pill--warning"><svg class="ds-icon"><use href="#i-alert"/></svg>Missing</span><button class="ds-btn ds-btn--secondary ds-btn--sm"><svg class="ds-icon"><use href="#i-upload"/></svg>Upload</button></div>
     </div></div>
+  </section>
+
+  <section id="workflow">
+    <h2>Workflow patterns (v3)</h2>
+    <p>v3 reorganises every screen around one question asked in order: <b>what needs me?</b> then <b>what is the state?</b> These components carry that idea. All examples use sample data.</p>
+
+    <h3>Two questions, two signals: stage and health</h3>
+    <p>Where a job is (its stage) is always a neutral navy outline pill; it is a place, not a judgement. Whether it is OK (its health) is the only thing that gets status colour. Before v3 every stage was a blue "info" pill, so colour said nothing.</p>
+    <div class="demo">
+      <span class="ds-pill ds-pill--stage"><svg class="ds-icon"><use href="#i-shield"/></svg>Customs Clearance · Payment Pending</span>
+      <span class="ds-pill ds-pill--success"><svg class="ds-icon"><use href="#i-check"/></svg>On track</span>
+      <span class="ds-pill ds-pill--warning"><svg class="ds-icon"><use href="#i-alert"/></svg>Needs attention</span>
+      <span class="ds-pill ds-pill--danger"><svg class="ds-icon"><use href="#i-lock"/></svg>Blocked</span>
+      <span class="ds-pill ds-pill--brand"><svg class="ds-icon"><use href="#i-receipt"/></svg>With Finance</span>
+    </div>
+
+    <h3>Next step with gate (<code>.ds-next</code>, <code>.ds-gate</code>)</h3>
+    <p>The hero of Shipment 360 and of an inquiry. It states what happens now, lists the gate (what must be true to leave the stage) with the fix beside every unmet line, and carries the page's one primary action. Tones: default (ready), <code>--waiting</code> (someone else's move), <code>--blocked</code> (hold or exception), <code>--done</code>.</p>
+    <div class="demo demo--flush" style="background:var(--t1m-bg);padding:var(--t1m-space-4)">
+      <div class="ds-next">
+        <div class="ds-next__head"><span class="ds-next__icon"><svg class="ds-icon"><use href="#i-flag"/></svg></span><div><div class="ds-next__eyebrow">To reach Sailed</div><h2 class="ds-next__title" style="border:0;margin:2px 0 4px;padding:0;font-size:var(--t1m-text-lg)">2 things left before Sailed</h2><p class="ds-next__text">Customs will reject an entry built on wrong paperwork, so documents are settled before the goods sail.</p></div></div>
+        <div class="ds-next__body"><div><div class="ds-gate__title"><span>What must be true first</span><span>1 of 3 done</span></div><ul class="ds-gate">
+          <li class="ds-gate__item" data-met><svg class="ds-icon"><use href="#i-check"/></svg><div class="ds-gate__label">4 of 5 documents approved</div><span></span></li>
+          <li class="ds-gate__item"><svg class="ds-icon"><use href="#i-circle"/></svg><div class="ds-gate__label">Import Permit<small>Missing. Nobody has uploaded it yet.</small></div><button class="ds-btn ds-btn--secondary ds-btn--sm"><svg class="ds-icon"><use href="#i-upload"/></svg>Upload</button></li>
+          <li class="ds-gate__item"><svg class="ds-icon"><use href="#i-circle"/></svg><div class="ds-gate__label">Task: Verify shipment documents complete<small>Ana Cruz · due 30 Sep · needs proof</small></div><button class="ds-btn ds-btn--secondary ds-btn--sm"><svg class="ds-icon"><use href="#i-check"/></svg>Complete task</button></li>
+        </ul></div></div>
+        <div class="ds-next__foot"><div class="ds-next__who"><svg class="ds-icon"><use href="#i-lock"/></svg>Confirm vessel sailed unlocks when the list is done.</div><div class="ds-next__actions"><button class="ds-btn ds-btn--primary"><svg class="ds-icon"><use href="#i-upload"/></svg>Upload</button></div></div>
+      </div>
+    </div>
+
+    <h3>Pipeline (<code>.ds-pipeline</code>)</h3>
+    <p>The nine stages drawn as the road a shipment travels, each stop carrying how many jobs stand there and a red lock count for blocked ones. It teaches the workflow and reports on it in the same glance; each stop opens its filtered list.</p>
+    <div class="demo demo--flush" style="padding:var(--t1m-space-4)"><div class="ds-pipeline-wrap"><div><ol class="ds-pipeline" style="grid-template-columns:repeat(5,minmax(84px,1fr))">
+      <li class="ds-pipeline__stop"><button class="ds-pipeline__btn"><span class="ds-pipeline__count">2</span><span class="ds-pipeline__label">Booked</span></button></li>
+      <li class="ds-pipeline__stop" data-empty><button class="ds-pipeline__btn"><span class="ds-pipeline__count">0</span><span class="ds-pipeline__label">Documentation</span></button></li>
+      <li class="ds-pipeline__stop"><button class="ds-pipeline__btn"><span class="ds-pipeline__count">1</span><span class="ds-pipeline__label">Sailed</span></button></li>
+      <li class="ds-pipeline__stop"><button class="ds-pipeline__btn"><span class="ds-pipeline__count">3<span class="ds-pipeline__flag"><svg class="ds-icon"><use href="#i-lock"/></svg>2</span></span><span class="ds-pipeline__label">Customs Clearance</span></button></li>
+      <li class="ds-pipeline__stop"><button class="ds-pipeline__btn"><span class="ds-pipeline__count">1</span><span class="ds-pipeline__label">Out for Delivery</span></button></li>
+    </ol></div></div></div>
+
+    <h3>KPI tile (<code>.ds-kpi</code>) and action queue (<code>.ds-queue</code>)</h3>
+    <p>A KPI tile is a number that is also a door: it answers one question and opens the list behind it. No invented week-over-week deltas; a fake trend is a claim mock data cannot back. The queue lists things that need a person, sorted by consequence, each with the one button that resolves it.</p>
+    <div class="demo demo--col" style="background:var(--t1m-bg)">
+      <div class="ds-kpis">
+        <button class="ds-kpi ds-kpi--danger"><span class="ds-kpi__icon"><svg class="ds-icon"><use href="#i-lock"/></svg></span><span class="ds-kpi__label">Blocked</span><span class="ds-kpi__value">2</span><span class="ds-kpi__hint">cannot move: exception or hold</span></button>
+        <button class="ds-kpi ds-kpi--warning"><span class="ds-kpi__icon"><svg class="ds-icon"><use href="#i-clock"/></svg></span><span class="ds-kpi__label">Fees at risk</span><span class="ds-kpi__value">4</span><span class="ds-kpi__hint">2 free days or fewer</span></button>
+        <button class="ds-kpi"><span class="ds-kpi__icon"><svg class="ds-icon"><use href="#i-box"/></svg></span><span class="ds-kpi__label">Active shipments</span><span class="ds-kpi__value">11</span><span class="ds-kpi__hint">every stage before Closed</span></button>
+      </div>
+      <ul class="ds-queue ds-panel">
+        <li class="ds-queue__item" data-tone="danger"><span class="ds-queue__icon"><svg class="ds-icon"><use href="#i-flag"/></svg></span><div><div class="ds-queue__title">Decide an exception: Documentation Discrepancy</div><div class="ds-queue__meta"><span class="ds-mono">SJ-2026-00065</span><span>Golden Harvest Exports Inc.</span></div><div class="ds-queue__why ds-queue__why--danger">HS code on the invoice does not match the Bill of Lading.</div></div><div class="ds-queue__actions"><button class="ds-btn ds-btn--secondary ds-btn--sm">Review</button></div></li>
+        <li class="ds-queue__item" data-tone="warning"><span class="ds-queue__icon"><svg class="ds-icon"><use href="#i-wallet"/></svg></span><div><div class="ds-queue__title">Short on client funds: Customs duty due 30 Sep</div><div class="ds-queue__meta"><span class="ds-mono">SJ-2026-00120</span><span>Golden Harvest Exports Inc.</span></div><div class="ds-queue__why ds-queue__why--warning">Short by PHP 8,400.00.</div></div><div class="ds-queue__actions"><button class="ds-btn ds-btn--secondary ds-btn--sm">Add funds</button></div></li>
+      </ul>
+    </div>
+
+    <h3>Fee clock (<code>.ds-clock</code>), chips (<code>.ds-chip</code>), work card (<code>.ds-workcard</code>)</h3>
+    <p>The fee clock drains as free storage or detention days run out: neutral while comfortable, Warning at 2 days or fewer, Danger once fees are running. Chips filter a list and always show their count. Work cards are the touch-first list for field roles (44px buttons, full width on phones).</p>
+    <div class="demo demo--col">
+      <div class="ds-clock ds-clock--warning" style="max-width:320px"><div class="ds-clock__row"><span class="ds-clock__days">1<small>free day left</small></span></div><span class="ds-bar-track"><span class="ds-bar-fill ds-bar-fill--warning" style="width:14%"></span></span><p class="ds-muted" style="font-size:var(--t1m-text-xs);margin:0">Free until 29 Sep 2026.</p></div>
+      <div class="ds-chips"><button class="ds-chip" aria-pressed="true">Active<span class="ds-chip__count">11</span></button><button class="ds-chip ds-chip--warning">Needs attention<span class="ds-chip__count">4</span></button><button class="ds-chip ds-chip--danger">Blocked<span class="ds-chip__count">2</span></button></div>
+      <article class="ds-workcard" style="max-width:640px"><div><div class="ds-workcard__title">Pay duties and assessment</div><div class="ds-workcard__meta"><span class="ds-mono">SJ-2026-00120</span><span>Golden Harvest Exports Inc.</span><span class="ds-pill ds-pill--info ds-pill--sm"><svg class="ds-icon"><use href="#i-clock"/></svg>Due 30 Sep</span></div></div><div class="ds-workcard__actions"><button class="ds-btn ds-btn--secondary"><svg class="ds-icon"><use href="#i-check"/></svg>Complete</button></div></article>
+    </div>
+
+    <h3>Deal stepper (<code>.ds-deal</code>)</h3>
+    <p>The commercial half on one page: inquiry, quotation, client approval, shipment job. Done steps are solid navy, the current one is ringed, later ones are dashed outlines.</p>
+    <div class="demo demo--col" style="background:var(--t1m-bg)"><div class="ds-deal">
+      <div class="ds-deal__step" data-state="done"><span class="ds-deal__n"><svg class="ds-icon"><use href="#i-check"/></svg></span><div class="ds-panel"><div class="ds-panel__head"><h3 style="margin:0">Quotation</h3></div><div class="ds-panel__body">QT-2026-0044 v1 · PHP 150,000.00</div></div></div>
+      <div class="ds-deal__step" data-state="current"><span class="ds-deal__n">3</span><div class="ds-panel"><div class="ds-panel__head"><h3 style="margin:0">Client approval (conforme)</h3></div><div class="ds-panel__body ds-muted">Waiting for the client to sign.</div></div></div>
+      <div class="ds-deal__step" data-state="todo"><span class="ds-deal__n">4</span><div class="ds-panel"><div class="ds-panel__head"><h3 style="margin:0">Shipment job</h3></div><div class="ds-panel__body ds-muted">Created in one click once approved.</div></div></div>
+    </div></div>
+
+    <h3>Overlays that adapt</h3>
+    <p><code>.ds-overlay</code> + <code>.ds-drawer</code> slide in from the right on desktop and become a bottom sheet under 640px, with a sticky <code>.ds-drawer__foot</code> so the confirm button never scrolls away. Under 640px the sidebar becomes a bottom navigation <em>with labels</em>: icon-only bars make people guess, and a wrong tap costs a trip back.</p>
   </section>
 
   <section id="feedback">

@@ -331,7 +331,7 @@ a { color: var(--t1m-navy-700); text-underline-offset: 2px; }
 .ds-stat__value--danger { color: var(--t1m-danger); }
 
 /* ---------- Drawer (preferred over modal for record detail) ---------- */
-.ds-drawer-backdrop { position: absolute; inset: 0; background: rgba(2, 3, 59, 0.4); animation: ds-drawer-fade var(--t1m-dur-base) var(--t1m-ease); }
+.ds-drawer-backdrop { position: absolute; inset: 0; background: var(--t1m-scrim); animation: ds-drawer-fade var(--t1m-dur-base) var(--t1m-ease); }
 .ds-drawer { position: relative; border-radius: var(--t1m-radius-lg) 0 0 var(--t1m-radius-lg); background: var(--t1m-surface); border-left: 1px solid var(--t1m-border); box-shadow: var(--t1m-shadow-float); width: min(480px, 100%); animation: ds-drawer-slide-in var(--t1m-dur-base) var(--t1m-ease); }
 @keyframes ds-drawer-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes ds-drawer-slide-in { from { translate: 24px 0; opacity: 0; } to { translate: 0 0; opacity: 1; } }
@@ -478,7 +478,7 @@ th[aria-sort="ascending"] .ds-icon { rotate: 180deg; }
 .ds-msbtn__logo span:nth-child(4) { background: #ffb900; }
 
 /* ---------- Mock account chooser (simulates the Microsoft "Pick an account" step) ---------- */
-.ds-acct-picker-backdrop { position: fixed; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center; background: rgba(15, 17, 38, 0.5); }
+.ds-acct-picker-backdrop { position: fixed; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center; background: var(--t1m-scrim); }
 .ds-acct-picker { width: min(420px, 92vw); background: var(--t1m-surface); border-radius: var(--t1m-radius-lg); box-shadow: var(--t1m-shadow-float); overflow: hidden; animation: ds-acct-picker-in 160ms var(--t1m-ease); }
 @keyframes ds-acct-picker-in { from { opacity: 0; translate: 0 -8px; scale: 0.98; } to { opacity: 1; translate: 0 0; scale: 1; } }
 @media (prefers-reduced-motion: reduce) { .ds-acct-picker { animation: none; } }
@@ -593,3 +593,439 @@ th[aria-sort="ascending"] .ds-icon { rotate: 180deg; }
 @media (prefers-reduced-motion: reduce) { .ds-public__body > *, .ds-route__fill, .ds-route__marker, .ds-timeline__item[data-state="current"] .ds-timeline__dot { animation: none; } }
 .ds-acct-row:disabled { color: var(--t1m-ink-3); background: var(--t1m-surface-muted); cursor: not-allowed; }
 .ds-acct-row:disabled .ds-avatar { opacity: 0.5; }
+
+/* =====================================================================================
+   v3 — APP PATTERNS
+   Everything below was either (a) living only inside the mockup's private CSS copy and has been
+   brought back into the system so the two can never drift again, or (b) is new in v3 to make the
+   shipment workflow self-explanatory. The v3 idea in one line: every screen answers "what needs
+   me?" first and "what is the state?" second.
+   ===================================================================================== */
+
+/* ---------- Layout utilities ---------- */
+.ds-stack > * + * { margin-top: var(--t1m-space-6); }
+.ds-stack--sm > * + * { margin-top: var(--t1m-space-3); }
+.ds-row { display: flex; align-items: center; gap: var(--t1m-space-3); flex-wrap: wrap; }
+.ds-row--between { display: flex; align-items: center; justify-content: space-between; gap: var(--t1m-space-3); flex-wrap: wrap; }
+.ds-row--tight { gap: var(--t1m-space-2); }
+.ds-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--t1m-space-6); }
+.ds-grid-kv { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--t1m-space-5); }
+.ds-kv label, .ds-kv .ds-label { display: block; margin-bottom: 2px; }
+.ds-kv > div > div { color: var(--t1m-ink); }
+.ds-muted3 { color: var(--t1m-ink-3); }
+.ds-small { font-size: var(--t1m-text-sm); }
+.ds-xs { font-size: var(--t1m-text-xs); }
+.ds-strong { font-weight: var(--t1m-w-control); color: var(--t1m-ink); }
+.ds-flip { rotate: 180deg; }
+.ds-show-phone { display: none !important; }
+@media (max-width: 640px) { .ds-hide-phone { display: none !important; } .ds-show-phone { display: flex !important; } }
+.ds-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.ds-link { color: var(--t1m-navy-700); text-decoration: none; font-weight: var(--t1m-w-control); background: none; border: 0; padding: 0; font-family: inherit; font-size: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+.ds-link:hover { text-decoration: underline; }
+.ds-link .ds-icon { width: 14px; height: 14px; }
+.ds-crumbs a, a.ds-mono, .ds-table a { text-decoration: none; }
+.ds-crumbs a:hover, .ds-table a:hover { text-decoration: underline; }
+.ds-split { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: var(--t1m-space-6); align-items: start; }
+.ds-split > * { min-width: 0; }
+@media (max-width: 1100px) { .ds-split { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 760px) { .ds-grid-2 { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- Pill additions ---------- */
+.ds-pill--neutral { background: var(--t1m-surface-muted); color: var(--t1m-ink-2); }
+.ds-pill--sm { height: 22px; padding: 0 8px; gap: 4px; }
+/* WHERE a job is (its stage) is neutral navy, never a health colour. HOW it is doing (on track,
+   needs attention, blocked) is the only thing that gets success / warning / danger. */
+.ds-pill--stage { background: var(--t1m-surface); color: var(--t1m-navy-700); box-shadow: inset 0 0 0 1px var(--t1m-navy-100); }
+.ds-mockbadge { display: inline-flex; align-items: center; gap: 4px; font-size: var(--t1m-text-xs); color: var(--t1m-ink-3); border: 1px dashed var(--t1m-border-strong); border-radius: var(--t1m-radius-full); padding: 1px 8px; white-space: nowrap; }
+.ds-mockbadge .ds-icon { width: 12px; height: 12px; }
+
+/* ---------- Panel additions ---------- */
+.ds-panel--elevated { border-color: transparent; box-shadow: var(--t1m-shadow-card); }
+.ds-panel--hover { transition: box-shadow var(--t1m-dur-base) var(--t1m-ease), translate var(--t1m-dur-base) var(--t1m-ease); }
+.ds-panel--hover:hover { box-shadow: var(--t1m-shadow-card-hover); translate: 0 -1px; }
+.ds-panel__head h2, .ds-panel__head h3 { display: flex; align-items: center; gap: var(--t1m-space-2); }
+.ds-panel__head h2 { font-size: var(--t1m-text-md); }
+.ds-panel__head h2 .ds-icon, .ds-panel__head h3 .ds-icon { color: var(--t1m-ink-3); width: 18px; height: 18px; }
+.ds-panel__hint { font-size: var(--t1m-text-xs); color: var(--t1m-ink-3); }
+.ds-panel__foot { padding: var(--t1m-space-3) var(--t1m-space-4); border-top: 1px solid var(--t1m-border); }
+.ds-section-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--t1m-space-3); flex-wrap: wrap; margin-bottom: var(--t1m-space-3); }
+.ds-section-head h2 { font-size: var(--t1m-text-lg); display: flex; align-items: center; gap: var(--t1m-space-2); }
+.ds-page-head__sub { color: var(--t1m-ink-2); margin-top: var(--t1m-space-1); max-width: 72ch; }
+.ds-page-head__actions { display: flex; gap: var(--t1m-space-2); flex-wrap: wrap; align-items: center; }
+
+/* ---------- Activity / history list ---------- */
+.ds-activity { list-style: none; margin: 0; padding: 0; }
+.ds-activity li { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: var(--t1m-space-3); padding: var(--t1m-space-3) 0; border-bottom: 1px solid var(--t1m-border); font-size: var(--t1m-text-sm); }
+.ds-activity li:last-child { border-bottom: 0; }
+.ds-activity__icon { width: 24px; height: 24px; border-radius: var(--t1m-radius-full); background: var(--t1m-surface-muted); color: var(--t1m-ink-2); display: grid; place-items: center; }
+.ds-activity__icon .ds-icon { width: 13px; height: 13px; }
+.ds-activity time { display: block; color: var(--t1m-ink-3); font-size: var(--t1m-text-xs); }
+.ds-activity strong { color: var(--t1m-ink); font-weight: var(--t1m-w-control); }
+
+/* ---------- Overlays: drawer (desktop) that becomes a bottom sheet (phone) ---------- */
+.ds-overlay { position: fixed; inset: 0; z-index: 50; display: none; }
+.ds-overlay.open { display: flex; justify-content: flex-end; }
+.ds-drawer { display: flex; flex-direction: column; max-height: 100vh; overflow: hidden; width: min(var(--t1m-drawer-w), 100%); }
+.ds-drawer__head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--t1m-space-3); padding: var(--t1m-space-5) var(--t1m-space-5) var(--t1m-space-4); border-bottom: 1px solid var(--t1m-border); }
+.ds-drawer__head h3 { font-size: var(--t1m-text-lg); }
+.ds-drawer__head p { margin-top: var(--t1m-space-1); font-size: var(--t1m-text-sm); color: var(--t1m-ink-2); }
+.ds-drawer__body { padding: var(--t1m-space-5); overflow: auto; flex: 1; }
+.ds-drawer__foot { padding: var(--t1m-space-4) var(--t1m-space-5); border-top: 1px solid var(--t1m-border); display: flex; gap: var(--t1m-space-2); justify-content: flex-end; flex-wrap: wrap; background: var(--t1m-surface); }
+.ds-drawer__foot .ds-btn--primary, .ds-drawer__foot .ds-btn--danger { min-width: 140px; }
+@keyframes ds-sheet-up { from { translate: 0 32px; opacity: 0; } to { translate: 0 0; opacity: 1; } }
+@media (max-width: 640px) {
+  .ds-overlay.open { align-items: flex-end; }
+  .ds-drawer { width: 100%; max-height: 92vh; border-radius: var(--t1m-radius-lg) var(--t1m-radius-lg) 0 0; border-left: 0; animation-name: ds-sheet-up; }
+  .ds-drawer__foot .ds-btn { flex: 1; }
+}
+
+/* ---------- Toast ---------- */
+.ds-toasts { position: fixed; right: var(--t1m-space-5); bottom: var(--t1m-space-5); z-index: 80; display: grid; gap: var(--t1m-space-2); pointer-events: none; }
+.ds-toast { pointer-events: auto; display: flex; align-items: center; gap: 10px; min-width: 260px; max-width: 380px; padding: 12px 16px; border-radius: var(--t1m-radius-md); background: var(--t1m-navy-950); color: var(--t1m-ink-inverse); box-shadow: var(--t1m-shadow-float); font-size: var(--t1m-text-sm); animation: ds-toast-in 220ms var(--t1m-ease); }
+.ds-toast .ds-icon { color: var(--t1m-ink-inverse-2); }
+.ds-toast--success .ds-icon { color: var(--t1m-success-bg); }
+.ds-toast--danger .ds-icon, .ds-toast--warning .ds-icon { color: var(--t1m-warning-bg); }
+.ds-toast--leaving { animation: ds-toast-out 180ms var(--t1m-ease) forwards; }
+@keyframes ds-toast-in { from { opacity: 0; translate: 0 8px; } to { opacity: 1; translate: 0 0; } }
+@keyframes ds-toast-out { to { opacity: 0; translate: 0 8px; } }
+@media (max-width: 640px) { .ds-toasts { left: var(--t1m-space-4); right: var(--t1m-space-4); bottom: calc(var(--t1m-bottomnav-h) + var(--t1m-space-3)); } .ds-toast { min-width: 0; max-width: none; } }
+
+/* ---------- Command palette and account chooser roots ---------- */
+.ds-cmdk-root { position: fixed; inset: 0; z-index: 90; display: none; align-items: flex-start; justify-content: center; padding: min(14vh, 120px) var(--t1m-space-4) 0; background: var(--t1m-scrim); }
+.ds-cmdk-root.open { display: flex; }
+.ds-cmdk { width: min(560px, 100%); background: var(--t1m-surface); border-radius: var(--t1m-radius-lg); box-shadow: var(--t1m-shadow-float); overflow: hidden; animation: ds-acct-picker-in 160ms var(--t1m-ease); }
+.ds-cmdk__input-row { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--t1m-border); }
+.ds-cmdk__input-row .ds-icon { color: var(--t1m-ink-3); }
+.ds-cmdk__input { flex: 1; border: 0; outline: 0; font: 400 var(--t1m-text-md) var(--t1m-font-body); color: var(--t1m-ink); background: transparent; min-width: 0; }
+.ds-cmdk__list { max-height: 360px; overflow: auto; padding: var(--t1m-space-2); }
+.ds-cmdk__item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--t1m-radius-sm); cursor: pointer; color: var(--t1m-ink); }
+.ds-cmdk__item[data-active="true"] { background: var(--t1m-navy-50); }
+.ds-cmdk__item .ds-icon { color: var(--t1m-ink-3); }
+.ds-cmdk__item-main { display: grid; flex: 1; min-width: 0; }
+.ds-cmdk__item-title { font-weight: var(--t1m-w-control); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ds-cmdk__item-sub { font-size: var(--t1m-text-xs); color: var(--t1m-ink-3); }
+.ds-cmdk__empty { padding: 32px 18px; text-align: center; color: var(--t1m-ink-3); font-size: var(--t1m-text-sm); }
+.ds-cmdk__hint { display: flex; justify-content: space-between; padding: 10px 18px; border-top: 1px solid var(--t1m-border); font-size: var(--t1m-text-xs); color: var(--t1m-ink-3); }
+.ds-acct-root { position: fixed; inset: 0; z-index: 90; display: none; align-items: center; justify-content: center; padding: var(--t1m-space-4); background: var(--t1m-scrim); }
+.ds-acct-root.open { display: flex; }
+.ds-acct-row__role { font-size: var(--t1m-text-xs); color: var(--t1m-ink-3); text-align: right; max-width: 20ch; line-height: 1.3; }
+
+/* ---------- Popover (row / overflow menu anchored to a button) ---------- */
+.ds-popover { position: fixed; z-index: 60; min-width: 208px; background: var(--t1m-surface); border: 1px solid var(--t1m-border); border-radius: var(--t1m-radius-md); box-shadow: var(--t1m-shadow-float); padding: 4px; animation: ds-fade-in var(--t1m-dur-fast) var(--t1m-ease); }
+.ds-popover button, .ds-popover a { display: flex; align-items: center; gap: var(--t1m-space-3); width: 100%; min-height: 36px; padding: 0 10px; border: 0; background: none; border-radius: calc(var(--t1m-radius-md) - 4px); color: var(--t1m-ink); font: 400 var(--t1m-text-base) var(--t1m-font-body); text-align: left; text-decoration: none; cursor: pointer; }
+.ds-popover button:hover, .ds-popover a:hover { background: var(--t1m-navy-50); color: var(--t1m-navy-700); }
+.ds-popover .ds-icon { color: var(--t1m-ink-3); }
+.ds-popover__sep { height: 1px; margin: 4px 0; background: var(--t1m-border); }
+
+/* ---------- Shell refinements ---------- */
+.ds-content { margin: 0 auto; }
+.ds-nav__item { border: 0; background: none; width: 100%; cursor: pointer; text-align: left; }
+.ds-nav__item > span { flex: 1; min-width: 0; }
+.ds-sidebar__foot { margin-top: auto; padding: var(--t1m-space-3) var(--t1m-space-4) var(--t1m-space-4); font-size: var(--t1m-text-xs); color: var(--t1m-ink-3); }
+.ds-sidebar__foot .ds-mockbadge { white-space: normal; border-radius: var(--t1m-radius-sm); }
+.ds-topbar__brand { display: none; }
+.ds-topbar__brand img { height: 26px; width: auto; display: block; }
+.ds-topbar__spacer { flex: 1; }
+.ds-topbar__who { display: grid; text-align: right; line-height: 1.25; font-size: var(--t1m-text-sm); color: var(--t1m-ink); }
+.ds-topbar__who span { font-size: var(--t1m-text-xs); color: var(--t1m-ink-3); }
+.ds-topbar-btn { position: relative; display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: var(--t1m-radius-sm); border: 0; background: transparent; color: var(--t1m-ink-2); cursor: pointer; transition: background var(--t1m-dur-fast) var(--t1m-ease), color var(--t1m-dur-fast) var(--t1m-ease); }
+.ds-topbar-btn .ds-icon { width: 20px; height: 20px; }
+.ds-topbar-btn:hover { background: var(--t1m-navy-50); color: var(--t1m-navy-700); }
+.ds-topbar-btn__dot { position: absolute; top: 3px; right: 3px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: var(--t1m-radius-full); background: var(--t1m-danger); color: var(--t1m-ink-inverse); font: var(--t1m-w-label) var(--t1m-text-2xs)/16px var(--t1m-font-chrome); box-shadow: 0 0 0 2px var(--t1m-surface); }
+.ds-avatar { flex: none; border: 0; cursor: pointer; transition: box-shadow var(--t1m-dur-base) var(--t1m-ease); }
+.ds-avatar:hover { box-shadow: 0 0 0 3px var(--t1m-navy-100); }
+.ds-topbar .ds-search { flex: 1; max-width: 360px; }
+@media (max-width: 960px) { .ds-topbar__who { display: none; } }
+/* Phone: the sidebar becomes a bottom navigation with a short label under every icon. Icon-only
+   bars make people guess, and a guessed tap costs a trip back. */
+@media (max-width: 640px) {
+  .ds-sidebar { height: var(--t1m-bottomnav-h); z-index: 25; overflow: visible; }
+  .ds-nav { grid-auto-columns: minmax(0, 1fr); gap: 0; }
+  .ds-nav__item { flex-direction: column; justify-content: center; gap: 3px; height: var(--t1m-bottomnav-h); padding: 0 2px; border-radius: 0; font-size: var(--t1m-text-2xs); }
+  .ds-nav__item span { position: static; width: auto; height: auto; overflow: hidden; clip-path: none; text-overflow: ellipsis; max-width: 100%; display: block; flex: none; }
+  .ds-nav__item > span::after { display: none; }
+  .ds-nav__item[aria-current="page"] { background: transparent; }
+  .ds-nav__item[aria-current="page"] .ds-icon { background: var(--t1m-navy-100); border-radius: var(--t1m-radius-full); padding: 3px 14px; box-sizing: content-box; }
+  .ds-nav__count--alert { top: 4px; right: calc(50% - 22px); }
+  .ds-nav__group, .ds-sidebar__foot, .ds-nav__item--desktop { display: none; }
+  .ds-topbar { gap: var(--t1m-space-1); }
+  .ds-topbar__brand { display: block; }
+  .ds-topbar .ds-search { display: none; }
+  .ds-content { padding-bottom: calc(var(--t1m-bottomnav-h) + var(--t1m-space-6)); }
+  .ds-shell { grid-template-rows: var(--t1m-topbar-h) 1fr; }
+  .ds-sidebar { position: fixed; left: 0; right: 0; bottom: 0; top: auto; }
+}
+@media (min-width: 641px) { .ds-topbar-btn--phone { display: none; } }
+
+/* ---------- Login ---------- */
+.ds-login { min-height: 100vh; display: grid; grid-template-columns: minmax(320px, 1fr) minmax(380px, 1fr); }
+.ds-login__brandpane { background: var(--t1m-navy-950); color: var(--t1m-ink-inverse); display: flex; flex-direction: column; justify-content: center; gap: var(--t1m-space-8); padding: var(--t1m-space-12); border-top: 3px solid var(--t1m-brand-red); }
+.ds-login__brandpane img { width: 190px; background: var(--t1m-surface); border-radius: var(--t1m-radius-sm); padding: var(--t1m-space-2) var(--t1m-space-3); }
+.ds-login__tagline { font: var(--t1m-w-title) var(--t1m-text-2xl)/1.25 var(--t1m-font-display); max-width: 20ch; color: var(--t1m-ink-inverse); }
+.ds-login__flow { display: flex; flex-wrap: wrap; align-items: center; gap: var(--t1m-space-2); color: var(--t1m-ink-inverse-2); font-size: var(--t1m-text-sm); }
+.ds-login__flow span { padding: 4px 10px; border-radius: var(--t1m-radius-full); border: 1px solid color-mix(in srgb, var(--t1m-ink-inverse) 22%, transparent); color: var(--t1m-ink-inverse); }
+.ds-login__flow .ds-icon { width: 14px; height: 14px; }
+.ds-login__features { display: grid; gap: var(--t1m-space-5); }
+.ds-login__feature { display: flex; gap: var(--t1m-space-3); align-items: flex-start; }
+.ds-login__feature .ds-icon { width: 20px; height: 20px; margin-top: 2px; color: var(--t1m-ink-inverse-2); }
+.ds-login__feature strong { display: block; color: var(--t1m-ink-inverse); font-weight: var(--t1m-w-control); }
+.ds-login__feature span { color: var(--t1m-ink-inverse-2); font-size: var(--t1m-text-sm); }
+.ds-login__formpane { display: flex; align-items: center; justify-content: center; padding: var(--t1m-space-8); background: var(--t1m-bg); }
+.ds-login__card { width: min(380px, 100%); }
+.ds-divider { border: 0; border-top: 1px solid var(--t1m-border); width: 100%; margin: 0; }
+@media (max-width: 800px) {
+  .ds-login { grid-template-columns: 1fr; }
+  .ds-login__brandpane { padding: var(--t1m-space-8) var(--t1m-space-6); gap: var(--t1m-space-4); }
+  .ds-login__tagline { font-size: var(--t1m-text-xl); }
+  .ds-login__features { display: none; }
+  .ds-login__formpane { padding: var(--t1m-space-6) var(--t1m-space-4); }
+}
+
+/* ---------- Email preview (overdue escalation illustration) ---------- */
+.ds-email { border: 1px solid var(--t1m-border); border-radius: var(--t1m-radius-md); overflow: hidden; }
+.ds-email__head { background: var(--t1m-surface-muted); padding: var(--t1m-space-3) var(--t1m-space-4); font-size: var(--t1m-text-xs); color: var(--t1m-ink-2); display: grid; gap: 2px; }
+.ds-email__body { padding: var(--t1m-space-4); }
+
+/* =====================================================================================
+   v3 — WORKFLOW COMPONENTS
+   ===================================================================================== */
+
+/* ---------- KPI tile: a number that is also a door ----------
+   Every tile answers one question and opens the filtered list behind the number. No invented
+   week-over-week deltas: this is mock data, and a fake trend is a claim we cannot back. */
+.ds-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--t1m-space-3); }
+.ds-kpi { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 2px var(--t1m-space-3); align-items: start; padding: var(--t1m-space-4); text-align: left; background: var(--t1m-surface); border: 1px solid transparent; border-radius: var(--t1m-radius-md); box-shadow: var(--t1m-shadow-card); font: inherit; color: inherit; cursor: pointer; transition: box-shadow var(--t1m-dur-base) var(--t1m-ease), translate var(--t1m-dur-base) var(--t1m-ease), border-color var(--t1m-dur-base) var(--t1m-ease); }
+.ds-kpi:hover { box-shadow: var(--t1m-shadow-card-hover); translate: 0 -1px; }
+.ds-kpi:focus-visible { box-shadow: var(--t1m-focus-ring); }
+.ds-kpi__icon { grid-row: 1 / span 3; width: 36px; height: 36px; border-radius: var(--t1m-radius-sm); display: grid; place-items: center; background: var(--t1m-navy-50); color: var(--t1m-navy-700); }
+.ds-kpi__icon .ds-icon { width: 18px; height: 18px; }
+.ds-kpi__label { font-size: var(--t1m-text-sm); color: var(--t1m-ink-2); }
+.ds-kpi__value { font: var(--t1m-w-title) var(--t1m-text-xl)/1.15 var(--t1m-font-display); color: var(--t1m-ink); }
+.ds-kpi__hint { font-size: var(--t1m-text-xs); color: var(--t1m-ink-3); }
+.ds-kpi--danger .ds-kpi__icon { background: var(--t1m-danger-bg); color: var(--t1m-danger); }
+.ds-kpi--danger .ds-kpi__value { color: var(--t1m-danger); }
+.ds-kpi--warning .ds-kpi__icon { background: var(--t1m-warning-bg); color: var(--t1m-warning); }
+.ds-kpi--warning .ds-kpi__value { color: var(--t1m-warning); }
+.ds-kpi--success .ds-kpi__icon { background: var(--t1m-success-bg); color: var(--t1m-success); }
+@media (max-width: 640px) { .ds-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--t1m-space-2); } .ds-kpi { grid-template-columns: minmax(0, 1fr); padding: var(--t1m-space-3); } .ds-kpi__icon { grid-row: auto; width: 28px; height: 28px; margin-bottom: var(--t1m-space-1); } .ds-kpi__icon .ds-icon { width: 15px; height: 15px; } }
+
+/* ---------- Pipeline: where every shipment is, drawn as the workflow itself ----------
+   The nine stages left to right as the road a shipment travels, each stop carrying how many jobs
+   stand there. It teaches the workflow and reports on it in the same glance. */
+.ds-pipeline { list-style: none; margin: 0; padding: var(--t1m-space-2) 0 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(84px, 1fr); overflow-x: auto; }
+.ds-pipeline__stop { position: relative; }
+.ds-pipeline__stop::before { content: ""; position: absolute; top: 30px; left: 0; right: 0; height: 2px; background: var(--t1m-border); }
+.ds-pipeline__stop:first-child::before { left: 50%; }
+.ds-pipeline__stop:last-child::before { right: 50%; }
+.ds-pipeline__btn { position: relative; display: grid; justify-items: center; gap: var(--t1m-space-2); width: 100%; padding: var(--t1m-space-2) var(--t1m-space-1); background: none; border: 0; border-radius: var(--t1m-radius-sm); font: inherit; color: var(--t1m-ink-2); cursor: pointer; text-align: center; }
+.ds-pipeline__btn:hover { color: var(--t1m-navy-700); }
+.ds-pipeline__btn:hover .ds-pipeline__count { box-shadow: 0 0 0 4px var(--t1m-surface), 0 0 0 7px var(--t1m-navy-100); }
+.ds-pipeline__count { position: relative; width: 44px; height: 44px; border-radius: var(--t1m-radius-full); display: grid; place-items: center; background: var(--t1m-navy-700); color: var(--t1m-ink-inverse); font: var(--t1m-w-title) var(--t1m-text-md) var(--t1m-font-display); box-shadow: 0 0 0 4px var(--t1m-surface); transition: box-shadow var(--t1m-dur-base) var(--t1m-ease); }
+.ds-pipeline__stop[data-empty] .ds-pipeline__count { background: var(--t1m-surface); color: var(--t1m-ink-3); box-shadow: 0 0 0 4px var(--t1m-surface), inset 0 0 0 2px var(--t1m-border); }
+.ds-pipeline__flag { position: absolute; top: -6px; right: -10px; min-width: 22px; height: 20px; padding: 0 5px; display: inline-flex; align-items: center; justify-content: center; gap: 2px; border-radius: var(--t1m-radius-full); background: var(--t1m-danger); color: var(--t1m-ink-inverse); font: var(--t1m-w-label) var(--t1m-text-2xs)/1 var(--t1m-font-chrome); box-shadow: 0 0 0 2px var(--t1m-surface); }
+.ds-pipeline__flag .ds-icon { width: 10px; height: 10px; stroke-width: 2.5; }
+.ds-pipeline__label { font-size: var(--t1m-text-xs); line-height: 1.3; font-weight: var(--t1m-w-control); }
+.ds-pipeline__phases { display: grid; grid-auto-flow: column; overflow: hidden; margin-top: var(--t1m-space-2); }
+.ds-pipeline__phase { font-size: var(--t1m-text-2xs); color: var(--t1m-ink-3); text-transform: uppercase; letter-spacing: .05em; font-weight: var(--t1m-w-label); text-align: center; border-top: 2px solid var(--t1m-border); margin: 0 6px; padding-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ds-pipeline-wrap { overflow-x: auto; }
+.ds-pipeline-wrap > * { min-width: 760px; }
+
+/* ---------- Action queue: the list of things that need a person ----------
+   One row per decision, sorted by consequence. Each row says what, where, why it matters, and
+   carries the one button that resolves it, so nobody hunts through tabs. */
+.ds-queue { list-style: none; margin: 0; padding: 0; }
+.ds-queue__item { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: var(--t1m-space-3); align-items: center; padding: var(--t1m-space-3) var(--t1m-space-4); border-bottom: 1px solid var(--t1m-border); animation: ds-row-in var(--t1m-dur-base) var(--t1m-ease) backwards; animation-delay: calc(var(--i, 0) * var(--t1m-stagger)); transition: background var(--t1m-dur-fast) var(--t1m-ease); }
+.ds-queue__item:last-child { border-bottom: 0; }
+.ds-queue__item:hover { background: var(--t1m-navy-50); }
+.ds-queue__icon { width: 36px; height: 36px; border-radius: var(--t1m-radius-sm); display: grid; place-items: center; background: var(--t1m-info-bg); color: var(--t1m-info); }
+.ds-queue__item[data-tone="danger"] .ds-queue__icon { background: var(--t1m-danger-bg); color: var(--t1m-danger); }
+.ds-queue__item[data-tone="warning"] .ds-queue__icon { background: var(--t1m-warning-bg); color: var(--t1m-warning); }
+.ds-queue__item[data-tone="success"] .ds-queue__icon { background: var(--t1m-success-bg); color: var(--t1m-success); }
+.ds-queue__item[data-tone="brand"] .ds-queue__icon { background: var(--t1m-navy-100); color: var(--t1m-navy-700); }
+.ds-queue__title { font-weight: var(--t1m-w-control); color: var(--t1m-ink); }
+.ds-queue__meta { display: flex; flex-wrap: wrap; gap: 2px var(--t1m-space-2); align-items: center; font-size: var(--t1m-text-xs); color: var(--t1m-ink-2); margin-top: 1px; }
+.ds-queue__meta .ds-mono { color: var(--t1m-navy-700); }
+.ds-queue__why { font-size: var(--t1m-text-sm); color: var(--t1m-ink-2); margin-top: 2px; }
+.ds-queue__why--danger { color: var(--t1m-danger); }
+.ds-queue__why--warning { color: var(--t1m-warning); }
+.ds-queue__actions { display: flex; gap: var(--t1m-space-2); align-items: center; }
+.ds-queue__empty { display: flex; align-items: center; gap: var(--t1m-space-3); padding: var(--t1m-space-6) var(--t1m-space-4); color: var(--t1m-ink-2); }
+.ds-queue__empty .ds-icon { width: 20px; height: 20px; color: var(--t1m-success); }
+@media (max-width: 640px) { .ds-queue__item { grid-template-columns: 32px minmax(0, 1fr); } .ds-queue__icon { width: 32px; height: 32px; } .ds-queue__actions { grid-column: 2; } }
+
+/* ---------- Filter chips (with counts) ---------- */
+.ds-chips { display: flex; gap: var(--t1m-space-2); flex-wrap: wrap; }
+.ds-chip { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: var(--t1m-radius-full); border: 1px solid var(--t1m-border); background: var(--t1m-surface); color: var(--t1m-ink-2); font: var(--t1m-w-control) var(--t1m-text-sm) var(--t1m-font-chrome); cursor: pointer; white-space: nowrap; transition: background var(--t1m-dur-fast) var(--t1m-ease), border-color var(--t1m-dur-fast) var(--t1m-ease), color var(--t1m-dur-fast) var(--t1m-ease); }
+.ds-chip:hover { border-color: var(--t1m-navy-700); color: var(--t1m-navy-700); }
+.ds-chip[aria-pressed="true"] { background: var(--t1m-navy-700); border-color: var(--t1m-navy-700); color: var(--t1m-ink-inverse); }
+.ds-chip__count { font-variant-numeric: tabular-nums; font-size: var(--t1m-text-xs); padding: 0 6px; border-radius: var(--t1m-radius-full); background: var(--t1m-surface-muted); color: var(--t1m-ink-2); }
+.ds-chip[aria-pressed="true"] .ds-chip__count { background: color-mix(in srgb, var(--t1m-ink-inverse) 20%, transparent); color: var(--t1m-ink-inverse); }
+.ds-chip .ds-icon { width: 14px; height: 14px; }
+.ds-chip--danger:not([aria-pressed="true"]) { color: var(--t1m-danger); }
+.ds-chip--warning:not([aria-pressed="true"]) { color: var(--t1m-warning); }
+@media (max-width: 640px) { .ds-chips--scroll { flex-wrap: nowrap; overflow-x: auto; margin: 0 calc(var(--t1m-gutter) * -1); padding: 0 var(--t1m-gutter) var(--t1m-space-1); } .ds-chip { height: 36px; } }
+
+/* ---------- Milestone track additions ----------
+   blocked = the current stage cannot move (a hold or an open exception); sub = a stage with its
+   own inner steps (customs) shows them as a tiny segmented meter under its label; data-just = the
+   step the job just moved into, whose connector fills in once so the move is seen, not just read. */
+.ds-track__step[data-state="blocked"] { color: var(--t1m-danger); font-weight: var(--t1m-w-label); }
+.ds-track__step[data-state="blocked"]::after { border-color: var(--t1m-danger); background: var(--t1m-danger-bg); box-shadow: 0 0 0 4px var(--t1m-danger-bg); }
+.ds-track__step[data-state="done"] + .ds-track__step[data-state="blocked"]::before { background: var(--t1m-navy-700); }
+.ds-track__step[data-just]::before { transform-origin: left; animation: ds-track-fill var(--t1m-dur-slow) var(--t1m-ease) backwards !important; background: var(--t1m-navy-700) !important; }
+@keyframes ds-track-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.ds-track__sub { display: flex; justify-content: center; gap: 2px; margin-top: 6px; }
+.ds-track__sub i { width: 7px; height: 4px; border-radius: 2px; background: var(--t1m-border); }
+.ds-track__sub i[data-on] { background: var(--t1m-navy-700); }
+.ds-track__step[data-state="blocked"] .ds-track__sub i[data-on] { background: var(--t1m-danger); }
+.ds-track--compact .ds-track__step { min-width: 78px; }
+@media (max-width: 640px) { .ds-track--compact .ds-track__step { min-width: 70px; font-size: var(--t1m-text-2xs); } }
+@media (prefers-reduced-motion: reduce) { .ds-track__step[data-just]::before { animation: none !important; } }
+
+/* ---------- Next step: Shipment 360's hero ----------
+   The answer to "what happens now?": a title, the gate that must be met to leave the stage (each
+   unmet line carries the link that fixes it), and exactly one primary action. States: ready (navy),
+   waiting (warning: someone else must act), blocked (danger: a hold or an exception), done. */
+.ds-next { border-radius: var(--t1m-radius-md); background: var(--t1m-surface); box-shadow: var(--t1m-shadow-card); border: 1px solid transparent; overflow: hidden; }
+.ds-next__head { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: var(--t1m-space-3) var(--t1m-space-4); padding: var(--t1m-space-5) var(--t1m-space-5) var(--t1m-space-4); }
+.ds-next__icon { width: 40px; height: 40px; border-radius: var(--t1m-radius-full); display: grid; place-items: center; background: var(--t1m-navy-100); color: var(--t1m-navy-700); }
+.ds-next__icon .ds-icon { width: 20px; height: 20px; }
+.ds-next__eyebrow { font-size: var(--t1m-text-xs); font-weight: var(--t1m-w-label); letter-spacing: .05em; text-transform: uppercase; color: var(--t1m-navy-700); }
+.ds-next__title { font: var(--t1m-w-heading) var(--t1m-text-lg)/1.3 var(--t1m-font-display); color: var(--t1m-ink); margin: 2px 0 4px; }
+.ds-next__text { color: var(--t1m-ink-2); max-width: 72ch; }
+.ds-next__body { padding: 0 var(--t1m-space-5) var(--t1m-space-5); display: grid; gap: var(--t1m-space-4); }
+.ds-next__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--t1m-space-3); flex-wrap: wrap; padding: var(--t1m-space-3) var(--t1m-space-5); background: var(--t1m-navy-50); border-top: 1px solid var(--t1m-border); }
+.ds-next__who { font-size: var(--t1m-text-sm); color: var(--t1m-ink-2); display: flex; align-items: center; gap: var(--t1m-space-2); }
+.ds-next__actions { display: flex; gap: var(--t1m-space-2); flex-wrap: wrap; align-items: center; }
+.ds-next--waiting .ds-next__icon { background: var(--t1m-warning-bg); color: var(--t1m-warning); }
+.ds-next--waiting .ds-next__eyebrow { color: var(--t1m-warning); }
+.ds-next--waiting .ds-next__foot { background: var(--t1m-warning-bg); }
+.ds-next--blocked { border-color: color-mix(in srgb, var(--t1m-danger) 25%, transparent); }
+.ds-next--blocked .ds-next__icon { background: var(--t1m-danger-bg); color: var(--t1m-danger); }
+.ds-next--blocked .ds-next__eyebrow { color: var(--t1m-danger); }
+.ds-next--blocked .ds-next__foot { background: var(--t1m-danger-bg); }
+.ds-next--done .ds-next__icon { background: var(--t1m-success-bg); color: var(--t1m-success); }
+.ds-next--done .ds-next__eyebrow { color: var(--t1m-success); }
+.ds-next--done .ds-next__foot { background: var(--t1m-success-bg); }
+.ds-next--enter { animation: ds-banner-in var(--t1m-dur-slow) var(--t1m-ease); }
+@media (max-width: 640px) { .ds-next__head { grid-template-columns: 32px minmax(0, 1fr); padding: var(--t1m-space-4); } .ds-next__icon { width: 32px; height: 32px; } .ds-next__icon .ds-icon { width: 16px; height: 16px; } .ds-next__body { padding: 0 var(--t1m-space-4) var(--t1m-space-4); } .ds-next__foot { padding: var(--t1m-space-3) var(--t1m-space-4); } .ds-next__actions, .ds-next__actions .ds-btn { width: 100%; } }
+@media (prefers-reduced-motion: reduce) { .ds-next--enter { animation: none; } }
+
+/* Gate: the checklist that must be met before a stage can be left. */
+.ds-gate { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.ds-gate__item { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; gap: var(--t1m-space-3); align-items: center; min-height: 40px; padding: var(--t1m-space-2) var(--t1m-space-3); border-radius: var(--t1m-radius-sm); background: var(--t1m-surface-muted); }
+.ds-gate__item > .ds-icon { width: 18px; height: 18px; color: var(--t1m-ink-3); }
+.ds-gate__item[data-met] { background: transparent; }
+.ds-gate__item[data-met] > .ds-icon { color: var(--t1m-success); stroke-width: 2.25; }
+.ds-gate__item[data-met] .ds-gate__label { color: var(--t1m-ink-2); }
+.ds-gate__item[data-blocked] { background: var(--t1m-danger-bg); }
+.ds-gate__item[data-blocked] > .ds-icon { color: var(--t1m-danger); }
+.ds-gate__label { color: var(--t1m-ink); font-size: var(--t1m-text-sm); }
+/* On the tinted row a tonal button would vanish, so it goes white with the field shadow (as in the bulk bar). */
+.ds-gate__item .ds-btn--secondary { background: var(--t1m-surface); box-shadow: var(--t1m-field-shadow); }
+.ds-gate__item .ds-btn--secondary:hover { background: var(--t1m-navy-50); }
+.ds-gate__label small { display: block; color: var(--t1m-ink-3); font-size: var(--t1m-text-xs); }
+.ds-gate__title { font-size: var(--t1m-text-xs); font-weight: var(--t1m-w-label); letter-spacing: .05em; text-transform: uppercase; color: var(--t1m-ink-3); margin-bottom: var(--t1m-space-2); display: flex; justify-content: space-between; gap: var(--t1m-space-2); }
+@media (max-width: 640px) { .ds-gate__item { grid-template-columns: 20px minmax(0, 1fr); } .ds-gate__item > :nth-child(3) { grid-column: 2; justify-self: start; } }
+
+/* ---------- Fee clock: free days draining before port or line fees start ---------- */
+.ds-clock { display: grid; gap: var(--t1m-space-2); }
+.ds-clock__row { display: flex; align-items: baseline; justify-content: space-between; gap: var(--t1m-space-2); }
+.ds-clock__days { font: var(--t1m-w-title) var(--t1m-text-xl)/1 var(--t1m-font-display); color: var(--t1m-ink); }
+.ds-clock__days small { font-size: var(--t1m-text-sm); font-weight: var(--t1m-w-control); color: var(--t1m-ink-2); margin-left: 4px; }
+.ds-clock--warning .ds-clock__days { color: var(--t1m-warning); }
+.ds-clock--danger .ds-clock__days { color: var(--t1m-danger); }
+.ds-clock .ds-bar-track { height: 6px; }
+.ds-clock .ds-bar-fill { animation: ds-bar-grow var(--t1m-dur-slow) var(--t1m-ease) backwards; transform-origin: left; }
+
+/* ---------- Facts: a dense two-column description list for side panels ---------- */
+.ds-facts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--t1m-space-2) var(--t1m-space-4); margin: 0; font-size: var(--t1m-text-sm); }
+.ds-facts dt { color: var(--t1m-ink-2); }
+.ds-facts dd { margin: 0; color: var(--t1m-ink); text-align: right; overflow-wrap: anywhere; }
+
+/* ---------- Job header ---------- */
+.ds-jobhead { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--t1m-space-3) var(--t1m-space-4); align-items: start; margin-bottom: var(--t1m-space-5); }
+.ds-jobhead h1 { font-family: var(--t1m-font-mono); font-size: var(--t1m-text-xl); letter-spacing: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--t1m-space-3); }
+.ds-jobhead__line { display: flex; flex-wrap: wrap; gap: var(--t1m-space-2) var(--t1m-space-3); align-items: center; margin-top: var(--t1m-space-2); color: var(--t1m-ink-2); font-size: var(--t1m-text-sm); }
+.ds-jobhead__actions { display: flex; gap: var(--t1m-space-2); flex-wrap: wrap; justify-content: flex-end; }
+.ds-routeline { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px; color: var(--t1m-ink); }
+.ds-routeline .ds-icon { width: 14px; height: 14px; color: var(--t1m-ink-3); }
+@media (max-width: 760px) { .ds-jobhead { grid-template-columns: minmax(0, 1fr); } .ds-jobhead__actions { justify-content: flex-start; } }
+
+/* Tab count badge: a quiet number, tinted only when it is work waiting. */
+.ds-tab__count { min-width: 20px; height: 20px; padding: 0 6px; border-radius: var(--t1m-radius-full); display: inline-grid; place-items: center; font: var(--t1m-w-label) var(--t1m-text-xs)/1 var(--t1m-font-chrome); background: var(--t1m-surface-muted); color: var(--t1m-ink-2); font-variant-numeric: tabular-nums; }
+.ds-tab__count--warning { background: var(--t1m-warning-bg); color: var(--t1m-warning); }
+.ds-tab__count--danger { background: var(--t1m-danger-bg); color: var(--t1m-danger); }
+@media (max-width: 640px) { .ds-tab { padding: 0 var(--t1m-space-3); height: 44px; } }
+
+/* ---------- Work cards (touch-first list for My work) ---------- */
+.ds-cards { display: grid; gap: var(--t1m-space-3); }
+.ds-workcard { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--t1m-space-2) var(--t1m-space-4); align-items: center; padding: var(--t1m-space-4); background: var(--t1m-surface); border-radius: var(--t1m-radius-md); box-shadow: var(--t1m-shadow-card); border: 1px solid transparent; animation: ds-row-in var(--t1m-dur-base) var(--t1m-ease) backwards; animation-delay: calc(var(--i, 0) * var(--t1m-stagger)); }
+.ds-workcard[data-tone="danger"] { border-color: color-mix(in srgb, var(--t1m-danger) 30%, transparent); }
+.ds-workcard__title { font-weight: var(--t1m-w-control); color: var(--t1m-ink); font-size: var(--t1m-text-md); }
+.ds-workcard__meta { display: flex; flex-wrap: wrap; gap: var(--t1m-space-1) var(--t1m-space-3); align-items: center; font-size: var(--t1m-text-sm); color: var(--t1m-ink-2); margin-top: 4px; }
+.ds-workcard__meta .ds-mono { color: var(--t1m-navy-700); }
+.ds-workcard__actions { display: flex; gap: var(--t1m-space-2); }
+@media (max-width: 640px) { .ds-workcard { grid-template-columns: minmax(0, 1fr); } .ds-workcard__actions .ds-btn { flex: 1; height: var(--t1m-control-h-touch); } }
+
+/* ---------- Greeting line on Home ---------- */
+.ds-hello p { color: var(--t1m-ink-2); margin-top: var(--t1m-space-1); }
+.ds-hello strong { color: var(--t1m-ink); font-weight: var(--t1m-w-control); }
+
+/* ---------- Chart pieces (single-series horizontal bars; one hue, labels in ink) ---------- */
+.ds-bars { display: grid; gap: var(--t1m-space-3); }
+.ds-bar-row { position: relative; display: grid; grid-template-columns: minmax(96px, 150px) minmax(0, 1fr) 64px; align-items: center; gap: var(--t1m-space-3); font-size: var(--t1m-text-sm); border-radius: var(--t1m-radius-sm); padding: 4px; margin: -4px; }
+.ds-bar-row[data-href] { cursor: pointer; }
+.ds-bar-row[data-href]:hover { background: var(--t1m-navy-50); }
+.ds-bar-row__name { color: var(--t1m-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ds-bar-row__value { text-align: right; font-variant-numeric: tabular-nums; color: var(--t1m-ink-2); }
+.ds-bar-row .ds-bar-track { height: 16px; border-radius: 0 var(--t1m-radius-sm) var(--t1m-radius-sm) 0; background: var(--t1m-surface-muted); }
+.ds-bar-row .ds-bar-fill { border-radius: 0 4px 4px 0; animation: ds-bar-grow var(--t1m-dur-slow) var(--t1m-ease) backwards; transform-origin: left; }
+.ds-bar-row[data-tip]:hover::after { content: attr(data-tip); position: absolute; left: 50%; bottom: calc(100% + 6px); translate: -50% 0; z-index: 10; padding: 6px 10px; border-radius: var(--t1m-radius-sm); background: var(--t1m-navy-950); color: var(--t1m-ink-inverse); font-size: var(--t1m-text-xs); white-space: nowrap; box-shadow: var(--t1m-shadow-float); pointer-events: none; }
+@keyframes ds-bar-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.ds-bar-stack { position: absolute; inset: 0; display: flex; gap: 2px; }
+.ds-bar-stack > span { height: 100%; animation: ds-bar-grow var(--t1m-dur-slow) var(--t1m-ease) backwards; transform-origin: left; }
+.ds-chart-note { font-size: var(--t1m-text-xs); color: var(--t1m-ink-2); margin-top: var(--t1m-space-4); display: flex; gap: var(--t1m-space-2); }
+.ds-chart-note .ds-icon { width: 14px; height: 14px; margin-top: 1px; color: var(--t1m-ink-3); }
+.ds-legend { display: flex; gap: var(--t1m-space-4); flex-wrap: wrap; font-size: var(--t1m-text-xs); color: var(--t1m-ink-2); }
+.ds-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+@media (max-width: 640px) { .ds-bar-row { grid-template-columns: minmax(80px, 110px) minmax(0, 1fr) 52px; gap: var(--t1m-space-2); } }
+@media (prefers-reduced-motion: reduce) { .ds-bar-row .ds-bar-fill, .ds-bar-stack > span, .ds-clock .ds-bar-fill { animation: none; } }
+
+/* ---------- Scenario launcher (demo guide) ---------- */
+.ds-scenarios { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--t1m-space-2); }
+.ds-scenario { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: var(--t1m-space-3); align-items: center; padding: var(--t1m-space-3); border-radius: var(--t1m-radius-md); border: 1px solid var(--t1m-border); }
+.ds-scenario__n { width: 32px; height: 32px; border-radius: var(--t1m-radius-full); display: grid; place-items: center; background: var(--t1m-navy-50); color: var(--t1m-navy-700); font-weight: var(--t1m-w-label); }
+.ds-scenario__title { font-weight: var(--t1m-w-control); color: var(--t1m-ink); }
+.ds-scenario__who { font-size: var(--t1m-text-xs); color: var(--t1m-ink-2); }
+
+/* ---------- Deal stepper (inquiry -> quotation -> client approval -> shipment job) ---------- */
+.ds-deal { display: grid; gap: var(--t1m-space-4); }
+.ds-deal__step { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: var(--t1m-space-4); position: relative; }
+.ds-deal__step:not(:last-child)::before { content: ""; position: absolute; left: 15px; top: 40px; bottom: calc(var(--t1m-space-4) * -1); width: 2px; background: var(--t1m-border); }
+.ds-deal__step[data-state="done"]:not(:last-child)::before { background: var(--t1m-navy-700); }
+.ds-deal__n { width: 32px; height: 32px; margin-top: var(--t1m-space-3); border-radius: var(--t1m-radius-full); display: grid; place-items: center; background: var(--t1m-surface); box-shadow: inset 0 0 0 2px var(--t1m-border-strong); color: var(--t1m-ink-3); font-weight: var(--t1m-w-label); position: relative; z-index: 1; }
+.ds-deal__n .ds-icon { width: 16px; height: 16px; stroke-width: 2.25; }
+.ds-deal__step[data-state="done"] .ds-deal__n { background: var(--t1m-navy-700); box-shadow: none; color: var(--t1m-ink-inverse); }
+.ds-deal__step[data-state="current"] .ds-deal__n { box-shadow: inset 0 0 0 2px var(--t1m-navy-700), 0 0 0 4px var(--t1m-navy-100); color: var(--t1m-navy-700); background: var(--t1m-surface); }
+.ds-deal__step[data-state="todo"] > .ds-panel { background: transparent; box-shadow: none; border: 1px dashed var(--t1m-border-strong); }
+@media (max-width: 640px) { .ds-deal__step { grid-template-columns: minmax(0, 1fr); } .ds-deal__n, .ds-deal__step::before { display: none; } }
+
+/* ---------- Read-only marker (Finance and anyone viewing what they cannot change) ---------- */
+.ds-readonly { display: inline-flex; align-items: center; gap: 6px; font-size: var(--t1m-text-xs); color: var(--t1m-ink-2); background: var(--t1m-surface-muted); border-radius: var(--t1m-radius-full); padding: 2px 10px; }
+.ds-readonly .ds-icon { width: 12px; height: 12px; }
+
+/* ---------- v3 responsive refinements ---------- */
+/* Phone cards: the first cell is the card's title (ID + name), full width and left aligned, with
+   no label; every other cell keeps its label and may wrap instead of being clipped. */
+@media (max-width: 640px) {
+  .ds-table--stack td { white-space: normal; min-width: 0 !important; }
+  .ds-table--stack td:first-child { display: block; text-align: left; padding-bottom: var(--t1m-space-2); }
+  .ds-table--stack td:first-child::before { display: none; }
+  .ds-table--stack td > * { max-width: 70%; }
+  .ds-table--stack td:first-child > * { max-width: none; }
+  .ds-table--stack td[data-label=""]::before { display: none; }
+  .ds-table--stack td[data-label=""] { justify-content: flex-start; }
+}
+@media (max-width: 960px) { .ds-sidebar__foot { display: none; } }
+.ds-table td.ds-col-main { white-space: normal; min-width: 200px; }

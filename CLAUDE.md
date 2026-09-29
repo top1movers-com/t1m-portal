@@ -12,3 +12,5 @@ Before writing or changing any UI, read `docs/ai/ui-rules.md`, then `DESIGN.md` 
 - `docs/ai/`: rules and documents written for AI agents
 - `docs/testing/`: UAT test plan (scenario-based test cases for every role)
 - `apps/`: applications (React + Vite frontend goes here)
+- `apps/mockup/`: the stakeholder mockup. Edit `apps/mockup/src/*.js` (and the design system), then run `node apps/mockup/build.mjs`; `apps/mockup/index.html` is generated, never edit it directly.
+- `docs/demo/`: scenario manual. Regenerate with `python docs/demo/manual/build_manual.py` after mockup changes (screenshots come from the live build).
