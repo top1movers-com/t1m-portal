@@ -79,11 +79,16 @@
 <symbol id="i-building" viewBox="0 0 24 24"><path d="M5 20.5V4.5h9v16M14 9.5h5v11M8 8h3M8 11.5h3M8 15h3M3 20.5h18"/></symbol>
 <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.3M12 18.2v2.3M3.5 12h2.3M18.2 12h2.3M6 6l1.6 1.6M16.4 16.4 18 18M18 6l-1.6 1.6M7.6 16.4 6 18"/></symbol>
 <symbol id="i-more" viewBox="0 0 24 24"><circle cx="12" cy="5.5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="18.5" r="1.2"/></symbol>
+<symbol id="i-calendar" viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3.5v4M16 3.5v4"/></symbol>
+<symbol id="i-log-out" viewBox="0 0 24 24"><path d="M14.5 4H7a1.5 1.5 0 0 0-1.5 1.5v13A1.5 1.5 0 0 0 7 20h7.5"/><path d="M11 12h8.5m0 0-3-3m3 3-3 3"/></symbol>
+<symbol id="i-wallet" viewBox="0 0 24 24"><path d="M4.5 7.5v-1a2 2 0 0 1 2-2h9"/><path d="M4.5 7.5h13a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2h-11a2 2 0 0 1-2-2z"/><path d="M16 13.2h.01"/></symbol>
+<symbol id="i-arrow-in" viewBox="0 0 24 24"><path d="M17.5 6.5 6.5 17.5M6.5 9v8.5H15"/></symbol>
+<symbol id="i-arrow-out" viewBox="0 0 24 24"><path d="M6.5 17.5 17.5 6.5M9 6.5h8.5V15"/></symbol>
 </svg>
 <div class="doc">
 <nav class="doc__nav" aria-label="Sections">
   <img src="./assets/top1movers-logo.png" alt="Top1Movers Worldwide Inc.">
-  <a href="#principles">Principles</a><a href="#color">Color</a><a href="#type">Typography</a><a href="#space">Space &amp; shape</a><a href="#icons">Icons</a><a href="#buttons">Buttons</a><a href="#forms">Fields</a><a href="#status">Status</a><a href="#tables">Tables</a><a href="#nav">Shell &amp; nav</a><a href="#signature">Shipment patterns</a><a href="#feedback">Feedback</a><a href="#rules">Do &amp; don't</a><a href="#use">Using it</a>
+  <a href="#principles">Principles</a><a href="#color">Color</a><a href="#type">Typography</a><a href="#space">Space &amp; shape</a><a href="#icons">Icons</a><a href="#buttons">Buttons</a><a href="#forms">Fields</a><a href="#status">Status</a><a href="#tables">Tables</a><a href="#print">Print</a><a href="#nav">Shell &amp; nav</a><a href="#signature">Shipment patterns</a><a href="#feedback">Feedback</a><a href="#rules">Do &amp; don't</a><a href="#use">Using it</a>
 </nav>
 <main>
   <h1>Top1Movers Operations Portal: Design System</h1>
@@ -244,7 +249,7 @@
       <div class="ds-pager"><span>1 to 4 of 1,284 jobs</span><span style="display:flex;gap:8px;align-items:center"><span class="ds-muted" id="ps-lbl">Rows</span><div class="ds-select-wrap ds-dropdown" data-dropdown data-placement="top" style="width:84px"><button type="button" id="ps" class="ds-select ds-select--sm" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="ps-list"><span class="ds-dropdown__value">25</span></button><svg class="ds-icon"><use href="#i-chevron-down"/></svg><ul class="ds-menu" role="listbox" id="ps-list" tabindex="-1"><li class="ds-option" role="option" id="ps1" aria-selected="true"><span class="ds-option__text">25</span><svg class="ds-icon"><use href="#i-check"/></svg></li><li class="ds-option" role="option" id="ps2" aria-selected="false"><span class="ds-option__text">50</span><svg class="ds-icon"><use href="#i-check"/></svg></li><li class="ds-option" role="option" id="ps3" aria-selected="false"><span class="ds-option__text">100</span><svg class="ds-icon"><use href="#i-check"/></svg></li></ul></div><button class="ds-btn ds-btn--secondary ds-btn--sm" disabled>Previous</button><button class="ds-btn ds-btn--secondary ds-btn--sm">Next</button></span></div>
     </div>
     <h3>Tabs</h3>
-    <div class="demo demo--flush"><div class="ds-tabs" role="tablist" style="padding:0 16px"><button class="ds-tab" data-text="Overview" role="tab" aria-selected="true">Overview</button><button class="ds-tab" data-text="Tasks" role="tab" aria-selected="false">Tasks</button><button class="ds-tab" data-text="Documents" role="tab" aria-selected="false">Documents</button><button class="ds-tab" data-text="Charges" role="tab" aria-selected="false">Charges</button><button class="ds-tab" data-text="Audit trail" role="tab" aria-selected="false">Audit trail</button></div></div>
+    <div class="demo demo--flush"><div class="ds-tabs" role="tablist" style="padding:0 16px"><button class="ds-tab" role="tab" aria-selected="true"><span class="ds-tab__label" data-text="Overview">Overview</span></button><button class="ds-tab" role="tab" aria-selected="false"><span class="ds-tab__label" data-text="Tasks">Tasks</span></button><button class="ds-tab" role="tab" aria-selected="false"><span class="ds-tab__label" data-text="Documents">Documents</span><span class="ds-pill ds-pill--warning"><svg class="ds-icon"><use href="#i-alert"/></svg>!</span></button><button class="ds-tab" role="tab" aria-selected="false"><span class="ds-tab__label" data-text="Charges">Charges</span></button><button class="ds-tab" role="tab" aria-selected="false"><span class="ds-tab__label" data-text="Audit trail">Audit trail</span></button></div></div>
     <h3>Empty state</h3>
     <div class="demo demo--flush"><div class="ds-empty"><svg class="ds-icon"><use href="#i-file"/></svg><h3>No documents uploaded yet</h3><p>Upload the bill of lading to start the checklist. Missing required documents will show on the dashboard.</p><button class="ds-btn ds-btn--primary"><svg class="ds-icon"><use href="#i-upload"/></svg>Upload document</button></div></div>
   <h3>Drawer</h3>
@@ -256,6 +261,115 @@
         <div class="ds-field"><label for="dr2">Note</label><textarea id="dr2" class="ds-textarea" placeholder="Add an update for the team"></textarea></div>
         <div style="display:flex;gap:8px;justify-content:flex-end"><button class="ds-btn ds-btn--ghost">Cancel</button><button class="ds-btn ds-btn--primary">Save note</button></div></div>
     </aside></div>
+
+    <h3>Action menu</h3>
+    <p>The avatar and kebab menus use the same floating panel as the select dropdown, holding plain actions instead of options. Shown open for reference.</p>
+    <div class="demo" style="justify-content:flex-start;padding-top:56px;padding-bottom:64px">
+      <div class="ds-menu-trigger" data-open>
+        <span class="ds-avatar" aria-label="Signed in as Sample User" style="background:linear-gradient(135deg,var(--t1m-navy-700),var(--t1m-navy-950))"><svg class="ds-icon"><use href="#i-user"/></svg></span>
+        <div class="ds-menu ds-menu--right" style="visibility:visible;opacity:1;translate:0 0;min-width:220px">
+          <div class="ds-menu__header"><strong>Sample User</strong><span>Manager</span></div>
+          <button class="ds-menu__action" type="button"><svg class="ds-icon"><use href="#i-settings"/></svg>Demo: switch role</button>
+          <button class="ds-menu__action" type="button"><svg class="ds-icon"><use href="#i-log-out"/></svg>Sign out</button>
+        </div>
+      </div>
+    </div>
+
+    <h3>File upload</h3>
+    <p>Replaces the native file input everywhere a document is attached. Empty state on the left, a chosen file on the right — same component, two states.</p>
+    <div class="demo">
+      <div class="ds-upload" style="width:260px"><svg class="ds-icon"><use href="#i-upload"/></svg><strong>Drop a file or click to browse</strong><span class="ds-upload__hint">PDF, JPG or PNG up to 10MB</span><input type="file"></div>
+      <div class="ds-upload" data-filled="true" style="width:260px"><span class="ds-upload__file"><svg class="ds-icon"><use href="#i-file"/></svg><span>bill-of-lading-v2.pdf</span></span><button class="ds-upload__remove" aria-label="Remove file"><svg class="ds-icon"><use href="#i-x"/></svg></button></div>
+    </div>
+
+    <h3>Date-range picker</h3>
+    <p>A field-styled trigger opens a panel split into quick presets and a single-month calendar. Shown open for reference; used on the Audit Trail.</p>
+    <div class="demo" style="padding-bottom:280px">
+      <div class="ds-datepicker" data-open>
+        <button type="button" class="ds-datepicker__trigger"><svg class="ds-icon"><use href="#i-calendar"/></svg>Sep 1 – Sep 28, 2026</button>
+        <div class="ds-datepicker__panel" style="visibility:visible;opacity:1;translate:0 0">
+          <div class="ds-datepicker__body">
+            <div class="ds-datepicker__presets">
+              <button class="ds-datepicker__preset" type="button">Today</button>
+              <button class="ds-datepicker__preset" type="button">Last 7 days</button>
+              <button class="ds-datepicker__preset" type="button">Last 30 days</button>
+              <button class="ds-datepicker__preset" aria-current="true" type="button">This month</button>
+              <button class="ds-datepicker__preset" type="button">All time</button>
+            </div>
+            <div class="ds-datepicker__cal">
+              <div class="ds-datepicker__calhead"><button class="ds-datepicker__navbtn" type="button" aria-label="Previous month"><svg class="ds-icon" style="rotate:180deg"><use href="#i-chevron-right"/></svg></button><span>September 2026</span><button class="ds-datepicker__navbtn" type="button" aria-label="Next month"><svg class="ds-icon"><use href="#i-chevron-right"/></svg></button></div>
+              <div class="ds-datepicker__grid">
+                <span class="ds-datepicker__dow">S</span><span class="ds-datepicker__dow">M</span><span class="ds-datepicker__dow">T</span><span class="ds-datepicker__dow">W</span><span class="ds-datepicker__dow">T</span><span class="ds-datepicker__dow">F</span><span class="ds-datepicker__dow">S</span>
+                <span data-muted="true" class="ds-datepicker__day">30</span><span data-muted="true" class="ds-datepicker__day">31</span>
+                <button class="ds-datepicker__day" data-endpoint="true" type="button">1</button>
+                <button class="ds-datepicker__day" data-in-range="true" type="button">2</button>
+                <button class="ds-datepicker__day" data-in-range="true" type="button">3</button>
+                <button class="ds-datepicker__day" data-in-range="true" type="button">4</button>
+                <button class="ds-datepicker__day" data-in-range="true" type="button">5</button>
+              </div>
+            </div>
+          </div>
+          <div class="ds-datepicker__footer"><button class="ds-btn ds-btn--ghost ds-btn--sm">Cancel</button><button class="ds-btn ds-btn--primary ds-btn--sm">Apply</button></div>
+        </div>
+      </div>
+    </div>
+
+    <h3>Sign in with Microsoft</h3>
+    <p>A required third-party brand mark — Microsoft's own guidelines fix its colors, font, square corners and logo geometry, so this is exempt from the token-only rule by design. Never alter it. Used on the login screen in place of an email/password form.</p>
+    <div class="demo" style="max-width:340px">
+      <button type="button" class="ds-msbtn"><div class="ds-msbtn__logo"><span></span><span></span><span></span><span></span></div>Sign in with Microsoft</button>
+    </div>
+
+    <h3>Account chooser (mock SSO)</h3>
+    <p>Stands in for the real Microsoft "Pick an account" step a signed-in browser would show. Lists only the accounts already known to this device — the point of SSO is that a user never scrolls a directory of hundreds of names to sign in. Shown open for reference; used on the login screen.</p>
+    <div class="demo" style="justify-content:center;padding:32px 16px">
+      <div class="ds-acct-picker">
+        <div class="ds-acct-picker__head"><div class="ds-msbtn__logo"><span></span><span></span><span></span><span></span></div><h2>Pick an account</h2><p class="ds-muted" style="font-size:var(--t1m-text-sm)">to continue to Top1Movers Operations Portal</p></div>
+        <div class="ds-acct-picker__list">
+          <button type="button" class="ds-acct-row"><span class="ds-avatar" style="background:linear-gradient(135deg,var(--t1m-navy-700),var(--t1m-navy-950))"><svg class="ds-icon"><use href="#i-user"/></svg></span><span class="ds-acct-row__main"><span class="ds-acct-row__name">Ana Cruz</span><span class="ds-acct-row__email">ana.cruz@top1movers.example</span></span><span class="ds-acct-row__role ds-muted" style="font-size:var(--t1m-text-xs)">Dispatcher</span></button>
+          <button type="button" class="ds-acct-row"><span class="ds-avatar" style="background:linear-gradient(135deg,var(--t1m-navy-600),var(--t1m-navy-800))"><svg class="ds-icon"><use href="#i-user"/></svg></span><span class="ds-acct-row__main"><span class="ds-acct-row__name">Ben Santos</span><span class="ds-acct-row__email">ben.santos@top1movers.example</span></span><span class="ds-acct-row__role ds-muted" style="font-size:var(--t1m-text-xs)">Warehouse Crew</span></button>
+          <button type="button" class="ds-acct-row"><span class="ds-avatar" style="background:linear-gradient(135deg,var(--t1m-navy-950),var(--t1m-navy-700))"><svg class="ds-icon"><use href="#i-user"/></svg></span><span class="ds-acct-row__main"><span class="ds-acct-row__name">Grace Tan</span><span class="ds-acct-row__email">grace.tan@top1movers.example</span></span><span class="ds-acct-row__role ds-muted" style="font-size:var(--t1m-text-xs)">Manager</span></button>
+          <button type="button" class="ds-acct-row"><span class="ds-acct-row__addicon"><svg class="ds-icon"><use href="#i-plus"/></svg></span><span class="ds-acct-row__main"><span class="ds-acct-row__name">Use another account</span></span></button>
+        </div>
+        <div class="ds-acct-picker__foot">Demo only — lists one illustrative account per role, not a real directory.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="print">
+    <h2>Printable document</h2>
+    <h3>Billing Summary</h3>
+    <p>A read-only, printable Finance handoff — never call this or any similar document "Invoice" in this mockup; that would imply it produces real invoices. A toolbar (back link, Print/Export) sits above the document and carries <code>.no-print</code> so it disappears in the printed/exported output; a <code>@media print</code> block also hides the app shell's sidebar and top bar and lets the document use the full page.</p>
+    <div class="demo" style="background:var(--t1m-surface-muted);display:block;padding:24px">
+      <div class="ds-billing-summary__toolbar">
+        <button class="ds-btn ds-btn--ghost ds-btn--sm"><svg class="ds-icon" style="rotate:180deg"><use href="#i-chevron-right"/></svg>Back to Charges</button>
+        <button class="ds-btn ds-btn--primary ds-btn--sm"><svg class="ds-icon"><use href="#i-download"/></svg>Print / Export</button>
+      </div>
+      <div class="ds-billing-summary__doc" style="margin:0 auto">
+        <div class="ds-alert ds-alert--warning" style="margin-bottom:20px"><svg class="ds-icon"><use href="#i-info"/></svg><div><strong>Mockup only</strong>Sample document for internal Finance handoff — not a real invoice. All figures are illustrative.</div></div>
+        <div class="ds-billing-summary__brand">
+          <span class="ds-label" style="font-size:16px;color:var(--t1m-navy-700)">TOP1MOVERS</span>
+          <div class="ds-billing-summary__title"><h1 style="margin-bottom:4px">Billing Summary</h1><div class="ds-muted" style="font-size:var(--t1m-text-sm)">Job TMW-2026-00412 &middot; Issued Sep 28, 2026</div></div>
+        </div>
+        <hr>
+        <div class="ds-billing-summary__grid">
+          <div><label class="ds-label">Customer</label><div style="font-weight:600">Sample Trading Co.</div><div class="ds-muted" style="font-size:var(--t1m-text-sm)">Cebu Branch (Consignee)</div></div>
+          <div><label class="ds-label">Shipment</label><div>Yantian, CN &rarr; Manila, PH &rarr; Cebu, PH</div><div class="ds-muted" style="font-size:var(--t1m-text-sm)">Container TMWU-330218-4</div></div>
+        </div>
+        <label class="ds-label" style="display:block;margin-bottom:8px">Charges</label>
+        <div class="ds-table-wrap" style="margin-bottom:24px"><table class="ds-table"><thead><tr><th>Description</th><th>Category</th><th class="ds-num">Amount</th></tr></thead><tbody>
+          <tr><td>Ocean freight</td><td>Freight</td><td class="ds-num">&#8369;132,000.00</td></tr>
+          <tr><td>Customs duty</td><td>Duties &amp; Taxes</td><td class="ds-num">&#8369;18,400.00</td></tr>
+          <tr><td colspan="2" style="text-align:right;font-weight:700">Total actual charges</td><td class="ds-num" style="font-weight:700">&#8369;150,400.00</td></tr>
+        </tbody></table></div>
+        <div class="ds-billing-summary__totals">
+          <div class="ds-row--between"><label class="ds-label">Quoted amount</label><span class="ds-mono">&#8369;174,500.00</span></div>
+          <div class="ds-row--between"><label class="ds-label">Margin</label><span class="ds-mono">&#8369;24,100.00 (13.8%)</span></div>
+        </div>
+        <hr>
+        <p class="ds-muted" style="font-size:var(--t1m-text-xs)">Generated from mock data for the Top1Movers Operations Portal proposal-stage mockup. This is a Finance handoff summary, not a client-facing invoice or a document of legal or financial record.</p>
+      </div>
+    </div>
   </section>
 
   <section id="nav">
@@ -275,7 +389,7 @@
           <a class="ds-nav__item" href="#nav" title="Audit trail"><svg class="ds-icon"><use href="#i-shield"/></svg><span data-text="Audit trail">Audit trail</span></a>
         </nav>
       </aside>
-      <header class="ds-topbar"><div class="ds-search" style="width:min(360px,100%)"><svg class="ds-icon"><use href="#i-search"/></svg><input class="ds-input" placeholder="Search job ID, BL, container" aria-label="Search"><kbd class="ds-kbd">/</kbd></div><span style="margin-left:auto;display:flex;gap:12px;align-items:center"><button class="ds-btn ds-btn--ghost ds-btn--sm" aria-label="Notifications"><svg class="ds-icon"><use href="#i-bell"/></svg></button><span class="ds-avatar" aria-label="Signed in as Sample User">SU</span></span></header>
+      <header class="ds-topbar"><div class="ds-search" style="width:min(360px,100%)"><svg class="ds-icon"><use href="#i-search"/></svg><input class="ds-input" placeholder="Search job ID, BL, container" aria-label="Search"><kbd class="ds-kbd">/</kbd></div><span style="margin-left:auto;display:flex;gap:12px;align-items:center"><button class="ds-btn ds-btn--ghost ds-btn--sm" aria-label="Notifications"><svg class="ds-icon"><use href="#i-bell"/></svg></button><span class="ds-avatar" aria-label="Signed in as Sample User" style="background:linear-gradient(135deg,var(--t1m-navy-700),var(--t1m-navy-950))"><svg class="ds-icon"><use href="#i-user"/></svg></span></span></header>
       <div class="ds-content">
         <div class="ds-crumbs">Shipment jobs <svg class="ds-icon"><use href="#i-chevron-right"/></svg> <span class="ds-mono">TMW-2026-00412</span></div>
         <div class="ds-page-head"><h1>Shipment 360</h1><button class="ds-btn ds-btn--primary">Update status</button></div>
@@ -312,6 +426,25 @@
       <li class="ds-track__step" data-state="current">Trucking<span class="ds-track__date">Sep 30</span></li>
       <li class="ds-track__step" data-state="">Delivery and POD<span class="ds-track__date">Oct 3</span></li>
     </ol></div>
+    <h3>Progress bar</h3>
+    <div class="demo demo--col">
+      <div><p class="ds-muted" style="font-size:var(--t1m-text-xs);margin-bottom:6px">Active job — sweeping highlight</p><span class="ds-bar-track" style="display:block"><span class="ds-bar-fill ds-bar-fill--active" style="width:45%"></span></span></div>
+      <div><p class="ds-muted" style="font-size:var(--t1m-text-xs);margin-bottom:6px">Static gauge — no motion</p><span class="ds-bar-track" style="display:block"><span class="ds-bar-fill" style="width:70%"></span></span></div>
+    </div>
+    <h3>Client funds ledger</h3>
+    <p>Per-job notebook of money the client gave versus money spent for them. Rows are dated, amounts carry a sign, and the balance runs down the last column. A missing receipt is flagged on the row.</p>
+    <div class="demo demo--col">
+      <div class="ds-alert ds-alert--warning ds-alert--enter" role="alert"><svg class="ds-icon"><use href="#i-wallet"/></svg><div><strong>Short on funds</strong>Customs duty of PHP 18,400 due 30 Sep. Funds on hand cover PHP 10,000. Short by PHP 8,400.</div></div>
+      <div><p class="ds-muted" style="font-size:var(--t1m-text-xs);margin-bottom:6px">Money spent so far, against money in</p><span class="ds-bar-track" style="display:block"><span class="ds-bar-fill ds-bar-fill--warning" style="width:91%"></span></span></div>
+      <div class="ds-table-wrap"><table class="ds-table ds-ledger"><thead><tr><th>Date</th><th>What</th><th>Proof</th><th class="ds-num">Money in</th><th class="ds-num">Money spent</th><th class="ds-num">Left over</th></tr></thead><tbody>
+        <tr style="--i:0"><td>12 Sep</td><td>Bank transfer, client deposit</td><td class="ds-mono">deposit-slip.pdf</td><td class="ds-num ds-ledger__in">+PHP 106,000.00</td><td class="ds-num"></td><td class="ds-num ds-ledger__bal">PHP 106,000.00</td></tr>
+        <tr style="--i:1"><td>20 Sep</td><td>Ocean freight</td><td><span class="ds-pill ds-pill--warning"><svg class="ds-icon"><use href="#i-alert"/></svg>Receipt missing</span></td><td class="ds-num"></td><td class="ds-num">-PHP 96,000.00</td><td class="ds-num ds-ledger__bal">PHP 10,000.00</td></tr>
+      </tbody></table></div>
+    </div>
+    <h3>Public client page</h3>
+    <p>Customer tracking, outside the app shell: a Midnight hero with the status and a route line, then overlapping panels and a vertical timeline.</p>
+    <div class="demo demo--flush" style="display:block"><div class="ds-public" style="min-height:0"><div class="ds-public__hero" style="padding-bottom:calc(var(--t1m-space-12) + var(--t1m-space-6))"><div class="ds-public__hero-inner"><div class="ds-public__headline"><p class="ds-label">Shipment <span class="ds-mono" style="color:var(--t1m-ink-inverse)">TMW-2026-00412</span></p><h4 class="ds-public__status" style="color:var(--t1m-ink-inverse)">Customs clearance</h4></div><div class="ds-route" style="--p:57%"><div class="ds-route__stop"><small>From</small>Sample Port, CN</div><div class="ds-route__line"><span class="ds-route__fill"></span><span class="ds-route__marker"><svg class="ds-icon"><use href="#i-truck"/></svg></span></div><div class="ds-route__stop ds-route__stop--end"><small>To</small>Sample City, PH</div></div></div></div>
+    <div class="ds-public__body"><div class="ds-panel"><div class="ds-panel__body"><ol class="ds-timeline"><li class="ds-timeline__item" data-state="done"><span class="ds-timeline__dot"><svg class="ds-icon"><use href="#i-check"/></svg></span><div><div class="ds-timeline__title">Arrived at port</div><div class="ds-timeline__sub">Completed</div></div></li><li class="ds-timeline__item" data-state="current"><span class="ds-timeline__dot"><svg class="ds-icon"><use href="#i-shield"/></svg></span><div><div class="ds-timeline__title">Customs clearance</div><div class="ds-timeline__sub">Customs stage: Payment Pending.</div></div></li><li class="ds-timeline__item" data-state="todo"><span class="ds-timeline__dot"><svg class="ds-icon"><use href="#i-truck"/></svg></span><div><div class="ds-timeline__title">Out for delivery</div></div></li></ol></div></div></div></div></div>
     <h3>Document checklist</h3>
     <div class="demo demo--flush"><div class="ds-panel" style="border:0">
       <div class="ds-doc"><span class="ds-doc__icon"><svg class="ds-icon"><use href="#i-file"/></svg></span><div><div class="ds-doc__name">Bill of Lading</div><div class="ds-doc__meta">v2 · uploaded Sep 8 by Sample User</div></div><span class="ds-pill ds-pill--success"><svg class="ds-icon"><use href="#i-check"/></svg>Approved</span><button class="ds-btn ds-btn--ghost ds-btn--sm">View</button></div>
