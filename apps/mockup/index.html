@@ -1898,7 +1898,7 @@ function nextStep(j){
   if(!unmet.length){
     if(s===5) return null; // unreachable: delivery item is never met before delivery moves the stage
     return { tone:'ready', icon:g.advance.icon||'arrow-right', eyebrow:'Next step', title:g.advance.label, text:'Everything needed to reach '+g.to+' is done. '+(g.why||''),
-      items:g.items, gateTitle:'Ready to leave '+(g.customs?'customs step '+CUSTOMS_SUBSTAGES[j.customs.subIndex]:STATUS_STEPS[s]),
+      items:s===0?[]:g.items, gateTitle:'Ready to leave '+(g.customs?'customs step '+CUSTOMS_SUBSTAGES[j.customs.subIndex]:STATUS_STEPS[s]),
       primary: mayAdvance ? g.advance : null,
       who: mayAdvance ? null : 'Waiting on '+(g.managerOnly?'a Manager or Admin':coordinatorFor(j.customerId)+' (Dispatcher)')+' to move it on.', tab:tabFor(), short:g.advance.label };
   }
