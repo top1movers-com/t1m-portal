@@ -86,7 +86,7 @@ def capture():
         p.goto(APP + "#/login"); p.wait_for_timeout(400)
 
         # ---- Before you begin
-        S["login"] = sh.shot([("#ms-signin", 1), ("#track-link", 2), (".ds-login__card > .ds-btn--ghost", 3)])
+        S["login"] = sh.shot([("#ms-signin", 1), ("#track-link", 2)])
         sh.click("#ms-signin"); S["picker"] = sh.shot([(".ds-acct-row", 1)], clip=".ds-acct-picker")
         p.keyboard.press("Escape"); sh.js("closeAcctPicker()")
         sh.as_("Grace Tan", "#/home")
@@ -287,7 +287,7 @@ def build(S):
       ("People leaving", "Switch someone off, then find their tasks job by job.", "Switching someone off opens a hand-over: see their open work, hand all of it to a colleague in one step, logged on every job."),
       ("Damage", "A damaged delivery blocked billing forever (no way to resolve it).", "A Manager records how the damage was settled; billing can then proceed."),
       ("Phones", "Tables overflowed; the bottom bar had unlabelled icons.", "Lists become cards; drawers become bottom sheets with a sticky confirm button; the bottom bar has labels."),
-      ("Presenting", "Presenter had to remember who to sign in as and where to go.", "A Demo guide (top bar and login page) starts every scenario as the right person on the right screen, and can reset the data."),
+      ("Presenting", "Presenter had to remember who to sign in as and where to go.", "A Demo guide in the top bar starts every scenario as the right person on the right screen, and can reset the data."),
     ]
     change_rows = "".join(f"<tr><td><b>{a}</b></td><td>{b_}</td><td>{c}</td></tr>" for a,b_,c in changes)
 
@@ -337,7 +337,7 @@ def build(S):
 
     H.append(f"""<section><h2 class="part">Before you begin</h2>
       <p>Open <code>apps/mockup/index.html</code> in Chrome or Edge (double-click it). Nothing is installed or saved. The portal’s clock is fixed at <b>Monday 28 September 2026</b>, so every “overdue” and “days left” assumes that date.</p>
-      {step(1, "Sign in, or open the demo guide", "<p>Sign-in is simulated: <b>Sign in with Microsoft</b> (1), then pick a person. Customers use <b>Track a shipment</b> (2) and need no account. If you are presenting, <b>Open the demo guide</b> (3).</p>" + img(S["login"]) + img(S["picker"], "The account chooser lists the demo people, each with their role. A deactivated person cannot be picked.", narrow=True))}
+      {step(1, "Sign in", "<p>Sign-in is simulated: <b>Sign in with Microsoft</b> (1), then pick a person. Customers use <b>Track a shipment</b> (2) and need no account. Once signed in, presenters can use the <b>Demo guide</b> in the top bar (step 3).</p>" + img(S["login"]) + img(S["picker"], "The account chooser lists the demo people, each with their role. A deactivated person cannot be picked.", narrow=True))}
       {step(2, "Find your way around", "<p>(1) Search anything: job, container, BL, customer or inquiry (Ctrl K). (2) The demo guide. (3) Overdue alerts: the escalation emails the portal would send. (4) Your avatar: switch person without losing data, or sign out. (5) The menu shows only what your role may use.</p>" + img(S["topbar"]))}
       {step(3, "Use the demo guide when presenting", "<p>Each scenario in this manual has a <b>Start</b> button (1) that signs in as the right person and opens the right screen. Scenarios build on each other; <b>Reset demo data</b> (2) puts the original sample data back.</p>" + img(S["guide"], narrow=True))}
       <h3 class="sub">Who is who</h3><table class="grid"><tr><th>Person</th><th>Role</th><th>Lands on</th><th>In one line</th></tr>{who_rows}</table>

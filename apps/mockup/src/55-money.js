@@ -107,7 +107,7 @@ function saveFunds(jobId, form){
   const amount = Number(fd.get('amount')), date = String(fd.get('date')||'').trim();
   if(fieldError(form,'date', parseDMY(date)?'':'Enter the date like 28 Sep 2026.') | fieldError(form,'amount', amount>0?'':'Enter an amount greater than zero.')) return;
   const ref = String(fd.get('reference')||'').trim();
-  j.fundsReceived.push({ id:'F'+(j.fundsReceived.length+1), date, amount, method:fd.get('method'), reference:ref, evidence:UPLOADS.fundsProof||null });
+  j.fundsReceived.push({ id:'F'+(j.fundsReceived.length+1), date, amount, method:fd.get('method'), reference:ref, evidence:UPLOADS.fundsProof||null, forDuty:awaitingClientDuty(j) });
   log(j, 'Funds received', money(amount)+' by '+String(fd.get('method')).toLowerCase()+(ref?' (ref '+ref+')':'')+'.', true);
   closeDrawer(); STATE.justNext = j.id;
   showToast(money(amount)+' added. '+(fundingGap(j)?'Still short.':'The job is covered.'), 'success', 'wallet'); render();

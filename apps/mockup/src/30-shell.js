@@ -24,8 +24,6 @@ function renderLogin(){
         '<div><div class="ds-strong">Are you a customer?</div><div class="ds-muted ds-small">Track a shipment, no account needed.</div></div>'+
         '<a class="ds-btn ds-btn--secondary" id="track-link" href="#/track">'+icon('search')+'Track a shipment</a>'+
       '</div>'+
-      '<hr class="ds-divider">'+
-      '<button type="button" class="ds-btn ds-btn--ghost" style="width:100%" onclick="openDemoGuide()">'+icon('book')+'Presenting? Open the demo guide</button>'+
     '</div></div>'+
   '</div>';
 }
@@ -90,7 +88,6 @@ function renderShell(parts){
       '<div class="ds-search">'+icon('search')+'<input class="ds-input" id="top-search" placeholder="Search job, container, BL, customer" readonly onclick="openCmdk()" onfocus="this.blur(); openCmdk()"><kbd class="ds-kbd">'+(navigator.platform.includes('Mac')?'⌘K':'Ctrl K')+'</kbd></div>'+
       '<div class="ds-topbar__spacer"></div>'+
       '<button class="ds-topbar-btn ds-topbar-btn--phone" onclick="openCmdk()" aria-label="Search">'+icon('search')+'</button>'+
-      '<button class="ds-btn ds-btn--ghost ds-btn--sm" id="guide-btn" onclick="openDemoGuide()" title="Demo guide">'+icon('book')+'<span class="ds-hide-phone">Demo guide</span></button>'+
       notificationsButton()+
       '<div class="ds-topbar__who"><strong>'+esc(CURRENT_USER.name)+'</strong><span>'+esc(CURRENT_USER.role)+'</span></div>'+
       avatarMenuHtml()+

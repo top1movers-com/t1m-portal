@@ -84,15 +84,14 @@ function renderInquiry(id){
 function inquiryFormFields(i, presetCustomer){
   const cust = custById(i ? i.customerId : (presetCustomer||CUSTOMERS[0].id));
   const ports = ['Manila, PH','Batangas, PH','Subic, PH','Cavite, PH','Cebu, PH','Davao, PH'];
-  return (i ? '' : '<div class="ds-field"><label for="inq-cust">Customer</label>'+selectWrap('<select class="ds-select" id="inq-cust" name="customerId" onchange="const c=CUSTOMERS.find(x=>x.id===this.value); document.getElementById(\'inq-addr\').value=c.consignees[0].address">'+options(CUSTOMERS.map(c=>({value:c.id,label:c.name})), cust.id)+'</select>')+
-      '<button type="button" class="ds-link ds-xs" style="margin-top:4px" onclick="openNewCustomer(true)">'+icon('plus')+'Customer not listed? Add them first</button></div>')+
+  return (i ? '' : presetCustomer ? '<div class="ds-field"><label for="inq-cust">Customer</label><input class="ds-input" id="inq-cust" value="'+esc(cust.name)+'" readonly><input type="hidden" name="customerId" value="'+cust.id+'"></div>' : '<div class="ds-field"><label for="inq-cust">Customer</label>'+selectWrap('<select class="ds-select" id="inq-cust" name="customerId" onchange="const c=CUSTOMERS.find(x=>x.id===this.value); document.getElementById(\'inq-addr\').value=c.consignees[0].address">'+options(CUSTOMERS.map(c=>({value:c.id,label:c.name})), cust.id)+'</select>')+'</div>')+
     '<div class="ds-field"><label for="inq-cargo">Cargo</label><input class="ds-input" id="inq-cargo" name="cargo" value="'+esc(i?i.cargo:'')+'" placeholder="e.g. Insured goods, 1 container">'+errorSlot('cargo')+'</div>'+
     '<div class="ds-grid-2" style="gap:var(--t1m-space-3)"><div class="ds-field"><label for="inq-origin">From (foreign port)</label><input class="ds-input" id="inq-origin" name="origin" value="'+esc(i?i.origin:'')+'" placeholder="e.g. Shanghai, CN">'+errorSlot('origin')+'</div>'+
     '<div class="ds-field"><label for="inq-port">Port of entry</label>'+selectWrap('<select class="ds-select" id="inq-port" name="portOfEntry">'+options(ports, i?i.portOfEntry:'Manila, PH')+'</select>')+'</div></div>'+
     '<div class="ds-field"><label for="inq-dest">Final destination</label><input class="ds-input" id="inq-dest" name="destination" value="'+esc(i?i.destination:'')+'" placeholder="City, PH">'+errorSlot('destination')+'</div>'+
     '<div class="ds-label" style="margin-top:var(--t1m-space-4)">Needed before it can become a job</div>'+
     '<div class="ds-grid-2" style="gap:var(--t1m-space-3)"><div class="ds-field"><label for="inq-ctype">Container type</label>'+selectWrap('<select class="ds-select" id="inq-ctype" name="containerType"><option value="">Not known yet</option>'+options(CONTAINER_TYPES, i?i.containerType:'')+'</select>')+'</div>'+
-    '<div class="ds-field"><label for="inq-pickup">Requested pickup</label><input class="ds-input" id="inq-pickup" name="pickupDate" value="'+esc(i?i.pickupDate:'')+'" placeholder="e.g. 05 Oct 2026"></div></div>'+
+    '<div class="ds-field"><label for="inq-pickup">Requested pickup</label><input class="ds-input" type="date" id="inq-pickup" name="pickupDate" value="'+(i?dmyToISO(i.pickupDate):'')+'"></div></div>'+
     '<div class="ds-field"><label for="inq-addr">Delivery address</label><input class="ds-input" id="inq-addr" name="deliveryAddress" value="'+esc(i?i.deliveryAddress:cust.consignees[0].address)+'"></div>';
 }
 function openNewInquiry(presetCustomer){
@@ -105,8 +104,7 @@ function readInquiryForm(form){
   const fd = new FormData(form), v = k=>String(fd.get(k)||'').trim();
   const bad = fieldError(form,'cargo', v('cargo')?'':'Describe the cargo.') | fieldError(form,'origin', v('origin')?'':'Where does it ship from?') | fieldError(form,'destination', v('destination')?'':'Where does it go?');
   if(bad) return null;
-  if(v('pickupDate') && !parseDMY(v('pickupDate'))){ showToast('Enter the pickup date like 05 Oct 2026, or leave it empty.', 'danger', 'alert'); return null; }
-  return { customerId:v('customerId'), cargo:v('cargo'), origin:v('origin'), portOfEntry:v('portOfEntry'), destination:v('destination'), containerType:v('containerType'), pickupDate:v('pickupDate'), deliveryAddress:v('deliveryAddress') };
+  return { customerId:v('customerId'), cargo:v('cargo'), origin:v('origin'), portOfEntry:v('portOfEntry'), destination:v('destination'), containerType:v('containerType'), pickupDate:isoToDMY(v('pickupDate')), deliveryAddress:v('deliveryAddress') };
 }
 function saveNewInquiry(form){
   const d = readInquiryForm(form); if(!d) return;
@@ -232,10 +230,11 @@ function renderCustomers(){
     (rows||'<tr><td colspan="5">'+emptyState('search','No customers match','Try part of the name, or add them as a new customer.')+'</td></tr>')+'</tbody></table></div></section>';
 }
 function openNewCustomer(fromInquiry){
-  openDrawer({ title:'New customer', sub:'Only the name is required. Everything else can be added later.',
-    body:'<form class="ds-stack--sm" id="cust-form" onsubmit="event.preventDefault(); saveCustomer(this, '+(fromInquiry?'true':'false')+')">'+
+  openDrawer({ title:'New customer', sub:'Company name, phone and email are required. Everything else can be added later.',
+    body:'<form class="ds-stack--sm" id="cust-form" novalidate onsubmit="event.preventDefault(); saveCustomer(this, '+(fromInquiry?'true':'false')+')">'+
       '<div class="ds-field"><label for="nc-name">Company name</label><input class="ds-input" id="nc-name" name="name" placeholder="e.g. Test Freight Co." oninput="checkDuplicate(this.value)" autocomplete="off">'+errorSlot('name')+'</div><div id="nc-dup"></div>'+
-      '<div class="ds-grid-2" style="gap:var(--t1m-space-3)"><div class="ds-field"><label for="nc-contact">Contact person</label><input class="ds-input" id="nc-contact" name="contact"></div><div class="ds-field"><label for="nc-phone">Phone <span class="ds-opt">optional</span></label><input class="ds-input" id="nc-phone" name="phone"></div></div>'+
+      '<div class="ds-field"><label for="nc-contact">Contact person</label><input class="ds-input" id="nc-contact" name="contact"></div>'+
+      '<div class="ds-grid-2" style="gap:var(--t1m-space-3)"><div class="ds-field"><label for="nc-phone">Phone</label><input class="ds-input" id="nc-phone" name="phone" type="tel" placeholder="e.g. +63 917 555 0123">'+errorSlot('phone')+'</div><div class="ds-field"><label for="nc-email">Email</label><input class="ds-input" id="nc-email" name="email" type="email" placeholder="e.g. ops@testfreight.ph">'+errorSlot('email')+'</div></div>'+
       '<div class="ds-field"><label for="nc-city">City</label><input class="ds-input" id="nc-city" name="city" placeholder="e.g. Pasig, PH"></div>'+
       '<div class="ds-field"><label for="nc-addr">Delivery address</label><input class="ds-input" id="nc-addr" name="address"></div>'+
       '<div class="ds-field"><label for="nc-instr">Delivery instructions <span class="ds-opt">shown to the crew on every delivery</span></label><textarea class="ds-textarea" id="nc-instr" name="instructions" style="min-height:64px" placeholder="e.g. Call the dock 30 minutes before arrival"></textarea></div></form>',
@@ -248,9 +247,12 @@ function checkDuplicate(v){
 }
 function saveCustomer(form, fromInquiry){
   const fd = new FormData(form), v = k=>String(fd.get(k)||'').trim();
-  if(fieldError(form,'name', v('name')?'':'Enter the company name.')) return;
+  const nameBad = fieldError(form,'name', v('name')?'':'Enter the company name.');
+  const phoneBad = fieldError(form,'phone', !v('phone') ? 'Enter the contact phone number.' : /^\+?[\d\s()-]{7,}$/.test(v('phone')) ? '' : 'Enter a valid phone number, e.g. +63 917 555 0123.');
+  const emailBad = fieldError(form,'email', !v('email') ? 'Enter the contact email.' : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('email')) ? '' : 'Enter a valid email, e.g. ops@company.ph.');
+  if(nameBad || phoneBad || emailBad) return;
   const addr = v('address')||'—', id = 'CUST-0'+(CUSTOMERS.length+1);
-  CUSTOMERS.push({ id, name:v('name'), city:v('city')||'—', contact:{ name:v('contact')||'—', email:'—', phone:v('phone')||'—' }, consignees:[{ name:v('name')+' — Main', address:addr }], deliveryAddresses:[addr], requirements:'None recorded.', instructions:v('instructions')||'None recorded.' });
+  CUSTOMERS.push({ id, name:v('name'), city:v('city')||'—', contact:{ name:v('contact')||'—', email:v('email'), phone:v('phone') }, consignees:[{ name:v('name')+' — Main', address:addr }], deliveryAddresses:[addr], requirements:'None recorded.', instructions:v('instructions')||'None recorded.' });
   DISPATCHER_FOR_CUSTOMER[id] = isDispatcher() ? CURRENT_USER.name : 'Ana Cruz';
   closeDrawer(); showToast(v('name')+' saved.', 'success', 'check');
   if(fromInquiry){ openNewInquiry(id); return; }

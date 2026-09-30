@@ -69,7 +69,7 @@ function openDrawer(o){
       (o.foot?'<div class="ds-drawer__foot">'+o.foot+'</div>':'')+
     '</aside>';
   el.classList.add('open');
-  setTimeout(()=>{ const f = el.querySelector('.ds-drawer__body input:not([type=hidden]):not([type=file]), .ds-drawer__body textarea, .ds-drawer__body select'); if(f && window.innerWidth>640) f.focus(); }, 50);
+  setTimeout(()=>{ const f = el.querySelector('.ds-drawer__body input:not([type=hidden]):not([type=file]):not([readonly]),.ds-drawer__body textarea, .ds-drawer__body select'); if(f && window.innerWidth>640) f.focus(); }, 50);
 }
 function closeDrawer(){ const el=document.getElementById('drawerRoot'); el.classList.remove('open'); el.innerHTML=''; for(const k in UPLOADS) delete UPLOADS[k]; }
 function drawerFoot(primaryLabel, formId, opts){

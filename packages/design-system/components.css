@@ -79,6 +79,7 @@ a { color: var(--t1m-navy-700); text-underline-offset: 2px; }
 .ds-input[readonly] { background: var(--t1m-surface-muted); border-color: var(--t1m-border); box-shadow: none; }
 .ds-field__hint { font-size: var(--t1m-text-xs); color: var(--t1m-ink-2); }
 .ds-field__error { display: flex; gap: var(--t1m-space-1); align-items: center; font-size: var(--t1m-text-xs); color: var(--t1m-danger); font-weight: var(--t1m-w-control); }
+.ds-field__error[hidden] { display: none; }
 .ds-field__count { justify-self: end; font-size: var(--t1m-text-xs); color: var(--t1m-ink-3); }
 
 /* Select: custom chevron, native menu */

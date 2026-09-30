@@ -10,6 +10,9 @@ function parseDMY(str){
   const m = str && String(str).match(/(\d{1,2}) (\w{3}) (\d{4})/);
   return m && MONTHS[m[2]]!=null ? new Date(+m[3], MONTHS[m[2]], +m[1]) : null;
 }
+// <input type="date"> speaks YYYY-MM-DD; the app stores "05 Oct 2026".
+function dmyToISO(str){ const d = parseDMY(str); return d ? d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0') : ''; }
+function isoToDMY(iso){ const m = String(iso||'').match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? m[3]+' '+Object.keys(MONTHS)[+m[2]-1]+' '+m[1] : ''; }
 function daysUntil(str){ const d = parseDMY(str); return d ? Math.round((d - TODAY) / 86400000) : null; }
 function todayDMY(){ return String(TODAY.getDate()).padStart(2,'0')+' '+Object.keys(MONTHS)[TODAY.getMonth()]+' '+TODAY.getFullYear(); }
 function addDaysDMY(n){ const d = new Date(TODAY); d.setDate(d.getDate()+n); return String(d.getDate()).padStart(2,'0')+' '+Object.keys(MONTHS)[d.getMonth()]+' '+d.getFullYear(); }

@@ -121,6 +121,7 @@ function jobFunds(j){
   let run = 0; rows.forEach(r=>{ run += r.kind==='in' ? r.amount : -r.amount; r.balance = run; });
   return { received, disbursed, balance, serviceFees, markup, ourFees, settlement, ledger:rows };
 }
+function awaitingClientDuty(j){ return STATUS_STEPS[j.statusIndex]===CUSTOMS_PHASE && !!j.customs && j.customs.paymentParty==='Client' && CUSTOMS_SUBSTAGES[j.customs.subIndex]==='Payment Pending'; }
 function fundingGap(j){
   const f = jobFunds(j);
   const due = j.charges.filter(c=>isReimbursable(c) && !c.paidDate && !isAbsorbed(c) && c.dueDate && daysUntil(c.dueDate)!==null && daysUntil(c.dueDate)<=GAP_HORIZON_DAYS)
@@ -242,7 +243,7 @@ function stageGate(j){
     let items = [];
     if(cur==='Lodging Pending') items.push(taskGateItem(j,'Lodge customs entry'));
     if(cur==='Payment Pending'){
-      if(j.customs.paymentParty==='Client') items.push({ label:'Client has released the duty payment', sub:'Chase '+custById(j.customerId).contact.name+' at '+custById(j.customerId).name+'.', met:false, act: canMoveStage() ? act('Client has paid',"setPaymentParty('"+id+"','Top1Movers')",'check') : null, waitingClient:true, short:'Waiting on the client to pay duties' });
+      if(j.customs.paymentParty==='Client') items.push({ label:'Client has released the duty payment', sub:'Chase '+custById(j.customerId).contact.name+' at '+custById(j.customerId).name+'.', met:false, act: canMoveStage() ? act('Client has paid',"openConfirmClientPaid('"+id+"')",'check') : null, waitingClient:true, short:'Waiting on the client to pay duties' });
       const gap = fundingGap(j);
       if(gap) items.push({ label:'Enough client funds to pay the duty', sub:'Short by '+money(gap.short)+'. '+(canSeeFunds()?'':'A Manager records the deposit.'), met:false, act: canManageFunds() ? act('Add funds received',"openAddFunds('"+id+"')",'wallet') : null, short:'Client funds short by '+money(gap.short) });
       else if(canSeeFunds() && j.charges.some(c=>c.dueDate && !c.paidDate)) items.push({ label:'Enough client funds to pay the duty', met:true, act:null });

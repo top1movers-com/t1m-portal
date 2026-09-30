@@ -489,9 +489,36 @@ function advanceCustoms(id, party){
   closeDrawer(); STATE.justNext = id;
   showToast('Customs: '+to+'.', 'success', 'shield'); render();
 }
-function setPaymentParty(id, party){
-  const j = jobById(id); j.customs.paymentParty = party;
-  log(j, 'Customs step', party==='Top1Movers'?'Client released the duty payment. Top1Movers to pay.':'Waiting on the client.');
+/* Proof the client paid the duty: reuse the slip from a deposit recorded while we waited on
+   the client (Add funds received), otherwise ask for one here. Earlier deposits don't count. */
+function dutyDepositOnFile(j){ return j.fundsReceived.filter(f=>f.forDuty && f.evidence).slice(-1)[0] || null; }
+function openConfirmClientPaid(id){
+  const j = jobById(id), c = custById(j.customerId), onFile = dutyDepositOnFile(j);
+  const duty = j.charges.filter(x=>x.dueDate && !x.paidDate && isReimbursable(x));
+  const dutyRow = canSeeFunds() && duty.length ? '<dt>Duty due</dt><dd>'+money(sumOf(duty, x=>x.amount))+'</dd>' : '';
+  const proof = onFile
+    ? '<div class="ds-field"><label>Proof of payment</label><div class="ds-upload" data-filled="true"><div class="ds-upload__file">'+icon('file')+'<span>'+esc(onFile.evidence)+'</span></div></div><p class="ds-field__hint">Deposit slip already on file: '+(canSeeFunds()?money(onFile.amount)+', ':'')+'received '+esc(onFile.date)+'.</p></div>'
+    : '<div class="ds-field"><label>Proof of payment</label>'+uploadHtml('clientPaidProof','Bank slip or transfer confirmation from the client')+errorSlot('proof')+'<p class="ds-field__hint">Needed to confirm. It stays on the job’s record.</p></div>';
+  openDrawer({ title:'Confirm client payment', sub:'<span class="ds-mono">'+j.id+'</span> · '+esc(c.name),
+    body:'<form class="ds-stack--sm" id="client-paid-form" onsubmit="event.preventDefault(); setPaymentParty(\''+id+'\',\'Top1Movers\', this)">'+
+      '<div class="ds-alert ds-alert--warning">'+icon('alert')+'<div><strong>Only confirm once the money is in</strong>This tells the team the client has released the duty payment, and Top1Movers goes ahead and pays customs.</div></div>'+
+      '<dl class="ds-facts"><dt>Customer</dt><dd>'+esc(c.name)+'</dd><dt>Contact</dt><dd>'+esc(c.contact.name)+'</dd>'+dutyRow+'</dl>'+proof+
+      '<div class="ds-field"><label for="paid-note">How was it confirmed? <span class="ds-opt">optional</span></label><textarea class="ds-textarea" id="paid-note" name="note" placeholder="e.g. Bank transfer slip received by email"></textarea></div></form>',
+    foot: drawerFoot('Yes, client has paid','client-paid-form',{icon:'check'}) });
+}
+function setPaymentParty(id, party, form){
+  const j = jobById(id);
+  let proofFile = null;
+  if(form){
+    const onFile = dutyDepositOnFile(j);
+    proofFile = onFile ? onFile.evidence : UPLOADS.clientPaidProof;
+    if(fieldError(form,'proof', proofFile?'':'Attach the client’s proof of payment first.')) return;
+  }
+  j.customs.paymentParty = party;
+  if(proofFile) j.customs.paymentProof = proofFile;
+  const note = form ? String(new FormData(form).get('note')||'').trim() : '';
+  log(j, 'Customs step', (party==='Top1Movers'?'Client released the duty payment. Top1Movers to pay.':'Waiting on the client.')+(proofFile?' (proof: '+proofFile+')':'')+(note?' '+note:''));
+  closeDrawer();
   STATE.justNext = id; showToast('Recorded: the client has released payment.', 'success', 'check'); render();
 }
 function openLane(id){

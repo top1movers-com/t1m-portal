@@ -239,6 +239,7 @@ a { color: var(--t1m-navy-700); text-underline-offset: 2px; }
 .ds-input[readonly] { background: var(--t1m-surface-muted); border-color: var(--t1m-border); box-shadow: none; }
 .ds-field__hint { font-size: var(--t1m-text-xs); color: var(--t1m-ink-2); }
 .ds-field__error { display: flex; gap: var(--t1m-space-1); align-items: center; font-size: var(--t1m-text-xs); color: var(--t1m-danger); font-weight: var(--t1m-w-control); }
+.ds-field__error[hidden] { display: none; }
 .ds-field__count { justify-self: end; font-size: var(--t1m-text-xs); color: var(--t1m-ink-3); }
 
 /* Select: custom chevron, native menu */
@@ -1262,6 +1263,9 @@ function parseDMY(str){
   const m = str && String(str).match(/(\d{1,2}) (\w{3}) (\d{4})/);
   return m && MONTHS[m[2]]!=null ? new Date(+m[3], MONTHS[m[2]], +m[1]) : null;
 }
+// <input type="date"> speaks YYYY-MM-DD; the app stores "05 Oct 2026".
+function dmyToISO(str){ const d = parseDMY(str); return d ? d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0') : ''; }
+function isoToDMY(iso){ const m = String(iso||'').match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? m[3]+' '+Object.keys(MONTHS)[+m[2]-1]+' '+m[1] : ''; }
 function daysUntil(str){ const d = parseDMY(str); return d ? Math.round((d - TODAY) / 86400000) : null; }
 function todayDMY(){ return String(TODAY.getDate()).padStart(2,'0')+' '+Object.keys(MONTHS)[TODAY.getMonth()]+' '+TODAY.getFullYear(); }
 function addDaysDMY(n){ const d = new Date(TODAY); d.setDate(d.getDate()+n); return String(d.getDate()).padStart(2,'0')+' '+Object.keys(MONTHS)[d.getMonth()]+' '+d.getFullYear(); }
@@ -1705,6 +1709,7 @@ function jobFunds(j){
   let run = 0; rows.forEach(r=>{ run += r.kind==='in' ? r.amount : -r.amount; r.balance = run; });
   return { received, disbursed, balance, serviceFees, markup, ourFees, settlement, ledger:rows };
 }
+function awaitingClientDuty(j){ return STATUS_STEPS[j.statusIndex]===CUSTOMS_PHASE && !!j.customs && j.customs.paymentParty==='Client' && CUSTOMS_SUBSTAGES[j.customs.subIndex]==='Payment Pending'; }
 function fundingGap(j){
   const f = jobFunds(j);
   const due = j.charges.filter(c=>isReimbursable(c) && !c.paidDate && !isAbsorbed(c) && c.dueDate && daysUntil(c.dueDate)!==null && daysUntil(c.dueDate)<=GAP_HORIZON_DAYS)
@@ -1826,7 +1831,7 @@ function stageGate(j){
     let items = [];
     if(cur==='Lodging Pending') items.push(taskGateItem(j,'Lodge customs entry'));
     if(cur==='Payment Pending'){
-      if(j.customs.paymentParty==='Client') items.push({ label:'Client has released the duty payment', sub:'Chase '+custById(j.customerId).contact.name+' at '+custById(j.customerId).name+'.', met:false, act: canMoveStage() ? act('Client has paid',"setPaymentParty('"+id+"','Top1Movers')",'check') : null, waitingClient:true, short:'Waiting on the client to pay duties' });
+      if(j.customs.paymentParty==='Client') items.push({ label:'Client has released the duty payment', sub:'Chase '+custById(j.customerId).contact.name+' at '+custById(j.customerId).name+'.', met:false, act: canMoveStage() ? act('Client has paid',"openConfirmClientPaid('"+id+"')",'check') : null, waitingClient:true, short:'Waiting on the client to pay duties' });
       const gap = fundingGap(j);
       if(gap) items.push({ label:'Enough client funds to pay the duty', sub:'Short by '+money(gap.short)+'. '+(canSeeFunds()?'':'A Manager records the deposit.'), met:false, act: canManageFunds() ? act('Add funds received',"openAddFunds('"+id+"')",'wallet') : null, short:'Client funds short by '+money(gap.short) });
       else if(canSeeFunds() && j.charges.some(c=>c.dueDate && !c.paidDate)) items.push({ label:'Enough client funds to pay the duty', met:true, act:null });
@@ -1979,7 +1984,7 @@ function openDrawer(o){
       (o.foot?'<div class="ds-drawer__foot">'+o.foot+'</div>':'')+
     '</aside>';
   el.classList.add('open');
-  setTimeout(()=>{ const f = el.querySelector('.ds-drawer__body input:not([type=hidden]):not([type=file]), .ds-drawer__body textarea, .ds-drawer__body select'); if(f && window.innerWidth>640) f.focus(); }, 50);
+  setTimeout(()=>{ const f = el.querySelector('.ds-drawer__body input:not([type=hidden]):not([type=file]):not([readonly]),.ds-drawer__body textarea, .ds-drawer__body select'); if(f && window.innerWidth>640) f.focus(); }, 50);
 }
 function closeDrawer(){ const el=document.getElementById('drawerRoot'); el.classList.remove('open'); el.innerHTML=''; for(const k in UPLOADS) delete UPLOADS[k]; }
 function drawerFoot(primaryLabel, formId, opts){
@@ -2131,8 +2136,6 @@ function renderLogin(){
         '<div><div class="ds-strong">Are you a customer?</div><div class="ds-muted ds-small">Track a shipment, no account needed.</div></div>'+
         '<a class="ds-btn ds-btn--secondary" id="track-link" href="#/track">'+icon('search')+'Track a shipment</a>'+
       '</div>'+
-      '<hr class="ds-divider">'+
-      '<button type="button" class="ds-btn ds-btn--ghost" style="width:100%" onclick="openDemoGuide()">'+icon('book')+'Presenting? Open the demo guide</button>'+
     '</div></div>'+
   '</div>';
 }
@@ -2197,7 +2200,6 @@ function renderShell(parts){
       '<div class="ds-search">'+icon('search')+'<input class="ds-input" id="top-search" placeholder="Search job, container, BL, customer" readonly onclick="openCmdk()" onfocus="this.blur(); openCmdk()"><kbd class="ds-kbd">'+(navigator.platform.includes('Mac')?'⌘K':'Ctrl K')+'</kbd></div>'+
       '<div class="ds-topbar__spacer"></div>'+
       '<button class="ds-topbar-btn ds-topbar-btn--phone" onclick="openCmdk()" aria-label="Search">'+icon('search')+'</button>'+
-      '<button class="ds-btn ds-btn--ghost ds-btn--sm" id="guide-btn" onclick="openDemoGuide()" title="Demo guide">'+icon('book')+'<span class="ds-hide-phone">Demo guide</span></button>'+
       notificationsButton()+
       '<div class="ds-topbar__who"><strong>'+esc(CURRENT_USER.name)+'</strong><span>'+esc(CURRENT_USER.role)+'</span></div>'+
       avatarMenuHtml()+
@@ -3074,9 +3076,36 @@ function advanceCustoms(id, party){
   closeDrawer(); STATE.justNext = id;
   showToast('Customs: '+to+'.', 'success', 'shield'); render();
 }
-function setPaymentParty(id, party){
-  const j = jobById(id); j.customs.paymentParty = party;
-  log(j, 'Customs step', party==='Top1Movers'?'Client released the duty payment. Top1Movers to pay.':'Waiting on the client.');
+/* Proof the client paid the duty: reuse the slip from a deposit recorded while we waited on
+   the client (Add funds received), otherwise ask for one here. Earlier deposits don't count. */
+function dutyDepositOnFile(j){ return j.fundsReceived.filter(f=>f.forDuty && f.evidence).slice(-1)[0] || null; }
+function openConfirmClientPaid(id){
+  const j = jobById(id), c = custById(j.customerId), onFile = dutyDepositOnFile(j);
+  const duty = j.charges.filter(x=>x.dueDate && !x.paidDate && isReimbursable(x));
+  const dutyRow = canSeeFunds() && duty.length ? '<dt>Duty due</dt><dd>'+money(sumOf(duty, x=>x.amount))+'</dd>' : '';
+  const proof = onFile
+    ? '<div class="ds-field"><label>Proof of payment</label><div class="ds-upload" data-filled="true"><div class="ds-upload__file">'+icon('file')+'<span>'+esc(onFile.evidence)+'</span></div></div><p class="ds-field__hint">Deposit slip already on file: '+(canSeeFunds()?money(onFile.amount)+', ':'')+'received '+esc(onFile.date)+'.</p></div>'
+    : '<div class="ds-field"><label>Proof of payment</label>'+uploadHtml('clientPaidProof','Bank slip or transfer confirmation from the client')+errorSlot('proof')+'<p class="ds-field__hint">Needed to confirm. It stays on the job’s record.</p></div>';
+  openDrawer({ title:'Confirm client payment', sub:'<span class="ds-mono">'+j.id+'</span> · '+esc(c.name),
+    body:'<form class="ds-stack--sm" id="client-paid-form" onsubmit="event.preventDefault(); setPaymentParty(\''+id+'\',\'Top1Movers\', this)">'+
+      '<div class="ds-alert ds-alert--warning">'+icon('alert')+'<div><strong>Only confirm once the money is in</strong>This tells the team the client has released the duty payment, and Top1Movers goes ahead and pays customs.</div></div>'+
+      '<dl class="ds-facts"><dt>Customer</dt><dd>'+esc(c.name)+'</dd><dt>Contact</dt><dd>'+esc(c.contact.name)+'</dd>'+dutyRow+'</dl>'+proof+
+      '<div class="ds-field"><label for="paid-note">How was it confirmed? <span class="ds-opt">optional</span></label><textarea class="ds-textarea" id="paid-note" name="note" placeholder="e.g. Bank transfer slip received by email"></textarea></div></form>',
+    foot: drawerFoot('Yes, client has paid','client-paid-form',{icon:'check'}) });
+}
+function setPaymentParty(id, party, form){
+  const j = jobById(id);
+  let proofFile = null;
+  if(form){
+    const onFile = dutyDepositOnFile(j);
+    proofFile = onFile ? onFile.evidence : UPLOADS.clientPaidProof;
+    if(fieldError(form,'proof', proofFile?'':'Attach the client’s proof of payment first.')) return;
+  }
+  j.customs.paymentParty = party;
+  if(proofFile) j.customs.paymentProof = proofFile;
+  const note = form ? String(new FormData(form).get('note')||'').trim() : '';
+  log(j, 'Customs step', (party==='Top1Movers'?'Client released the duty payment. Top1Movers to pay.':'Waiting on the client.')+(proofFile?' (proof: '+proofFile+')':'')+(note?' '+note:''));
+  closeDrawer();
   STATE.justNext = id; showToast('Recorded: the client has released payment.', 'success', 'check'); render();
 }
 function openLane(id){
@@ -3242,7 +3271,7 @@ function saveFunds(jobId, form){
   const amount = Number(fd.get('amount')), date = String(fd.get('date')||'').trim();
   if(fieldError(form,'date', parseDMY(date)?'':'Enter the date like 28 Sep 2026.') | fieldError(form,'amount', amount>0?'':'Enter an amount greater than zero.')) return;
   const ref = String(fd.get('reference')||'').trim();
-  j.fundsReceived.push({ id:'F'+(j.fundsReceived.length+1), date, amount, method:fd.get('method'), reference:ref, evidence:UPLOADS.fundsProof||null });
+  j.fundsReceived.push({ id:'F'+(j.fundsReceived.length+1), date, amount, method:fd.get('method'), reference:ref, evidence:UPLOADS.fundsProof||null, forDuty:awaitingClientDuty(j) });
   log(j, 'Funds received', money(amount)+' by '+String(fd.get('method')).toLowerCase()+(ref?' (ref '+ref+')':'')+'.', true);
   closeDrawer(); STATE.justNext = j.id;
   showToast(money(amount)+' added. '+(fundingGap(j)?'Still short.':'The job is covered.'), 'success', 'wallet'); render();
@@ -3431,15 +3460,14 @@ function renderInquiry(id){
 function inquiryFormFields(i, presetCustomer){
   const cust = custById(i ? i.customerId : (presetCustomer||CUSTOMERS[0].id));
   const ports = ['Manila, PH','Batangas, PH','Subic, PH','Cavite, PH','Cebu, PH','Davao, PH'];
-  return (i ? '' : '<div class="ds-field"><label for="inq-cust">Customer</label>'+selectWrap('<select class="ds-select" id="inq-cust" name="customerId" onchange="const c=CUSTOMERS.find(x=>x.id===this.value); document.getElementById(\'inq-addr\').value=c.consignees[0].address">'+options(CUSTOMERS.map(c=>({value:c.id,label:c.name})), cust.id)+'</select>')+
-      '<button type="button" class="ds-link ds-xs" style="margin-top:4px" onclick="openNewCustomer(true)">'+icon('plus')+'Customer not listed? Add them first</button></div>')+
+  return (i ? '' : presetCustomer ? '<div class="ds-field"><label for="inq-cust">Customer</label><input class="ds-input" id="inq-cust" value="'+esc(cust.name)+'" readonly><input type="hidden" name="customerId" value="'+cust.id+'"></div>' : '<div class="ds-field"><label for="inq-cust">Customer</label>'+selectWrap('<select class="ds-select" id="inq-cust" name="customerId" onchange="const c=CUSTOMERS.find(x=>x.id===this.value); document.getElementById(\'inq-addr\').value=c.consignees[0].address">'+options(CUSTOMERS.map(c=>({value:c.id,label:c.name})), cust.id)+'</select>')+'</div>')+
     '<div class="ds-field"><label for="inq-cargo">Cargo</label><input class="ds-input" id="inq-cargo" name="cargo" value="'+esc(i?i.cargo:'')+'" placeholder="e.g. Insured goods, 1 container">'+errorSlot('cargo')+'</div>'+
     '<div class="ds-grid-2" style="gap:var(--t1m-space-3)"><div class="ds-field"><label for="inq-origin">From (foreign port)</label><input class="ds-input" id="inq-origin" name="origin" value="'+esc(i?i.origin:'')+'" placeholder="e.g. Shanghai, CN">'+errorSlot('origin')+'</div>'+
     '<div class="ds-field"><label for="inq-port">Port of entry</label>'+selectWrap('<select class="ds-select" id="inq-port" name="portOfEntry">'+options(ports, i?i.portOfEntry:'Manila, PH')+'</select>')+'</div></div>'+
     '<div class="ds-field"><label for="inq-dest">Final destination</label><input class="ds-input" id="inq-dest" name="destination" value="'+esc(i?i.destination:'')+'" placeholder="City, PH">'+errorSlot('destination')+'</div>'+
     '<div class="ds-label" style="margin-top:var(--t1m-space-4)">Needed before it can become a job</div>'+
     '<div class="ds-grid-2" style="gap:var(--t1m-space-3)"><div class="ds-field"><label for="inq-ctype">Container type</label>'+selectWrap('<select class="ds-select" id="inq-ctype" name="containerType"><option value="">Not known yet</option>'+options(CONTAINER_TYPES, i?i.containerType:'')+'</select>')+'</div>'+
-    '<div class="ds-field"><label for="inq-pickup">Requested pickup</label><input class="ds-input" id="inq-pickup" name="pickupDate" value="'+esc(i?i.pickupDate:'')+'" placeholder="e.g. 05 Oct 2026"></div></div>'+
+    '<div class="ds-field"><label for="inq-pickup">Requested pickup</label><input class="ds-input" type="date" id="inq-pickup" name="pickupDate" value="'+(i?dmyToISO(i.pickupDate):'')+'"></div></div>'+
     '<div class="ds-field"><label for="inq-addr">Delivery address</label><input class="ds-input" id="inq-addr" name="deliveryAddress" value="'+esc(i?i.deliveryAddress:cust.consignees[0].address)+'"></div>';
 }
 function openNewInquiry(presetCustomer){
@@ -3452,8 +3480,7 @@ function readInquiryForm(form){
   const fd = new FormData(form), v = k=>String(fd.get(k)||'').trim();
   const bad = fieldError(form,'cargo', v('cargo')?'':'Describe the cargo.') | fieldError(form,'origin', v('origin')?'':'Where does it ship from?') | fieldError(form,'destination', v('destination')?'':'Where does it go?');
   if(bad) return null;
-  if(v('pickupDate') && !parseDMY(v('pickupDate'))){ showToast('Enter the pickup date like 05 Oct 2026, or leave it empty.', 'danger', 'alert'); return null; }
-  return { customerId:v('customerId'), cargo:v('cargo'), origin:v('origin'), portOfEntry:v('portOfEntry'), destination:v('destination'), containerType:v('containerType'), pickupDate:v('pickupDate'), deliveryAddress:v('deliveryAddress') };
+  return { customerId:v('customerId'), cargo:v('cargo'), origin:v('origin'), portOfEntry:v('portOfEntry'), destination:v('destination'), containerType:v('containerType'), pickupDate:isoToDMY(v('pickupDate')), deliveryAddress:v('deliveryAddress') };
 }
 function saveNewInquiry(form){
   const d = readInquiryForm(form); if(!d) return;
@@ -3579,10 +3606,11 @@ function renderCustomers(){
     (rows||'<tr><td colspan="5">'+emptyState('search','No customers match','Try part of the name, or add them as a new customer.')+'</td></tr>')+'</tbody></table></div></section>';
 }
 function openNewCustomer(fromInquiry){
-  openDrawer({ title:'New customer', sub:'Only the name is required. Everything else can be added later.',
-    body:'<form class="ds-stack--sm" id="cust-form" onsubmit="event.preventDefault(); saveCustomer(this, '+(fromInquiry?'true':'false')+')">'+
+  openDrawer({ title:'New customer', sub:'Company name, phone and email are required. Everything else can be added later.',
+    body:'<form class="ds-stack--sm" id="cust-form" novalidate onsubmit="event.preventDefault(); saveCustomer(this, '+(fromInquiry?'true':'false')+')">'+
       '<div class="ds-field"><label for="nc-name">Company name</label><input class="ds-input" id="nc-name" name="name" placeholder="e.g. Test Freight Co." oninput="checkDuplicate(this.value)" autocomplete="off">'+errorSlot('name')+'</div><div id="nc-dup"></div>'+
-      '<div class="ds-grid-2" style="gap:var(--t1m-space-3)"><div class="ds-field"><label for="nc-contact">Contact person</label><input class="ds-input" id="nc-contact" name="contact"></div><div class="ds-field"><label for="nc-phone">Phone <span class="ds-opt">optional</span></label><input class="ds-input" id="nc-phone" name="phone"></div></div>'+
+      '<div class="ds-field"><label for="nc-contact">Contact person</label><input class="ds-input" id="nc-contact" name="contact"></div>'+
+      '<div class="ds-grid-2" style="gap:var(--t1m-space-3)"><div class="ds-field"><label for="nc-phone">Phone</label><input class="ds-input" id="nc-phone" name="phone" type="tel" placeholder="e.g. +63 917 555 0123">'+errorSlot('phone')+'</div><div class="ds-field"><label for="nc-email">Email</label><input class="ds-input" id="nc-email" name="email" type="email" placeholder="e.g. ops@testfreight.ph">'+errorSlot('email')+'</div></div>'+
       '<div class="ds-field"><label for="nc-city">City</label><input class="ds-input" id="nc-city" name="city" placeholder="e.g. Pasig, PH"></div>'+
       '<div class="ds-field"><label for="nc-addr">Delivery address</label><input class="ds-input" id="nc-addr" name="address"></div>'+
       '<div class="ds-field"><label for="nc-instr">Delivery instructions <span class="ds-opt">shown to the crew on every delivery</span></label><textarea class="ds-textarea" id="nc-instr" name="instructions" style="min-height:64px" placeholder="e.g. Call the dock 30 minutes before arrival"></textarea></div></form>',
@@ -3595,9 +3623,12 @@ function checkDuplicate(v){
 }
 function saveCustomer(form, fromInquiry){
   const fd = new FormData(form), v = k=>String(fd.get(k)||'').trim();
-  if(fieldError(form,'name', v('name')?'':'Enter the company name.')) return;
+  const nameBad = fieldError(form,'name', v('name')?'':'Enter the company name.');
+  const phoneBad = fieldError(form,'phone', !v('phone') ? 'Enter the contact phone number.' : /^\+?[\d\s()-]{7,}$/.test(v('phone')) ? '' : 'Enter a valid phone number, e.g. +63 917 555 0123.');
+  const emailBad = fieldError(form,'email', !v('email') ? 'Enter the contact email.' : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('email')) ? '' : 'Enter a valid email, e.g. ops@company.ph.');
+  if(nameBad || phoneBad || emailBad) return;
   const addr = v('address')||'—', id = 'CUST-0'+(CUSTOMERS.length+1);
-  CUSTOMERS.push({ id, name:v('name'), city:v('city')||'—', contact:{ name:v('contact')||'—', email:'—', phone:v('phone')||'—' }, consignees:[{ name:v('name')+' — Main', address:addr }], deliveryAddresses:[addr], requirements:'None recorded.', instructions:v('instructions')||'None recorded.' });
+  CUSTOMERS.push({ id, name:v('name'), city:v('city')||'—', contact:{ name:v('contact')||'—', email:v('email'), phone:v('phone') }, consignees:[{ name:v('name')+' — Main', address:addr }], deliveryAddresses:[addr], requirements:'None recorded.', instructions:v('instructions')||'None recorded.' });
   DISPATCHER_FOR_CUSTOMER[id] = isDispatcher() ? CURRENT_USER.name : 'Ana Cruz';
   closeDrawer(); showToast(v('name')+' saved.', 'success', 'check');
   if(fromInquiry){ openNewInquiry(id); return; }
