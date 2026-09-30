@@ -163,14 +163,14 @@ function openConforme(qid){
   openDrawer({ title:'Record client approval', sub:'The conforme: the client’s signed acceptance of <span class="ds-mono">'+q.id+'</span> v'+last.v+' ('+money(last.total)+')',
     body:'<form class="ds-stack--sm" id="cf-form" onsubmit="event.preventDefault(); saveConforme(\''+qid+'\', this)">'+
       '<div class="ds-field"><label for="cf-who">Approved by</label><input class="ds-input" id="cf-who" name="who" value="'+esc(c.contact.name)+'">'+errorSlot('who')+'</div>'+
-      '<div class="ds-grid-2" style="gap:var(--t1m-space-3)"><div class="ds-field"><label for="cf-date">Date</label><input class="ds-input" id="cf-date" name="date" value="'+todayDMY()+'">'+errorSlot('date')+'</div>'+
+      '<div class="ds-grid-2" style="gap:var(--t1m-space-3)"><div class="ds-field"><label for="cf-date">Date</label><input class="ds-input" type="date" id="cf-date" name="date" value="'+dmyToISO(todayDMY())+'">'+errorSlot('date')+'</div>'+
       '<div class="ds-field"><label for="cf-method">How</label>'+selectWrap('<select class="ds-select" id="cf-method" name="method">'+options(['Signed conforme (PDF)','Email confirmation','Signed in person'])+'</select>')+'</div></div>'+
       '<div class="ds-field"><label>Signed copy <span class="ds-opt">optional</span></label>'+uploadHtml('conformeFile','The signed quotation')+'</div></form>',
     foot: drawerFoot('Save approval','cf-form',{icon:'check'}) });
 }
 function saveConforme(qid, form){
-  const fd = new FormData(form), who = String(fd.get('who')||'').trim(), date = String(fd.get('date')||'').trim();
-  if(fieldError(form,'who', who?'':'Who at the client approved it?') | fieldError(form,'date', parseDMY(date)?'':'Enter the date like 28 Sep 2026.')) return;
+  const fd = new FormData(form), who = String(fd.get('who')||'').trim(), date = isoToDMY(fd.get('date'));
+  if(fieldError(form,'who', who?'':'Who at the client approved it?') | fieldError(form,'date', date?'':'Pick the approval date.')) return;
   const q = QUOTATIONS[qid];
   q.conforme = { approvedBy:who, date, method:String(fd.get('method')), file:UPLOADS.conformeFile||null, version:q.versions[q.versions.length-1].v };
   closeDrawer(); showToast('Client approval recorded.', 'success', 'check'); render();

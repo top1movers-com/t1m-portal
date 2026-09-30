@@ -230,7 +230,7 @@ function stageGate(j){
   const s = j.statusIndex, id = j.id;
   const move = (label, icon)=>act(label, "advanceStage('"+id+"')", icon||'arrow-right');
   const corrective = correctiveOpen(j).map(t=>({ short:'Fix: '+t.name, label:'Fix: '+t.name, sub:t.owner+' · due '+shortDate(t.due)+' (from an approved exception)', met:false, act: canCompleteTask(t) ? act('Complete task',"openCompleteTask('"+id+"','"+t.id+"')",'check') : null }));
-  if(s===0) return { to:STATUS_STEPS[1], items:[{ label:'Vessel and voyage booked', sub:(j.vessel||'—')+' / '+(j.voyage||'—'), met:!!j.vessel, act:null }].concat(corrective),
+  if(s===0) return { to:STATUS_STEPS[1], items:[{ label:'Vessel and voyage booked', met:!!j.vessel, act:null }].concat(corrective),
     advance:move('Start documentation'), why:'The next stage is collecting and checking the five shipping documents.' };
   if(s===1) return { to:STATUS_STEPS[2], items:docGateItems(j).concat([taskGateItem(j,'Verify shipment documents complete')]).concat(corrective).filter(Boolean),
     advance:move('Confirm vessel sailed','ship'), why:'Customs will reject an entry built on wrong paperwork, so documents are settled before the goods sail.' };

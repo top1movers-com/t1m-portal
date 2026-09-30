@@ -95,7 +95,7 @@ function openAddFunds(jobId){
     body:'<form class="ds-stack--sm" id="funds-form" onsubmit="event.preventDefault(); saveFunds(\''+jobId+'\', this)">'+
       (g?'<div class="ds-alert ds-alert--warning">'+icon('wallet')+'<div><strong>Short by '+money(g.short)+'</strong>'+esc(g.first.desc)+' is due '+esc(shortDate(g.first.dueDate))+'.</div></div>':'')+
       '<div class="ds-field"><label for="fd-amount">Amount</label><div class="ds-input-group"><span class="ds-affix">PHP</span><input class="ds-input" id="fd-amount" name="amount" type="number" step="0.01" min="0" placeholder="0.00"'+(g?' value="'+Math.ceil(g.short)+'"':'')+'></div>'+errorSlot('amount')+'</div>'+
-      '<div class="ds-grid-2" style="gap:var(--t1m-space-3)"><div class="ds-field"><label for="fd-date">Date received</label><input class="ds-input" id="fd-date" name="date" value="'+todayDMY()+'">'+errorSlot('date')+'</div>'+
+      '<div class="ds-grid-2" style="gap:var(--t1m-space-3)"><div class="ds-field"><label for="fd-date">Date received</label><input class="ds-input" type="date" id="fd-date" name="date" value="'+dmyToISO(todayDMY())+'">'+errorSlot('date')+'</div>'+
       '<div class="ds-field"><label for="fd-method">Method</label>'+selectWrap('<select class="ds-select" id="fd-method" name="method">'+options(['Bank transfer','Online banking','Check','Cash deposit'])+'</select>')+'</div></div>'+
       '<div class="ds-field"><label for="fd-ref">Bank reference <span class="ds-opt">optional</span></label><input class="ds-input" id="fd-ref" name="reference" placeholder="e.g. BT-781200"></div>'+
       '<div class="ds-field"><label>Deposit slip</label>'+uploadHtml('fundsProof','Deposit slip or bank confirmation')+'</div></form>',
@@ -104,8 +104,8 @@ function openAddFunds(jobId){
 function saveFunds(jobId, form){
   if(denyFunds()) return;
   const j = jobById(jobId), fd = new FormData(form);
-  const amount = Number(fd.get('amount')), date = String(fd.get('date')||'').trim();
-  if(fieldError(form,'date', parseDMY(date)?'':'Enter the date like 28 Sep 2026.') | fieldError(form,'amount', amount>0?'':'Enter an amount greater than zero.')) return;
+  const amount = Number(fd.get('amount')), date = isoToDMY(fd.get('date'));
+  if(fieldError(form,'date', date?'':'Pick the date the money was received.') | fieldError(form,'amount', amount>0?'':'Enter an amount greater than zero.')) return;
   const ref = String(fd.get('reference')||'').trim();
   j.fundsReceived.push({ id:'F'+(j.fundsReceived.length+1), date, amount, method:fd.get('method'), reference:ref, evidence:UPLOADS.fundsProof||null, forDuty:awaitingClientDuty(j) });
   log(j, 'Funds received', money(amount)+' by '+String(fd.get('method')).toLowerCase()+(ref?' (ref '+ref+')':'')+'.', true);
@@ -153,15 +153,15 @@ function openAddCharge(jobId){
       '<div class="ds-field"><label for="ch-amount">Amount</label><div class="ds-input-group"><span class="ds-affix">PHP</span><input class="ds-input" id="ch-amount" name="amount" type="number" step="0.01" placeholder="0.00"></div>'+errorSlot('amount')+'</div>'+
       '<div class="ds-field"><label for="ch-quoted">In the approved quotation?</label>'+selectWrap('<select class="ds-select" id="ch-quoted" name="quoted">'+options([{value:'yes',label:'Yes'},{value:'no',label:'No, needs a decision'}])+'</select>')+'</div>'+
       '<div class="ds-grid-2" style="gap:var(--t1m-space-3)"><div class="ds-field"><label for="ch-paid">Payment</label>'+selectWrap('<select class="ds-select" id="ch-paid" name="paid">'+options([{value:'paid',label:'Already paid'},{value:'unpaid',label:'Not paid yet'}])+'</select>')+'</div>'+
-      '<div class="ds-field"><label for="ch-date">Date paid or due</label><input class="ds-input" id="ch-date" name="date" value="'+todayDMY()+'">'+errorSlot('date')+'</div></div>'+
+      '<div class="ds-field"><label for="ch-date">Date paid or due</label><input class="ds-input" type="date" id="ch-date" name="date" value="'+dmyToISO(todayDMY())+'">'+errorSlot('date')+'</div></div>'+
       '<div class="ds-field"><label>Receipt</label>'+uploadHtml('chargeEvidence')+'</div></form>',
     foot: drawerFoot('Add charge','charge-form',{icon:'plus'}) });
 }
 function saveCharge(jobId, form){
   if(denyFunds()) return;
   const j = jobById(jobId), fd = new FormData(form);
-  const type = fd.get('type'), amount = Number(fd.get('amount'))||0, reimb = type!=='Service fee', date = String(fd.get('date')||'').trim(), desc = String(fd.get('desc')||'').trim();
-  if(fieldError(form,'desc', desc?'':'Describe the charge.') | fieldError(form,'amount', amount>0?'':'Enter an amount greater than zero.') | fieldError(form,'date', (!reimb||parseDMY(date))?'':'Enter the date like 28 Sep 2026.')) return;
+  const type = fd.get('type'), amount = Number(fd.get('amount'))||0, reimb = type!=='Service fee', date = isoToDMY(fd.get('date')), desc = String(fd.get('desc')||'').trim();
+  if(fieldError(form,'desc', desc?'':'Describe the charge.') | fieldError(form,'amount', amount>0?'':'Enter an amount greater than zero.') | fieldError(form,'date', (!reimb||date)?'':'Pick the date it was paid or is due.')) return;
   const paid = reimb && fd.get('paid')==='paid';
   const c = { id:'C'+(j.charges.length+1), desc, category:fd.get('category'), amount, type, quoted:fd.get('quoted')==='yes', paidDate: paid?date:null, dueDate:(reimb&&!paid)?date:null, evidence:UPLOADS.chargeEvidence||null };
   j.charges.push(c);

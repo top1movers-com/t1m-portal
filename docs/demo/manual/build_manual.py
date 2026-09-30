@@ -90,9 +90,7 @@ def capture():
         sh.click("#ms-signin"); S["picker"] = sh.shot([(".ds-acct-row", 1)], clip=".ds-acct-picker")
         p.keyboard.press("Escape"); sh.js("closeAcctPicker()")
         sh.as_("Grace Tan", "#/home")
-        S["topbar"] = sh.shot([(".ds-topbar .ds-search", 1), ("#guide-btn", 2), ("#bell", 3), ("#avatar-menu .ds-avatar", 4), (".ds-nav", 5)])
-        sh.click("#guide-btn"); S["guide"] = sh.shot([(".ds-scenario .ds-btn", 1), (".ds-drawer__foot .ds-btn--ghost", 2)], clip=".ds-drawer")
-        sh.js("closeDrawer()")
+        S["topbar"] = sh.shot([(".ds-topbar .ds-search", 1), ("#bell", 2), ("#avatar-menu .ds-avatar", 3), (".ds-nav", 4)])
 
         # ---- The big idea: anatomy of a job page
         sh.go("#/jobs/SJ-2026-00065")
@@ -106,16 +104,16 @@ def capture():
         sh.click(".ds-page-head .ds-btn--primary"); sh.fill("#nc-name", "Sample Trading"); p.wait_for_timeout(100)
         S["s1_dup"] = sh.shot([("#dup-warning", 1)], clip=".ds-drawer")
         sh.fill("#nc-name", "Test Freight Co."); sh.p.evaluate("checkDuplicate('Test Freight Co.')")
-        sh.fill("#nc-contact", "Lea Ramos"); sh.fill("#nc-city", "Pasig, PH"); sh.fill("#nc-addr", "Unit 5, Pasig Industrial Park, Pasig City, PH")
+        sh.fill("#nc-contact", "Lea Ramos"); sh.fill("#nc-phone", "+63 917 555 0123"); sh.fill("#nc-email", "lea@testfreight.ph"); sh.fill("#nc-city", "Pasig, PH"); sh.fill("#nc-addr", "Unit 5, Pasig Industrial Park, Pasig City, PH")
         sh.fill("#nc-instr", "Deliver weekdays only. Call Lea 1 hour before arrival.")
-        S["s1_newcust"] = sh.shot([("#nc-name", 1), ("#nc-instr", 2), ("#drawerRoot button[type=submit]", 3)], clip=".ds-drawer")
+        S["s1_newcust"] = sh.shot([("#nc-name", 1), ("#nc-phone", 2), ("#nc-email", 3), ("#nc-instr", 4), ("#drawerRoot button[type=submit]", 5)], clip=".ds-drawer")
         sh.submit()
         S["s1_custpage"] = sh.shot([("#cust-new-inquiry", 1)])
         sh.click("#cust-new-inquiry"); sh.fill("#inq-cargo", "Insured goods, 1 container"); sh.fill("#inq-origin", "Shanghai, CN"); sh.fill("#inq-dest", "Pasig, PH")
         S["s1_inq"] = sh.shot([("#inq-cargo", 1), ("#inq-ctype", 2), ("#drawerRoot button[type=submit]", 3)], clip=".ds-drawer")
         sh.submit()
         S["s1_deal"] = sh.shot([("#next-step .ds-gate", 1), ("#next-primary", 2)])
-        sh.click("#next-primary"); p.select_option("#inq-ctype", "20ft dry"); sh.fill("#inq-pickup", "05 Oct 2026")
+        sh.click("#next-primary"); p.select_option("#inq-ctype", "20ft dry"); sh.fill("#inq-pickup", "2026-10-05")
         S["s1_fill"] = sh.shot([("#inq-ctype", 1), ("#inq-pickup", 2)], clip=".ds-drawer")
         sh.submit(); sh.click("#next-primary")
         S["s1_quote"] = sh.shot([("#qt-total", 1), ("#drawerRoot button[type=submit]", 2)], clip=".ds-drawer")
@@ -171,6 +169,9 @@ def capture():
         S["s3_party"] = sh.shot([("input[value=Client]", 1), ("#drawerRoot button[type=submit]", 2)], clip=".ds-drawer")
         sh.submit()
         S["s3_waiting"] = sh.shot([("#next-step .ds-next__eyebrow", 1), ("#gate li:first-child", 2)], clip="#next-step")
+        sh.click("#next-primary"); sh.sample("clientPaidProof")
+        S["s3_paid"] = sh.shot([(".ds-drawer .ds-alert--warning", 1), (".ds-upload", 2), ("#drawerRoot button[type=submit]", 3)], clip=".ds-drawer")
+        sh.submit()
         sh.go("#/jobs/SJ-2026-00065")
         S["s3_ex"] = sh.shot([("#journey [data-state=blocked]", 1), ("#next-primary", 2)])
         sh.click("#next-primary"); sh.fill("#rex-task", "Reissue commercial invoice with the correct HS code")
@@ -287,7 +288,6 @@ def build(S):
       ("People leaving", "Switch someone off, then find their tasks job by job.", "Switching someone off opens a hand-over: see their open work, hand all of it to a colleague in one step, logged on every job."),
       ("Damage", "A damaged delivery blocked billing forever (no way to resolve it).", "A Manager records how the damage was settled; billing can then proceed."),
       ("Phones", "Tables overflowed; the bottom bar had unlabelled icons.", "Lists become cards; drawers become bottom sheets with a sticky confirm button; the bottom bar has labels."),
-      ("Presenting", "Presenter had to remember who to sign in as and where to go.", "A Demo guide in the top bar starts every scenario as the right person on the right screen, and can reset the data."),
     ]
     change_rows = "".join(f"<tr><td><b>{a}</b></td><td>{b_}</td><td>{c}</td></tr>" for a,b_,c in changes)
 
@@ -337,9 +337,8 @@ def build(S):
 
     H.append(f"""<section><h2 class="part">Before you begin</h2>
       <p>Open <code>apps/mockup/index.html</code> in Chrome or Edge (double-click it). Nothing is installed or saved. The portal’s clock is fixed at <b>Monday 28 September 2026</b>, so every “overdue” and “days left” assumes that date.</p>
-      {step(1, "Sign in", "<p>Sign-in is simulated: <b>Sign in with Microsoft</b> (1), then pick a person. Customers use <b>Track a shipment</b> (2) and need no account. Once signed in, presenters can use the <b>Demo guide</b> in the top bar (step 3).</p>" + img(S["login"]) + img(S["picker"], "The account chooser lists the demo people, each with their role. A deactivated person cannot be picked.", narrow=True))}
-      {step(2, "Find your way around", "<p>(1) Search anything: job, container, BL, customer or inquiry (Ctrl K). (2) The demo guide. (3) Overdue alerts: the escalation emails the portal would send. (4) Your avatar: switch person without losing data, or sign out. (5) The menu shows only what your role may use.</p>" + img(S["topbar"]))}
-      {step(3, "Use the demo guide when presenting", "<p>Each scenario in this manual has a <b>Start</b> button (1) that signs in as the right person and opens the right screen. Scenarios build on each other; <b>Reset demo data</b> (2) puts the original sample data back.</p>" + img(S["guide"], narrow=True))}
+      {step(1, "Sign in", "<p>Sign-in is simulated: <b>Sign in with Microsoft</b> (1), then pick a person. Customers use <b>Track a shipment</b> (2) and need no account.</p>" + img(S["login"]) + img(S["picker"], "The account chooser lists the demo people, each with their role. A deactivated person cannot be picked.", narrow=True))}
+      {step(2, "Find your way around", "<p>(1) Search anything: job, container, BL, customer or inquiry (Ctrl K). (2) Overdue alerts: the escalation emails the portal would send. (3) Your avatar: switch person without losing data, or sign out. (4) The menu shows only what your role may use.</p>" + img(S["topbar"]))}
       <h3 class="sub">Who is who</h3><table class="grid"><tr><th>Person</th><th>Role</th><th>Lands on</th><th>In one line</th></tr>{who_rows}</table>
     </section>""")
 
@@ -349,13 +348,13 @@ def build(S):
       "Dispatcher: Ana Cruz", "Shipment job SJ-2026-00123 at Booked, with its documents, tasks and history set up automatically."))
     H.append(step(1, "Add the customer", "<p>Open <b>Customers</b> and choose <b>New customer</b> (1).</p>" + img(S["s1_customers"]) +
       "<p>Start typing the name. If a similar company already exists, the portal warns you (1) and offers to open it, so nobody creates a second record by accident.</p>" + img(S["s1_dup"], narrow=True) +
-      "<p>Only the name (1) is required. Delivery instructions (2) are worth filling: they are shown to the crew on every delivery for this customer. Save (3).</p>" + img(S["s1_newcust"], narrow=True) +
+      "<p>The company name (1), contact phone (2) and contact email (3) are required. Delivery instructions (4) are worth filling: they are shown to the crew on every delivery for this customer. Save (5).</p>" + img(S["s1_newcust"], narrow=True) +
       see("the customer page, with the instructions shown on the right.")))
-    H.append(step(2, "Log the inquiry", "<p>On the customer page choose <b>New inquiry</b> (1). The customer is already filled in.</p>" + img(S["s1_custpage"]) +
+    H.append(step(2, "Log the inquiry", "<p>On the customer page choose <b>New inquiry</b> (1). The customer is fixed to this one.</p>" + img(S["s1_custpage"]) +
       "<p>Only cargo (1) and route are needed to start. Leave the container type (2) empty for now, as a real first call often does, and register (3).</p>" + img(S["s1_inq"], narrow=True) +
       see("inquiry INQ-2026-0045, and a checklist saying what is still needed before it can become a job (1). The primary button (2) is the first thing to fix.") + img(S["s1_deal"]) +
       why("you can price a request before every detail is known, but a job cannot run without them. The gap is visible from the first minute instead of surfacing at the port.")))
-    H.append(step(3, "Fill the gaps and send a price", "<p><b>Fill in</b> opens the details; choose the container type (1) and pickup date (2).</p>" + img(S["s1_fill"], narrow=True) +
+    H.append(step(3, "Fill the gaps and send a price", "<p><b>Fill in</b> opens the details; choose the container type (1) and pick the pickup date from the calendar (2).</p>" + img(S["s1_fill"], narrow=True) +
       "<p>The primary button becomes <b>Create quotation</b>. Enter the total (1) and create version 1 (2). Every later revision becomes v2, v3… and earlier versions are kept.</p>" + img(S["s1_quote"], narrow=True) +
       see("“Waiting on the client” (1): the only item left is the client’s signed approval, the conforme. The button to record it is ready (2).") + img(S["s1_waiting"])))
     H.append(step(4, "Record the client’s approval and create the job", "<p>Record who approved (1) and save (2). A signed copy can be attached.</p>" + img(S["s1_conforme"], narrow=True) +
@@ -389,7 +388,9 @@ def build(S):
     H.append(step(2, "Clear a customs hold", "<p>SJ-2026-00130 is <b>Blocked</b>: the panel explains the hold (1) and what the Red lane means (2). Only a Manager or Admin sees <b>Clear hold</b> (3); a dispatcher sees who they are waiting on.</p>" + img(S["s3_hold"]) +
       "<p>Once cleared, the customs strip shows step 2 of 7 (1) and the next move (2).</p>" + img(S["s3_cleared"])))
     H.append(step(3, "Move customs forward, and say whose move it is", "<p>Customs moves one step at a time. When it reaches Payment Pending the portal asks who pays: Top1Movers from the client’s deposit, or the client directly (1).</p>" + img(S["s3_party"], narrow=True) +
-      see("“Waiting on the client” (1) and a gate item naming who to chase (2). Nobody has to ask whose move it is.") + img(S["s3_waiting"])))
+      see("“Waiting on the client” (1) and a gate item naming who to chase (2). Nobody has to ask whose move it is.") + img(S["s3_waiting"]) +
+      "<p>When the client pays, <b>Client has paid</b> opens a confirmation (1). Proof of payment is required (2); a deposit slip already recorded while waiting is reused. Confirm with <b>Yes, client has paid</b> (3).</p>" + img(S["s3_paid"], narrow=True) +
+      why("releasing the duty payment lets Top1Movers spend money at customs, so it is never one accidental click, and the proof is kept on the job’s record.")))
     H.append(step(4, "Decide the exception", "<p>On SJ-2026-00065 the journey shows the frozen stage in red (1) and the primary button is <b>Review exception</b> (2).</p>" + img(S["s3_ex"]) +
       "<p>Approving means “this is real”: name the fix (1), who does it (2) and by when (3), then <b>Approve &amp; assign fix</b> (4). Rejecting needs a note.</p>" + img(S["s3_review"], narrow=True) +
       see("the job unfrozen, and the fix now part of its gate (1): the job cannot move on until the corrected invoice is done.") + img(S["s3_fixed"]) +
@@ -463,7 +464,7 @@ def build(S):
       <ul class="small"><li>The workflow follows the client’s written blueprint and general Philippine customs-brokerage practice. It has not been confirmed line by line with Top1Movers’ operations; wording and rules may change after discovery.</li>
       <li>Still to decide with the client: who may move a job’s stage (today Dispatcher, Manager, Admin), several containers per job, vessel delays as their own status, partial deliveries, and a secure expiring link for the customer page instead of a guessable number.</li>
       <li>The UAT workbook (<code>docs/testing/UAT-test-cases.xlsx</code>) was written for v2. Its steps name screens and buttons that v3 has replaced, so it needs updating before the next test round.</li>
-      <li>All names, numbers and files are fictional. Nothing is saved: refresh the page, or use Reset demo data in the demo guide, to start over.</li></ul></section>""")
+      <li>All names, numbers and files are fictional. Nothing is saved: refresh the page to start over.</li></ul></section>""")
 
     css = f"""@font-face {{ font-family: Inter; src: url('{FONT}'); font-weight: 100 900; }}
     @page {{ size: A4; margin: 16mm 14mm 18mm; }}

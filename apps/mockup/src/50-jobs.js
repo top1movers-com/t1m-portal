@@ -206,19 +206,19 @@ function completeTask(jobId, taskId, form){
 function openReassignTask(jobId, taskId){
   const j = jobById(jobId), t = j.tasks.find(x=>x.id===taskId);
   const people = USERS.filter(u=>u.active && ['Dispatcher','Warehouse Crew','Manager'].includes(u.role)).map(u=>({ value:u.name, label:u.name+' · '+u.role }));
-  const quick = [['Today',0],['Tomorrow',1],['In 3 days',3]].map(([l,n])=>'<button type="button" class="ds-chip" onclick="document.getElementById(\'ra-due\').value=\''+addDaysDMY(n)+'\'">'+l+'</button>').join('');
+  const quick = [['Today',0],['Tomorrow',1],['In 3 days',3]].map(([l,n])=>'<button type="button" class="ds-chip" onclick="document.getElementById(\'ra-due\').value=\''+dmyToISO(addDaysDMY(n))+'\'">'+l+'</button>').join('');
   const cur = userByName(t.owner);
   openDrawer({ title:'Reassign task', sub:esc(t.name)+' · <span class="ds-mono">'+j.id+'</span>',
     body:'<form class="ds-stack--sm" id="reassign-form" onsubmit="event.preventDefault(); saveReassign(\''+jobId+'\',\''+taskId+'\', this)">'+
       (cur && !cur.active ? '<div class="ds-alert ds-alert--warning">'+icon('alert')+'<div><strong>'+esc(t.owner)+' is deactivated</strong>This task needs a new owner.</div></div>' : '')+
       '<div class="ds-field"><label for="ra-owner">New owner</label>'+selectWrap('<select class="ds-select" id="ra-owner" name="owner">'+options(people, t.owner)+'</select>')+'</div>'+
-      '<div class="ds-field"><label for="ra-due">Due date</label><input class="ds-input" id="ra-due" name="due" value="'+esc(t.due||todayDMY())+'" placeholder="e.g. 30 Sep 2026">'+errorSlot('due')+'<div class="ds-chips" style="margin-top:6px">'+quick+'</div></div></form>',
+      '<div class="ds-field"><label for="ra-due">Due date</label><input class="ds-input" type="date" id="ra-due" name="due" value="'+dmyToISO(t.due||todayDMY())+'">'+errorSlot('due')+'<div class="ds-chips" style="margin-top:6px">'+quick+'</div></div></form>',
     foot: drawerFoot('Reassign','reassign-form',{icon:'user'}) });
 }
 function saveReassign(jobId, taskId, form){
   const j = jobById(jobId), t = j.tasks.find(x=>x.id===taskId), fd = new FormData(form);
-  const due = String(fd.get('due')||'').trim();
-  if(!parseDMY(due)){ fieldError(form,'due','Enter the date like 30 Sep 2026.'); return; }
+  const due = isoToDMY(fd.get('due'));
+  if(!due){ fieldError(form,'due','Pick a due date.'); return; }
   const from = t.owner; t.owner = fd.get('owner'); t.due = due;
   log(j, 'Task reassigned', t.name+': '+from+' → '+t.owner+', due '+due+'.');
   closeDrawer(); showToast(t.name+' now with '+t.owner+'.', 'info', 'user'); render();
@@ -339,14 +339,14 @@ function openReviewException(jobId, exId){
       '<p class="ds-small"><strong>Approve</strong> if the problem is real: name the fix and who does it. The job unfreezes, and the fix becomes a task it must finish before moving on. <strong>Reject</strong> if it is not a real problem.</p>'+
       '<div class="ds-field"><label for="rex-task">The fix</label><input class="ds-input" id="rex-task" name="task" value="'+esc(CORRECTIVE_FOR[e.category]||'Corrective action')+'">'+errorSlot('task')+'</div>'+
       '<div class="ds-grid-2" style="gap:var(--t1m-space-3)"><div class="ds-field"><label for="rex-owner">Who does it</label>'+selectWrap('<select class="ds-select" id="rex-owner" name="owner">'+options(people, coordinatorFor(j.customerId))+'</select>')+'</div>'+
-      '<div class="ds-field"><label for="rex-due">By</label><input class="ds-input" id="rex-due" name="due" value="'+addDaysDMY(2)+'">'+errorSlot('due')+'</div></div>'+
+      '<div class="ds-field"><label for="rex-due">By</label><input class="ds-input" type="date" id="rex-due" name="due" value="'+dmyToISO(addDaysDMY(2))+'">'+errorSlot('due')+'</div></div>'+
       '<div class="ds-field"><label for="rex-note">Decision note <span class="ds-opt">required to reject</span></label><textarea class="ds-textarea" id="rex-note" name="note" style="min-height:64px"></textarea>'+errorSlot('note')+'</div></form>',
     foot:'<button type="button" class="ds-btn ds-btn--ghost" onclick="closeDrawer()">Cancel</button><button type="button" class="ds-btn ds-btn--secondary" onclick="rejectException(\''+jobId+'\',\''+exId+'\')">'+icon('x')+'Reject</button><button type="submit" form="rex-form" class="ds-btn ds-btn--primary" id="approve-ex">'+icon('check')+'Approve &amp; assign fix</button>' });
 }
 function approveException(jobId, exId, form){
   const j = jobById(jobId), e = j.exceptions.find(x=>x.id===exId), fd = new FormData(form);
-  const task = String(fd.get('task')||'').trim(), due = String(fd.get('due')||'').trim();
-  if(fieldError(form,'task', task?'':'Name the fix.') | fieldError(form,'due', parseDMY(due)?'':'Enter the date like 30 Sep 2026.')) return;
+  const task = String(fd.get('task')||'').trim(), due = isoToDMY(fd.get('due'));
+  if(fieldError(form,'task', task?'':'Name the fix.') | fieldError(form,'due', due?'':'Pick the date the fix is due.')) return;
   const t = { id:'T'+(j.tasks.length+1), name:task, owner:fd.get('owner'), due, done:false, requiresEvidence:true, corrective:true, flat:null, note:null };
   j.tasks.push(t);
   e.status='Approved'; e.correctiveTaskId = t.id; e.decisionNote = String(fd.get('note')||'').trim()||null; e.decidedBy = CURRENT_USER.name;
@@ -394,7 +394,7 @@ function openConfirmDelivery(jobId){
     body:'<form class="ds-stack--sm" id="pod-form" onsubmit="event.preventDefault(); confirmDelivery(\''+jobId+'\', this)">'+
       '<div class="ds-alert ds-alert--info">'+icon('info')+'<div><strong>Customer instructions</strong>'+esc(c.instructions)+'</div></div>'+
       '<div class="ds-field"><label for="pod-receiver">Received by</label><input class="ds-input" id="pod-receiver" name="receiver" placeholder="Name and role of the person who signed" autocomplete="off">'+errorSlot('receiver')+'</div>'+
-      '<div class="ds-field"><label for="pod-date">Delivery date</label><input class="ds-input" id="pod-date" name="date" value="'+todayDMY()+'"></div>'+
+      '<div class="ds-field"><label for="pod-date">Delivery date</label><input class="ds-input" type="date" id="pod-date" name="date" value="'+dmyToISO(todayDMY())+'"></div>'+
       '<div class="ds-field"><label>Proof of delivery</label>'+uploadHtml('podFile','Photo of the signed delivery receipt')+errorSlot('pod')+'</div>'+
       '<label class="ds-switch"><input type="checkbox" role="switch" name="damage" onchange="document.getElementById(\'damage-fields\').hidden=!this.checked"><span class="ds-switch__track"></span>Something arrived damaged or incomplete</label>'+
       '<div id="damage-fields" hidden class="ds-field"><label for="pod-damage">What is wrong</label><textarea class="ds-textarea" id="pod-damage" name="damageNote" placeholder="Which items, how many, what damage"></textarea></div></form>',
@@ -405,7 +405,7 @@ function confirmDelivery(jobId, form){
   const receiver = String(fd.get('receiver')||'').trim(), damage = fd.get('damage')==='on';
   const bad = fieldError(form,'receiver', receiver?'':'Enter who received the goods.') | fieldError(form,'pod', UPLOADS.podFile?'':'Attach the proof of delivery.');
   if(bad) return;
-  j.delivery = { confirmed:true, date:String(fd.get('date')||todayDMY()), receiver, damage, damageNote: damage ? (String(fd.get('damageNote')||'').trim()||'Damage reported.') : null, podFile:UPLOADS.podFile };
+  j.delivery = { confirmed:true, date:isoToDMY(fd.get('date'))||todayDMY(), receiver, damage, damageNote: damage ? (String(fd.get('damageNote')||'').trim()||'Damage reported.') : null, podFile:UPLOADS.podFile };
   const t = j.tasks.find(x=>x.via==='delivery'); if(t){ t.done = true; t.doneBy = CURRENT_USER.name; t.doneOn = todayDMY(); t.evidenceFile = UPLOADS.podFile; }
   j.statusIndex = 6;
   log(j, 'Delivery confirmed', (damage?'Delivered with reported damage. ':'Delivered in full. ')+'Received by '+receiver+'. POD '+UPLOADS.podFile+'.');
