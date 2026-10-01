@@ -209,7 +209,7 @@ function renderTrackPage(id){
     let text = '';
     if(state==='done') text = idx===6 && j.delivery.date ? 'Delivered on '+j.delivery.date : 'Completed';
     else if(state==='attention') text = 'This step is taking longer than usual. We are on it.';
-    else if(state==='current') text = ['Your booking is confirmed.','We are collecting and checking your shipping documents.','Your cargo is at sea aboard '+j.vessel+'.','Your shipment has arrived at '+j.portOfEntry+'.', sub ? CLIENT_CUSTOMS_SENTENCE[sub] : 'Being cleared through customs.','On its way to '+j.destination+'.','Delivered.'][idx];
+    else if(state==='current') text = ['Your booking is confirmed.','We are collecting and checking your shipping documents.','Your cargo is at sea.','Your shipment has arrived at '+j.portOfEntry+'.', sub ? CLIENT_CUSTOMS_SENTENCE[sub] : 'Being cleared through customs.','On its way to '+j.destination+'.','Delivered.'][idx];
     return '<li class="ds-timeline__item" data-state="'+state+'"><span class="ds-timeline__dot">'+icon(done?'check':state==='attention'?'alert':CLIENT_STEP_ICON[idx])+'</span><div><div class="ds-timeline__title">'+esc(s)+'</div>'+(text?'<div class="ds-timeline__sub">'+esc(text)+'</div>':'')+'</div></li>';
   }).join('');
   const pct = delivered ? 100 : Math.max(6, Math.round(cur/(CLIENT_STEPS.length-1)*100));
@@ -227,7 +227,7 @@ function renderTrackPage(id){
     '<div class="ds-route" style="--p:'+pct+'%" aria-label="Route progress '+pct+' percent"><div class="ds-route__stop"><small>From</small>'+esc(j.origin)+'</div><div class="ds-route__line"><span class="ds-route__fill"></span><span class="ds-route__marker">'+icon(delivered?'check':j.statusIndex<=2?'ship':'truck')+'</span></div><div class="ds-route__stop ds-route__stop--end"><small>To</small>'+esc(j.destination)+'</div><div class="ds-route__via">via '+esc(j.portOfEntry)+'</div></div>');
   return '<div class="ds-public">'+hero+'<div class="ds-public__body">'+
     '<div class="ds-panel"><div class="ds-panel__head"><h2>Journey</h2></div><div class="ds-panel__body">'+notices.join('')+'<ol class="ds-timeline" aria-label="Shipment progress">'+items+'</ol></div></div>'+delivery+
-    '<div class="ds-panel"><div class="ds-panel__head"><h2>Shipment details</h2></div><div class="ds-panel__body ds-grid-kv ds-kv">'+kvv('Cargo',esc(j.commodity))+kvv('Vessel / voyage',esc(j.vessel+' / '+j.voyage))+kvv('Shipping line',esc(j.shippingLine))+kvv('Container','<span class="ds-mono">'+esc(j.containerNo)+'</span>')+kvv('Bill of lading','<span class="ds-mono">'+esc(j.blNo)+'</span>')+kvv('Delivering to',esc(j.consignee))+'</div></div>'+
+    '<div class="ds-panel"><div class="ds-panel__head"><h2>Shipment details</h2></div><div class="ds-panel__body ds-grid-kv ds-kv">'+kvv('Cargo',esc(j.commodity))+kvv('Shipping line',esc(j.shippingLine))+kvv('Container','<span class="ds-mono">'+esc(j.containerNo)+'</span>')+kvv('Bill of lading','<span class="ds-mono">'+esc(j.blNo)+'</span>')+kvv('Delivering to',esc(j.consignee))+'</div></div>'+
     '<div class="ds-panel"><div class="ds-panel__body ds-row--between"><div><strong class="ds-strong">Questions about this shipment?</strong><p class="ds-muted ds-small">Contact your Top1Movers coordinator and quote '+esc(j.id)+'.</p></div><a class="ds-btn ds-btn--secondary" href="#/track">'+icon('search')+'Track another</a></div></div>'+
     '<p class="ds-muted ds-xs">'+icon('info')+' Sample data. Status is updated by Top1Movers staff as the shipment moves.</p></div></div>';
 }

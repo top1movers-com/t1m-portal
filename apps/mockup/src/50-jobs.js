@@ -107,7 +107,6 @@ function factsPanel(j){
     f('Crew', esc(crewFor(j)))+
     f('Container', '<span class="ds-mono">'+esc(j.containerNo)+'</span>')+
     f('Bill of lading', '<span class="ds-mono">'+esc(j.blNo)+'</span>')+
-    f('Vessel', esc(j.vessel+' / '+j.voyage))+
     f(j.statusIndex<3?'ETA':'Arrived', esc(j.eta))+
     f('Priority', j.priority==='Normal'?'Normal':pill(j.priority, PRIORITY_TONE[j.priority], 'alert','ds-pill--sm'))+
   '</dl></div></section>';
@@ -434,7 +433,7 @@ function jobDetailsTab(j){
   const c = custById(j.customerId);
   return '<div class="ds-stack">'+
     '<div class="ds-grid-kv ds-kv">'+kv('Customer',esc(c.name))+kv('Consignee',esc(j.consignee))+kv('Commodity',esc(j.commodity))+kv('Route',esc(j.origin+' → '+j.portOfEntry+' → '+j.destination))+
-      kv('Container','<span class="ds-mono">'+esc(j.containerNo)+'</span>')+kv('Bill of lading','<span class="ds-mono">'+esc(j.blNo)+'</span>')+kv('Shipping line',esc(j.shippingLine))+kv('Vessel / voyage',esc(j.vessel+' / '+j.voyage))+
+      kv('Container','<span class="ds-mono">'+esc(j.containerNo)+'</span>')+kv('Bill of lading','<span class="ds-mono">'+esc(j.blNo)+'</span>')+kv('Shipping line',esc(j.shippingLine))+
       kv('Import / export',esc(j.importExportFlag))+kv('Ownership',esc(j.ownership))+(canSeeFunds()?kv('Declared value',money(j.declaredValue)):'')+kv('Quotation', j.quotationId?'<span class="ds-mono">'+esc(j.quotationId)+'</span>':'<span class="ds-muted">Not linked in sample data</span>')+'</div>'+
     '<div class="ds-grid-2"><div class="ds-alert ds-alert--info">'+icon('info')+'<div><strong>Customer requirements</strong>'+esc(c.requirements)+'</div></div><div class="ds-alert ds-alert--info">'+icon('truck')+'<div><strong>Delivery instructions</strong>'+esc(c.instructions)+'</div></div></div>'+
     '<p class="ds-mockbadge" style="white-space:normal">'+icon('info')+'To confirm with the client: several containers per job, vessel delay or rollover as its own status, and partial deliveries.</p></div>';

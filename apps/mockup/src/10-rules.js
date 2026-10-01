@@ -230,7 +230,7 @@ function stageGate(j){
   const s = j.statusIndex, id = j.id;
   const move = (label, icon)=>act(label, "advanceStage('"+id+"')", icon||'arrow-right');
   const corrective = correctiveOpen(j).map(t=>({ short:'Fix: '+t.name, label:'Fix: '+t.name, sub:t.owner+' · due '+shortDate(t.due)+' (from an approved exception)', met:false, act: canCompleteTask(t) ? act('Complete task',"openCompleteTask('"+id+"','"+t.id+"')",'check') : null }));
-  if(s===0) return { to:STATUS_STEPS[1], items:[{ label:'Vessel and voyage booked', met:!!j.vessel, act:null }].concat(corrective),
+  if(s===0) return { to:STATUS_STEPS[1], items:corrective,
     advance:move('Start documentation'), why:'The next stage is collecting and checking the five shipping documents.' };
   if(s===1) return { to:STATUS_STEPS[2], items:docGateItems(j).concat([taskGateItem(j,'Verify shipment documents complete')]).concat(corrective).filter(Boolean),
     advance:move('Confirm vessel sailed','ship'), why:'Customs will reject an entry built on wrong paperwork, so documents are settled before the goods sail.' };
@@ -310,7 +310,7 @@ function nextStep(j){
   if(!unmet.length){
     if(s===5) return null; // unreachable: delivery item is never met before delivery moves the stage
     return { tone:'ready', icon:g.advance.icon||'arrow-right', eyebrow:'Next step', title:g.advance.label, text:'Everything needed to reach '+g.to+' is done. '+(g.why||''),
-      items:s===0?[]:g.items, gateTitle:'Ready to leave '+(g.customs?'customs step '+CUSTOMS_SUBSTAGES[j.customs.subIndex]:STATUS_STEPS[s]),
+      items:g.items, gateTitle:'Ready to leave '+(g.customs?'customs step '+CUSTOMS_SUBSTAGES[j.customs.subIndex]:STATUS_STEPS[s]),
       primary: mayAdvance ? g.advance : null,
       who: mayAdvance ? null : 'Waiting on '+(g.managerOnly?'a Manager or Admin':coordinatorFor(j.customerId)+' (Dispatcher)')+' to move it on.', tab:tabFor(), short:g.advance.label };
   }
