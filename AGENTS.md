@@ -2,6 +2,8 @@
 
 Stakeholder mockup for a logistics ERP, proposal stage, mock data only. Product context: `PRODUCT.md`.
 
+**Workflow requirements are owned by `docs/requirements/` (00-README first).** They override any older workflow description in `PRODUCT.md`, `docs/workflow/`, `docs/testing/` or `docs/demo/`. The mockup seeds demo users only; customers, inquiries and jobs are session data.
+
 ## UI work: follow the design system (mandatory)
 
 Before writing or changing any UI, read `docs/ai/ui-rules.md`, then `DESIGN.md` and `packages/design-system/tokens.css`. Use only design-system tokens and components; no hardcoded colors, sizes, or fonts. If something is missing, add it to the design system first, as described in `docs/ai/ui-rules.md`.

@@ -1,574 +1,473 @@
-/* ============================== SHIPMENTS LIST ==============================
-   Columns answer, in order: which job, where is it, is it OK, what happens next, and how long before
-   fees start. "Next step" is the column that makes the list something you can work from. */
-function jobMatchesFilter(j, f){
-  const h = jobHealth(j);
-  if(f==='closed') return j.statusIndex===8;
-  if(j.statusIndex===8) return false;
-  if(f==='blocked') return h.tone==='danger';
-  if(f==='attention') return h.tone==='warning';
-  if(f==='clock'){ const c = deadlineInfo(j); return !!(c && c.days!=null && c.days<=2); }
-  if(f==='funds') return canSeeFunds() && !!fundingGap(j);
-  return true;
-}
-function renderJobsList(){
-  const base = JOBS.filter(canSeeJob);
-  const q = STATE.jobQuery.trim().toLowerCase();
-  const f = STATE.jobFilter, st = STATE.jobStage;
-  const rows = base.filter(j=>jobMatchesFilter(j, st===8 ? 'closed' : f) && (st==null || j.statusIndex===st) &&
-    (!q || [j.id, j.containerNo, j.blNo, custById(j.customerId).name, j.consignee].some(v=>String(v).toLowerCase().includes(q))));
-  const count = k => base.filter(j=>jobMatchesFilter(j,k)).length;
-  const chip = (k,label,tone)=>'<button class="ds-chip'+(tone?' ds-chip--'+tone:'')+'" aria-pressed="'+(f===k && st==null)+'" onclick="STATE.jobFilter=\''+k+'\'; STATE.jobStage=null; render()">'+label+'<span class="ds-chip__count">'+count(k)+'</span></button>';
-  const stageOpts = '<option value="">All stages</option>'+STATUS_STEPS.map((s,i)=>'<option value="'+i+'"'+(st===i?' selected':'')+'>'+(i+1)+'. '+s+' ('+base.filter(j=>j.statusIndex===i).length+')</option>').join('');
-  const body = rows.map(j=>{
-    const c = custById(j.customerId), n = nextStep(j), clk = deadlineInfo(j);
-    const clkHtml = clk && clk.days!=null ? '<span class="'+(clk.days<0?'ds-overdue':clk.days<=2?'ds-strong':'ds-muted')+'" style="'+(clk.days>=0&&clk.days<=2?'color:var(--t1m-warning)':'')+'">'+icon('clock')+' '+esc(clockText(clk))+'</span>' : '<span class="ds-muted3">—</span>';
-    return '<tr data-href onclick="go(\'#/jobs/'+j.id+'\')">'+
-      '<td data-label="Shipment"><span class="ds-cell-name"><span class="ds-mono ds-cell-primary">'+j.id+'</span><span class="ds-cell-sub">'+esc(c.name)+' · '+esc(j.origin.split(',')[0])+' → '+esc(j.destination.split(',')[0])+'</span></span></td>'+
-      '<td data-label="Stage">'+stagePill(j)+'</td>'+
-      '<td data-label="Health">'+healthPill(j)+'</td>'+
-      '<td data-label="Next step" style="white-space:normal;min-width:220px"><span class="'+(n.tone==='blocked'?'ds-overdue':'ds-strong')+'">'+esc(n.short)+'</span></td>'+
-      '<td data-label="Fee clock">'+clkHtml+'</td></tr>';
-  }).join('');
-  const stageChip = st!=null ? '<button class="ds-chip" aria-pressed="true" onclick="STATE.jobStage=null; render()">Stage: '+esc(STATUS_STEPS[st])+icon('x')+'</button>' : '';
-  return '<div class="ds-page-head"><div><h1>'+(isCrew()?'My shipments':'Shipments')+'</h1><p class="ds-page-head__sub">Every job, where it is, whether it is OK, and what has to happen next.'+(isCrew()?' Only jobs you have tasks on.':'')+'</p></div>'+
-    (can('Inquiry & Quotation')?'<div class="ds-page-head__actions"><button class="ds-btn ds-btn--secondary" onclick="go(\'#/inquiries\')" title="Jobs are created from an approved quotation, so nothing is typed twice">'+icon('plus')+'New job from a quote</button></div>':'')+'</div>'+
-    '<section class="ds-panel ds-panel--elevated">'+
-      '<div class="ds-panel__body ds-stack--sm">'+
-        '<div class="ds-chips ds-chips--scroll">'+chip('all','Active')+chip('attention','Needs attention','warning')+chip('blocked','Blocked','danger')+chip('clock','Fees at risk','warning')+(canSeeFunds()?chip('funds','Short on funds','warning'):'')+chip('closed','Closed')+stageChip+'</div>'+
-        '<div class="ds-row"><div class="ds-search" style="flex:1;min-width:220px;max-width:420px">'+icon('search')+'<input class="ds-input" id="job-search" placeholder="Job, container, BL, customer or consignee" value="'+esc(STATE.jobQuery)+'" oninput="STATE.jobQuery=this.value; render()"></div>'+
-        '<div style="width:230px">'+selectWrap('<select class="ds-select" id="stage-filter" aria-label="Stage" onchange="STATE.jobStage=this.value===\'\'?null:+this.value; render()">'+stageOpts+'</select>')+'</div>'+
-        '<span class="ds-muted ds-small" style="margin-left:auto">'+plural(rows.length,'job')+'</span></div>'+
-      '</div>'+
-      '<div class="ds-table-wrap"><table class="ds-table ds-table--stack" id="jobs-table"><thead><tr><th>Shipment</th><th>Stage</th><th>Health</th><th>Next step</th><th>Fee clock</th></tr></thead><tbody>'+
-        (body || '<tr><td colspan="5">'+emptyState('search','No jobs match','Clear the search or pick another filter.','<button class="ds-btn ds-btn--secondary" onclick="STATE.jobFilter=\'all\'; STATE.jobStage=null; STATE.jobQuery=\'\'; render()">Clear filters</button>')+'</td></tr>')+
-      '</tbody></table></div>'+
-    '</section>';
-}
-
-/* ============================== SHIPMENT 360 ==============================
-   Top to bottom: who and where (header), how far (journey), WHAT NOW (next step, the hero), the
-   clocks that cost money, then the record itself in tabs. The work is above the fold; the archive
-   is below it. */
-function journeyHtml(j){
-  const blocked = isOnHold(j) || !!customsHold(j);
-  return '<ol class="ds-track ds-track--compact" id="journey" aria-label="Journey">'+STATUS_STEPS.map((s,idx)=>{
-    const state = idx<j.statusIndex || j.statusIndex===8 ? 'done' : idx===j.statusIndex ? (blocked?'blocked':'current') : '';
-    const just = STATE.justAdvanced && STATE.justAdvanced.id===j.id && STATE.justAdvanced.idx===idx;
-    const sub = s===CUSTOMS_PHASE ? '<span class="ds-track__sub" aria-label="Customs step '+((j.customs?j.customs.subIndex:0)+(idx<j.statusIndex?7:1))+' of 7">'+CUSTOMS_SUBSTAGES.map((x,k)=>'<i'+((idx<j.statusIndex)||(idx===j.statusIndex && j.customs && k<=j.customs.subIndex)?' data-on':'')+'></i>').join('')+'</span>' : '';
-    return '<li class="ds-track__step" data-state="'+state+'"'+(just?' data-just':'')+' title="'+esc(STAGE_HINT[idx])+'">'+esc(s)+sub+'</li>';
-  }).join('')+'</ol>';
-}
+/* ============================== JOBS (Stage 2) ==============================
+   A closed (won) inquiry becomes a job when the Manager converts it and assigns Operations. The
+   progress map is one milestone track per selected service, chained in order. Ops ticks the next
+   milestone (date, optional remark/file; "Duties paid" needs proof), uploads documents, flags issues.
+   When everything is done Ops submits for closing; the Manager confirms; Accounting can then bill. */
+function act(label, js, icon){ return { label, js, icon:icon||null }; }
 function gateItemHtml(it){
   const ic = it.met ? 'check' : it.blocked ? 'lock' : 'circle';
-  return '<li class="ds-gate__item"'+(it.met?' data-met':'')+(it.blocked?' data-blocked':'')+'>'+icon(ic)+
+  return '<li class="ds-gate__item"'+(it.met?' data-met':'')+(it.blocked?' data-blocked':'')+(it.hint?' title="'+esc(it.hint)+'"':'')+'>'+icon(ic)+
     '<div class="ds-gate__label">'+esc(it.label)+(it.sub?'<small'+(it.overdue?' class="ds-overdue"':'')+'>'+esc(it.sub)+'</small>':'')+'</div>'+
     (it.act?'<button class="ds-btn ds-btn--secondary ds-btn--sm" onclick="'+it.act.js+'">'+(it.act.icon?icon(it.act.icon):'')+esc(it.act.label)+'</button>':'<span></span>')+'</li>';
 }
-function customsStrip(j){
-  if(STATUS_STEPS[j.statusIndex]!==CUSTOMS_PHASE || !j.customs) return '';
-  const c = j.customs;
-  return '<div class="ds-row" style="gap:var(--t1m-space-2) var(--t1m-space-4)">'+
-    '<span class="ds-small">'+icon('shield')+' Customs step <strong>'+(c.subIndex+1)+' of 7</strong>: '+esc(CUSTOMS_SUBSTAGES[c.subIndex])+'</span>'+
-    '<span class="ds-row ds-row--tight">'+pill('Lane '+c.lane, LANE_TONE[c.lane], c.lane==='Green'?'check':'alert')+'<span class="ds-muted ds-xs">'+esc(LANE_MEANING[c.lane])+'</span>'+
-    (isManagerLike()?'<button class="ds-link ds-small" onclick="openLane(\''+j.id+'\')">Change</button>':'')+'</span>'+
-    (CUSTOMS_SUBSTAGES[c.subIndex]==='Payment Pending' && c.paymentParty ? pill('Waiting on '+(c.paymentParty==='Client'?'the client':'Top1Movers'), c.paymentParty==='Client'?'warning':'info','clock') : '')+
-  '</div>';
+const HISTORY_ICON = { 'Inquiry created':'plus', 'Inquiry updated':'users', 'Quote submitted':'upload', 'Quote approved':'check', 'Quote returned':'refresh', 'Quote sent':'arrow-right', 'Quote expired':'clock',
+  'Client accepted':'check', 'Client rejected':'x', 'Client renegotiating':'refresh', 'Inquiry closed (won)':'check', 'Inquiry closed (lost)':'x', 'Converted to job':'box', 'Job created':'box',
+  'Milestone done':'check', 'Document uploaded':'upload', 'Document added':'plus', 'Issue flagged':'flag', 'Issue resolved':'check', 'Free days set':'clock', 'References updated':'file',
+  'Submitted for closing':'flag', 'Sent back to Ops':'refresh', 'Job completed':'check', 'Fund request':'wallet', 'Fund request approved':'check', 'Fund request returned':'refresh',
+  'Funds released':'arrow-out', 'Liquidated':'receipt', 'Liquidation verified':'check', 'Vendor bill recorded':'receipt', 'Billing submitted':'upload', 'Billing approved':'check',
+  'Billing returned':'refresh', 'Billing sent':'arrow-right', 'Payment recorded':'arrow-in' };
+function historyList(entries){
+  if(!entries.length) return '<p class="ds-muted ds-small">Nothing yet.</p>';
+  return '<ul class="ds-activity">'+entries.map(a=>'<li><span class="ds-activity__icon">'+icon(HISTORY_ICON[a.action]||'clock')+'</span><div><strong>'+esc(a.action)+'</strong> · '+esc(a.detail)+'<time>'+esc(a.ts)+' · '+esc(a.actor)+'</time></div></li>').join('')+'</ul>';
 }
-function nextStepHtml(j){
-  const n = nextStep(j);
-  const enter = STATE.justNext===j.id ? ' ds-next--enter' : '';
-  const items = (n.items||[]);
-  const override = isManagerLike() && j.statusIndex<8 ? '<button class="ds-btn ds-btn--ghost ds-btn--sm" id="override-btn" onclick="openOverride(\''+j.id+'\')" title="Move out of the normal order, with a logged reason">Override…</button>' : '';
-  return '<section class="ds-next ds-next--'+n.tone+enter+'" id="next-step" aria-live="polite">'+
-    '<div class="ds-next__head"><span class="ds-next__icon">'+icon(n.icon)+'</span><div><div class="ds-next__eyebrow">'+esc(n.eyebrow)+'</div><h2 class="ds-next__title">'+esc(n.title)+'</h2><p class="ds-next__text">'+esc(n.text)+'</p></div></div>'+
-    ((items.length || customsStrip(j)) ? '<div class="ds-next__body">'+customsStrip(j)+
-      (items.length?'<div><div class="ds-gate__title"><span>'+esc(n.gateTitle||'Checklist')+'</span><span>'+items.filter(i=>i.met).length+' of '+items.length+' done</span></div><ul class="ds-gate" id="gate">'+items.map(gateItemHtml).join('')+'</ul></div>':'')+'</div>' : '')+
-    '<div class="ds-next__foot"><div class="ds-next__who">'+(n.who?icon('user')+esc(n.who):(n.locked?icon('lock')+'<span>'+esc(n.locked)+' unlocks when the list is done.</span>':''))+'</div>'+
-      '<div class="ds-next__actions">'+override+(n.primary?'<button class="ds-btn ds-btn--primary" id="next-primary" onclick="'+n.primary.js+'">'+(n.primary.icon?icon(n.primary.icon):'')+esc(n.primary.label)+'</button>':'')+'</div></div>'+
-  '</section>';
+function phaseLabel(p, k){ return '<div class="ds-label" style="margin:var(--t1m-space-3) 0 var(--t1m-space-1)">'+icon(SERVICES[p.svc].icon)+' '+(k+1)+' · '+esc(p.phase)+'</div>'; }
+/* The plan before a job exists (on the inquiry and in Settings). */
+function progressPreview(services, scope, direction, cargoType, truckLegs){
+  const ph = phasesOf(buildPlan(services, scope, direction, cargoType||'FCL', truckLegs));
+  if(!ph.length) return '<p class="ds-muted ds-small">Pick services to see the plan.</p>';
+  return ph.map((p,k)=>phaseLabel(p,k)+'<ol class="ds-track ds-track--compact">'+p.ms.map(m=>'<li class="ds-track__step" title="'+esc(STEP_HINT[m.name]||'')+'">'+esc(m.name)+'</li>').join('')+'</ol>').join('')+
+    (cargoType ? '' : '<p class="ds-muted ds-xs" style="margin-top:var(--t1m-space-2)">Shown for FCL. Other cargo types skip the container steps.</p>');
 }
-function clockPanel(j){
-  const c = deadlineInfo(j);
-  if(!c || c.days==null) return '';
-  const tone = clockTone(c.days), pct = Math.max(0, Math.min(100, c.days/FREE_WINDOW_DAYS*100));
-  const expl = c.type==='storage' ? 'The port charges storage every day after this date. Clearing customs is what stops it.' : 'The shipping line charges for its container every day after this date until the empty is returned.';
-  return '<section class="ds-panel ds-panel--elevated" id="fee-clock"><div class="ds-panel__head"><h3>'+icon('clock')+esc(c.label)+'</h3>'+pill(tone==='danger'?'Fees running':tone==='warning'?'Ending soon':'On time', tone==='neutral'?'success':tone, tone==='neutral'?'check':'clock','ds-pill--sm')+'</div>'+
-    '<div class="ds-panel__body"><div class="ds-clock ds-clock--'+tone+'"><div class="ds-clock__row"><span class="ds-clock__days">'+(c.days<0?Math.abs(c.days):c.days)+'<small>'+(c.days<0?'days of fees so far':'free day'+(c.days===1?'':'s')+' left')+'</small></span></div>'+
-    '<span class="ds-bar-track"><span class="ds-bar-fill'+(tone==='neutral'?' ds-bar-fill--success':' ds-bar-fill--'+tone)+'" style="width:'+(c.days<0?100:pct)+'%"></span></span>'+
-    '<p class="ds-muted ds-xs">'+(c.days<0?'Free time ended ':'Free until ')+esc(c.deadline)+'. '+esc(expl)+'</p></div></div></section>';
+function pickPhase(jobId, k){
+  STATE.mapPhase = STATE.mapPhase || {}; STATE.mapPhase[jobId] = k;
+  const el = document.getElementById('progress-map-body'); if(el) el.innerHTML = progressMapHtml(jobById(jobId));
+}
+function progressMapHtml(j){
+  const cur = currentMs(j), held = !!openIssue(j), tracks = jobTracks(j);
+  if(!tracks.length) return '';
+  const ci = cur ? Math.max(0, tracks.findIndex(t=>t.ms.includes(cur))) : tracks.length-1;
+  const picked = STATE.mapPhase && STATE.mapPhase[j.id], vi = picked!=null && tracks[picked] ? picked : ci;
+  const overview = '<div class="ds-label" style="margin:var(--t1m-space-3) 0 var(--t1m-space-1)">All phases</div><ol class="ds-track ds-track--compact ds-track--left ds-track--phases" aria-label="All phases">'+tracks.map((t,k)=>{
+    const d = t.ms.filter(m=>m.done).length, state = d===t.ms.length ? 'done' : k===ci ? (held?'blocked':'current') : '';
+    return '<li class="ds-track__step" data-state="'+state+'"'+(k===vi?' data-selected':'')+' role="button" tabindex="0" aria-label="Show '+esc(t.phase)+' steps" onclick="pickPhase(\''+j.id+'\','+k+')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){ event.preventDefault(); pickPhase(\''+j.id+'\','+k+'); }">'+esc((k+1)+' · '+t.phase)+'<span class="ds-track__date">'+d+' of '+t.ms.length+' done</span></li>';
+  }).join('')+'</ol>';
+  const t = tracks[vi];
+  const detail = '<div class="ds-label" style="margin:var(--t1m-space-5) 0 var(--t1m-space-1)">'+(vi===ci?'Current phase':'Reviewing phase · click another phase above to switch')+'</div>'+phaseLabel(t, vi)+'<ol class="ds-track ds-track--compact ds-track--left" aria-label="'+esc(t.phase)+'">'+t.ms.map(m=>{
+    const state = m.done ? 'done' : m===cur ? (held?'blocked':'current') : '';
+    return '<li class="ds-track__step" data-state="'+state+'"'+(m.done&&m.laneValue?' data-lane="'+esc(m.laneValue)+'"':'')+' title="'+esc(STEP_HINT[m.name]||'')+'">'+esc(m.name)+(m.laneValue?' · '+esc(m.laneValue):'')+'<span class="ds-track__date">'+(m.done?esc(shortDate(m.date)):'')+'</span></li>';
+  }).join('')+'</ol>';
+  return overview+detail;
+}
+
+/* ---------- Convert to job (Manager) ---------- */
+function openConvert(inqId){
+  const i = inqById(inqId), v = acceptedVersion(i), c = custById(i.customerId);
+  if(!can('job.convert')) return denied('Only a Manager converts inquiries to jobs.');
+  if(i.jobId){ go('#/jobs/'+i.jobId); return; }
+  const ops = USERS.filter(u=>u.active && u.roles.includes('Operations')).map(u=>({ value:u.name, label:u.name, sub:u.dept }));
+  const imp = isIntlImport(i) && (i.services.includes('freight') || i.services.includes('customs'));
+  const f = (k,val)=>'<dt>'+esc(k)+'</dt><dd>'+esc(val)+'</dd>';
+  openDrawer({ title:'Convert to job', sub:'From <span class="ds-mono">'+i.id+'</span> · accepted v'+v.v,
+    body:'<form class="ds-stack--sm" id="convert-form" novalidate onsubmit="event.preventDefault(); convertToJob(\''+inqId+'\', this)">'+
+      '<div class="ds-alert ds-alert--success">'+icon('check')+'<div><strong>Nothing to retype</strong>These carry over as they are.</div></div>'+
+      '<dl class="ds-facts">'+f('Customer',c.name)+f('Scope',scopeText(i))+f('Request',reqWhat(i))+(routeText(reqFrom(i.request), reqTo(i.request))?f('Route',routeText(reqFrom(i.request), reqTo(i.request))):'')+(needsTruckLegs(i.services, i.scope)?f('Trucking covers', (i.truckLegs||['pickup','delivery']).map(l=>l==='pickup'?'Pickup':'Delivery').join(' + ')):'')+(i.request.deliveryInstructions?f('Delivery instructions',i.request.deliveryInstructions):'')+f('Accepted quote','v'+v.v+' · '+amountText(v))+f('Sales (viewers)',i.staff.join(', '))+'</dl>'+
+      '<div class="ds-label" style="margin-top:var(--t1m-space-2)">Assign Operations per service</div>'+
+      SERVICE_ORDER.filter(k=>i.services.includes(k)).map(k=>'<div class="ds-field"><span class="ds-field__label">'+esc(SERVICES[k].label)+' <span class="ds-opt">one or more</span></span>'+multiDropdown('cv-ops-'+k,'ops_'+k, ops, [], 'Select operations staff', 'bottom')+errorSlot('ops_'+k)+'</div>').join('')+
+      (['freight','customs','trucking'].some(s=>i.services.includes(s))
+        ? '<div class="ds-field"><label for="cv-cargo">Cargo type</label>'+selectWrap('<select class="ds-select" id="cv-cargo" name="cargoType" onchange="document.getElementById(\'cv-cargo-info\').textContent = CARGO_TYPE_INFO[this.value]">'+CARGO_TYPES.map(t=>'<option value="'+esc(t)+'"'+(t===(i.request.cargoType||'FCL')?' selected':'')+'>'+esc(t+' · '+CARGO_TYPE_SHORT[t])+'</option>').join('')+'</select>')+'<p class="ds-field__hint" id="cv-cargo-info">'+esc(CARGO_TYPE_INFO[i.request.cargoType||'FCL'])+'</p></div>'
+        : '<input type="hidden" name="cargoType" value="">')+
+      '</form>',
+    foot: drawerFoot('Create job','convert-form',{icon:'box'}) });
+}
+function convertToJob(inqId, form){
+  const i = inqById(inqId), v = acceptedVersion(i), fd = new FormData(form);
+  const opsByService = {}; let bad = false;
+  SERVICE_ORDER.filter(k=>i.services.includes(k)).forEach(k=>{ opsByService[k] = fd.getAll('ops_'+k); if(fieldError(form,'ops_'+k, opsByService[k].length?'':'Assign at least one person for '+SERVICES[k].label+'.')) bad = true; });
+  if(bad) return;
+  if(needConfirm('Convert to job?', 'This creates the job and notifies the Operations staff you assigned. The inquiry is locked afterwards.', 'Create job', "convertToJob('"+inqId+"',document.getElementById('"+form.id+"'))")) return;
+  const ops = [].concat(...Object.values(opsByService)).filter((n,k,a)=>a.indexOf(n)===k);
+  const cargoType = String(fd.get('cargoType')), num = k=>{ const x = fd.get(k); return x===null || x==='' ? null : Math.max(0, parseInt(x,10)||0); };
+  const j = { id:nextId('job'), inquiryId:i.id, quoteV:v.v, customerId:i.customerId, scope:i.scope, direction:i.direction, services:i.services.slice(), cargoType,
+    commodity:reqWhat(i), origin:reqFrom(i.request), destination:reqTo(i.request), request:Object.assign({}, i.request), deliveryInstructions:i.request.deliveryInstructions||'',
+    refs:{ bl:String(fd.get('bl')||'').trim(), containers:String(fd.get('containers')||'').trim() }, ops, opsByService, sales:i.staff.slice(), createdBy:me(), createdOn:todayDMY(),
+    ms:buildMilestones(i.services, i.scope, i.direction, cargoType, i.truckLegs), truckLegs:i.truckLegs||null, docs:null, issues:[],
+    free:null, status:'Active', funds:[], vendorBills:[], billing:null, trackingCode:newTrackingCode(), log:[] };
+  j.docs = linkDocs(j.ms, buildDocs(i.services, i.scope, i.direction));
+  if(clockApplies(j)) j.free = { portDays:num('portDays') ?? SETTINGS.portFreeDays, containerDays:num('containerDays') ?? SETTINGS.containerFreeDays, arrival:null };
+  JOBS.push(j); i.jobId = j.id;
+  logTo(i, 'Converted to job', j.id+' created. Operations: '+ops.join(', ')+'.');
+  logTo(j, 'Job created', 'From '+i.id+' (accepted v'+v.v+', '+amountText(v)+'). Operations: '+ops.join(', ')+'. Tracking code '+j.trackingCode+'.');
+  notify({ users:ops }, 'You were assigned to job '+j.id+' ('+custById(j.customerId).name+').', '#/jobs/'+j.id);
+  notify({ roles:['Accounting'] }, 'New job '+j.id+' ('+custById(j.customerId).name+'). Fund requests and billing will come through it.', '#/jobs/'+j.id);
+  closeDrawer(); STATE.justNext = j.id; showToast('Job '+j.id+' created.', 'success', 'box'); go('#/jobs/'+j.id);
+}
+
+/* ---------- Jobs list ---------- */
+const JOB_FILTERS = [
+  ['active','Active', j=>j.status!=='Completed'],
+  ['attention','Needs attention', j=>jobHealth(j).tone==='warning'],
+  ['hold','On hold', j=>!!openIssue(j) && j.status!=='Completed'],
+  ['closing','For closing', j=>j.status==='For closing'],
+  ['completed','Completed', j=>j.status==='Completed'],
+  ['all','All', ()=>true]
+];
+function renderJobsList(){
+  const base = JOBS.filter(j=>canView('job.view', j));
+  const f = JOB_FILTERS.find(x=>x[0]===STATE.jobFilter) || JOB_FILTERS[0];
+  const q = STATE.jobQuery.trim().toLowerCase();
+  const rows = base.filter(j=>f[2](j) && (!STATE.jobService || j.services.includes(STATE.jobService)) &&
+    (!q || [j.id, j.inquiryId, custById(j.customerId).name, j.refs.bl, j.refs.containers, j.trackingCode].some(x=>String(x||'').toLowerCase().includes(q)))).slice().reverse();
+  const chip = ([k,l,fn])=>'<button class="ds-chip'+(k==='hold'?' ds-chip--danger':k==='attention'?' ds-chip--warning':'')+'" aria-pressed="'+(STATE.jobFilter===k)+'" onclick="STATE.jobFilter=\''+k+'\'; render()">'+l+'<span class="ds-chip__count">'+base.filter(fn).length+'</span></button>';
+  const bills = canView('bill.view');
+  const body = rows.map(j=>{
+    const c = custById(j.customerId), clk = worstClock(j), bs = billingStatus(j);
+    return '<tr data-href onclick="go(\'#/jobs/'+j.id+'\')"><td data-label="Job"><span class="ds-cell-name"><span class="ds-mono ds-cell-primary">'+j.id+'</span><span class="ds-cell-sub">'+esc(c.name)+(routeText(j.origin, j.destination)?' · '+esc(routeText(j.origin, j.destination)):'')+'</span></span></td>'+
+      '<td data-label="Services" style="white-space:normal">'+esc(servicesText(j.services))+'<div class="ds-muted ds-xs">'+esc(scopeText(j)+' · '+j.cargoType)+'</div></td>'+
+      '<td data-label="Current step">'+stagePill(j)+'</td><td data-label="Health">'+healthPill(j)+'</td>'+
+      '<td data-label="Free time">'+(clk?'<span class="'+(clockTone(clk)==='danger'?'ds-overdue':'ds-small')+'">'+icon('clock')+' '+esc(clockText(clk))+'</span>':'<span class="ds-muted3">—</span>')+'</td>'+
+      (bills?'<td data-label="Billing">'+(j.status==='Completed'?pill(bs.label, bs.tone, bs.icon, 'ds-pill--sm'):'<span class="ds-muted3">—</span>')+'</td>':'')+'</tr>';
+  }).join('');
+  return '<div class="ds-page-head"><div><h1>Jobs</h1><p class="ds-page-head__sub">'+(hasRole('Operations')&&!hasRole('Manager')?'Jobs you are assigned to. ':'')+'Where each job is, whether it is OK, and how much free time is left.</p></div></div>'+
+    '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__body ds-stack--sm"><div class="ds-chips ds-chips--scroll">'+JOB_FILTERS.map(chip).join('')+'</div>'+
+      '<div class="ds-row" style="flex-wrap:wrap"><div class="ds-search" style="flex:1;min-width:220px;max-width:420px">'+icon('search')+'<input class="ds-input" id="job-search" placeholder="Job, inquiry, customer, BL, container or tracking code" value="'+esc(STATE.jobQuery)+'" oninput="STATE.jobQuery=this.value; render()"></div>'+
+      '<div style="width:220px">'+selectWrap('<select class="ds-select" id="job-svc" aria-label="Service" onchange="STATE.jobService=this.value; render()"><option value="">All services</option>'+options(SERVICE_ORDER.map(k=>({value:k,label:SERVICES[k].label})), STATE.jobService)+'</select>')+'</div>'+
+      '<span class="ds-muted ds-small" style="margin-left:auto">'+plural(rows.length,'job')+'</span></div></div>'+
+    '<div class="ds-table-wrap"><table class="ds-table ds-table--stack" id="jobs-table"><thead><tr><th>Job</th><th>Services</th><th>Current step</th><th>Health</th><th>Free time</th>'+(bills?'<th>Billing</th>':'')+'</tr></thead><tbody>'+
+      (body || '<tr><td colspan="6">'+(base.length ? emptyState('search','No jobs match','Clear the search or pick another group.') : emptyState('box','No jobs yet','A job is created when a Manager converts a won inquiry.'))+'</td></tr>')+'</tbody></table></div></section>';
+}
+
+/* ---------- Job page ---------- */
+function jobNext(j){
+  const id = j.id, mgrs = usersWithRole('Manager').map(u=>u.name);
+  if(j.status==='Completed'){
+    const bs = billingStatus(j), fin = financiallyClosed(j);
+    return { tone:'done', icon:'check', eyebrow: fin ? 'Financially closed' : 'Completed', title: fin ? 'Paid in full and every fund request verified' : 'Job completed · with Accounting',
+      text:'Confirmed by '+j.completed.by+' on '+j.completed.on+'.'+(canView('bill.view') ? ' Billing: '+bs.label+'.' : ''), items:[],
+      primary: canView('bill.view') ? act('Open billing',"goTab('"+id+"','money')",'receipt') : null };
+  }
+  if(j.status==='For closing'){
+    const mine = can('job.complete');
+    return { tone: mine?'ready':'waiting', icon:'flag', eyebrow: mine?'Needs your confirmation':'Waiting on a manager', title:'Confirm the job is completed',
+      text:'Submitted by '+j.submitted.by+' on '+j.submitted.on+'. Confirming hands it to Accounting for billing.',
+      items:closingGate(j).map(g=>({ label:g.label, sub:g.sub, met:g.ok })), gateTitle:'Closing checklist',
+      primary: mine ? act('Confirm completed',"openConfirmComplete('"+id+"')",'check') : null,
+      secondary: mine ? act('Send back to Ops',"openSendBack('"+id+"')",'refresh') : null, who: mine ? null : waitingOn(mgrs,'Manager') };
+  }
+  const iss = openIssue(j);
+  if(iss){
+    const mine = can('job.issue', j);
+    return { tone:'blocked', icon:'lock', eyebrow:'On hold · issue', title:iss.reason, text:'Flagged by '+iss.by+' on '+iss.on+'. Milestones are frozen until it is resolved.',
+      items:[{ label:'Issue resolved', sub:'Manager or assigned Operations', met:false, blocked:true, act: mine ? act('Resolve',"openResolveIssue('"+id+"','"+iss.id+"')",'check') : null }],
+      primary: mine ? act('Resolve issue',"openResolveIssue('"+id+"','"+iss.id+"')",'check') : null, who: mine ? null : 'Waiting on '+j.ops.join(', ')+' (Operations) or a manager.' };
+  }
+  const k = nextMsIndex(j), mine = k>=0 ? canWork(j, j.ms[k].svc) : can('job.update', j);
+  if(k>=0){
+    const m = j.ms[k], phases = jobTracks(j), pk = phases.findIndex(p=>p.ms.includes(m)), track = phases[pk].ms;
+    const items = track.map(x=>({ label:x.name+(x.proof?' (proof needed)':''), hint:STEP_HINT[x.name], sub: x.done ? shortDate(x.date)+' · '+x.by+(x.laneValue?' · lane '+x.laneValue:'') : null, met:x.done,
+      act: x===m && mine && !missingNeeds(j, m).length && !fundGate(j, m) ? act('Mark done',"openMilestone('"+id+"',"+k+")",'check') : null }));
+    const needs = stepDocs(j, m, 'needs'), missing = missingNeeds(j, m), makes = stepDocs(j, m, 'produces');
+    const docItems = needs.map(d=>({ label:'Needed first: '+d.name, sub: d.status==='Received' ? 'Received · '+d.file : 'Required before “'+m.name+'” can be ticked', met:d.status==='Received', act: d.status!=='Received' && mine ? act('Upload',"openUploadDoc('"+id+"','"+d.id+"')",'upload') : null }));
+    const fg = fundGate(j, m);
+    const fgAct = fg ? (fg.fund && fg.fund.status==='Returned' ? act('Edit & resubmit',"openFundRequest('"+id+"','"+fg.fund.id+"')",'refresh') : fg.none ? act('Request funds',"openFundRequest('"+id+"',null,'Duties & taxes')",'wallet') : act('Open money',"goTab('"+id+"','money')",'wallet')) : null;
+    if(fg) docItems.unshift({ label:fg.label, sub:fg.sub, met:false, act: mine ? fgAct : null });
+    const firstMissing = missing[0];
+    return { tone: mine?'ready':'waiting', icon:SERVICES[m.svc].icon, eyebrow:'Phase '+(pk+1)+' of '+phases.length+' · '+m.phase+' · step '+(track.indexOf(m)+1)+' of '+track.length, title:'Next: '+m.name,
+      text:(STEP_HINT[m.name]||'')+(m.proof?' Needs a file attached.':'')+(missing.length?' First, upload: '+missing.map(d=>d.name).join(', ')+'.':'')+(fg?' First: '+fg.sub.toLowerCase()+'.':''),
+      items:docItems.concat(items), gateTitle:m.phase,
+      primary: !mine ? null : firstMissing ? act('Upload '+firstMissing.name,"openUploadDoc('"+id+"','"+firstMissing.id+"')",'upload') : fg ? fgAct : act('Mark “'+m.name+'” done',"openMilestone('"+id+"',"+k+")",'check'),
+      who: mine ? null : 'Waiting on '+opsFor(j, m.svc).join(', ')+' ('+SERVICES[m.svc].label+').' };
+  }
+  const gate = closingGate(j), ok = gate.every(g=>g.ok), mineClose = can('job.submitClose', j);
+  return { tone:'ready', icon:'flag', eyebrow:'All milestones done', title: ok ? 'Submit for closing' : 'Finish the closing checklist',
+    text:'A manager confirms completion, then Accounting bills the client.',
+    items:gate.map(g=>({ label:g.label, sub:g.sub, met:g.ok, act: g.ok ? null : g.key==='docs' ? act('Open documents',"goTab('"+id+"','documents')",'file') : null })), gateTitle:'Closing checklist',
+    primary: ok && mineClose ? act('Submit for closing',"submitForClosing('"+id+"')",'flag') : null,
+    who: mineClose ? null : 'Waiting on '+j.ops.join(', ')+' (Operations).' };
+}
+function clocksPanel(j){
+  const cl = jobClocks(j);
+  if(!cl.length) return '';
+  const rows = cl.map(c=>{
+    const tone = clockTone(c);
+    const pct = c.free ? Math.max(0, Math.min(100, (c.left!=null?c.left:c.free)/c.free*100)) : 0;
+    const num = c.left==null ? '—' : c.state==='stopped' ? (c.over||0) : Math.abs(c.left);
+    const small = c.left==null ? clockText(c) : c.state==='stopped' ? (c.over?'days over':'stopped in time') : c.left<0 ? 'days overdue' : 'free day'+(c.left===1?'':'s')+' left';
+    return '<div class="ds-clock'+(tone==='warning'||tone==='danger'?' ds-clock--'+tone:'')+'"><div class="ds-clock__row"><span class="ds-strong ds-small">'+esc(c.label)+'</span><span class="ds-muted ds-xs">'+esc(c.risk)+'</span></div>'+
+      '<div class="ds-clock__row"><span class="ds-clock__days">'+num+'<small>'+esc(small)+'</small></span></div>'+
+      (c.left!=null?'<span class="ds-bar-track"><span class="ds-bar-fill ds-bar-fill--'+(tone==='neutral'?'success':tone)+'" style="width:'+(c.left<0?100:pct)+'%"></span></span>':'')+
+      '<p class="ds-muted ds-xs">'+[c.start?'Started '+esc(c.start):'', c.start&&c.free!=null?plural(c.free,'free day')+' · last free day '+esc(c.lastFree):'', c.end?'stopped '+esc(c.end):'stops at '+esc(c.ends)].filter(Boolean).join(' · ')+'</p></div>';
+  }).join('');
+  return '<section class="ds-panel ds-panel--elevated" id="free-time"><div class="ds-panel__head"><h3>'+icon('clock')+'Free time</h3>'+(can('job.freeDays', j)&&j.status!=='Completed'?'<button class="ds-btn ds-btn--ghost ds-btn--sm" onclick="openFreeDays(\''+j.id+'\')">Set free days</button>':'')+'</div><div class="ds-panel__body ds-stack--sm">'+rows+'</div></section>';
+}
+function jobSupportDocsPanel(j){
+  const i = inqById(j.inquiryId); if(!i) return '';
+  const v = i.versions.find(x=>x.v===j.quoteV);
+  const docs = [].concat(i.request.attachment ? [{ name:i.request.attachment, meta:'Supporting document' }] : [], v ? [{ name:v.file, meta:'Accepted quotation v'+v.v }] : [], j.ms.filter(m=>m.file).map(m=>({ name:m.file, meta:m.name+' · attachment' })));
+  if(!docs.length) return '';
+  return '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h3>'+icon('file')+'Supporting documents</h3></div><div class="ds-panel__body ds-stack--sm ds-scroll-list">'+docs.map(d=>fileRow(d.name, d.meta)).join('')+'</div></section>';
 }
 function factsPanel(j){
-  const c = custById(j.customerId);
-  const f = (k,v)=>'<dt>'+esc(k)+'</dt><dd>'+v+'</dd>';
-  return '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h3>'+icon('info')+'Key facts</h3><a class="ds-link ds-small" id="client-track-link" href="#/track/'+j.id+'" title="The page the customer sees, no login">'+icon('eye')+'Client view</a></div><div class="ds-panel__body"><dl class="ds-facts">'+
-    f('Customer', can('Customer Mgmt')?'<a class="ds-link" href="#/customers/'+c.id+'">'+esc(c.name)+'</a>':esc(c.name))+
-    f('Coordinator', esc(coordinatorFor(j.customerId)))+
-    f('Crew', esc(crewFor(j)))+
-    f('Container', '<span class="ds-mono">'+esc(j.containerNo)+'</span>')+
-    f('Bill of lading', '<span class="ds-mono">'+esc(j.blNo)+'</span>')+
-    f(j.statusIndex<3?'ETA':'Arrived', esc(j.eta))+
-    f('Priority', j.priority==='Normal'?'Normal':pill(j.priority, PRIORITY_TONE[j.priority], 'alert','ds-pill--sm'))+
-  '</dl></div></section>';
+  const c = custById(j.customerId), i = inqById(j.inquiryId), v = i ? i.versions.find(x=>x.v===j.quoteV) : null;
+  const f = (k,val)=>'<dt>'+esc(k)+'</dt><dd>'+val+'</dd>';
+  return '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h3>'+icon('info')+'Key facts</h3></div><div class="ds-panel__body"><dl class="ds-facts ds-facts--stacked">'+
+    f('Customer', canView('customer.edit')?'<a class="ds-link" href="#/customers/'+c.id+'">'+esc(c.name)+'</a>':esc(c.name))+
+    f('Inquiry', canView('inquiry.view', i)?'<a class="ds-link ds-mono" href="#/inquiries/'+j.inquiryId+'">'+esc(j.inquiryId)+'</a>':'<span class="ds-mono">'+esc(j.inquiryId)+'</span>')+
+    (v && (canView('bill.view') || hasRole('Sales')) ? f('Accepted quote', 'v'+v.v+' · '+amountText(v)) : '')+
+    f('Request', esc(j.commodity+(j.cargoType?' · '+j.cargoType:'')))+
+    (j.deliveryInstructions?f('Delivery instructions', esc(j.deliveryInstructions)):'')+
+    f('Operations', j.opsByService ? SERVICE_ORDER.filter(k=>j.opsByService[k]).map(k=>'<div>'+esc(SERVICES[k].label)+': '+esc(j.opsByService[k].join(', '))+'</div>').join('') : esc(j.ops.join(', ')))+
+    (j.refs.bl?f('BL / AWB', '<span class="ds-mono">'+esc(j.refs.bl)+'</span>'):'')+
+    (j.refs.containers?f('Container(s)', '<span class="ds-mono">'+esc(j.refs.containers)+'</span>'):'')+
+    f('Tracking code', '<span class="ds-mono">'+esc(j.trackingCode)+'</span> <a class="ds-link ds-xs" href="#/track/'+esc(j.trackingCode)+'" title="The page the client sees">'+icon('eye')+'Client view</a>')+
+  '</dl><p class="ds-muted ds-xs" style="margin-top:var(--t1m-space-2)">Give the client the tracking code. Job numbers alone do not open the tracking page.</p></div></section>';
 }
-const TAB_LABELS = { tasks:'Tasks', documents:'Documents', exceptions:'Exceptions', delivery:'Delivery', money:'Money', details:'Details', history:'History' };
-function jobTabs(j){
-  const tabs = ['tasks','documents','exceptions','delivery'];
-  if(canSeeFunds()) tabs.push('money');
-  tabs.push('details','history');
-  return tabs.filter(t=>t!=='documents' || can('Document Mgmt') || isFinance()).filter(t=>t!=='exceptions' || can('Exceptions & Approval') || isFinance());
-}
+const TAB_LABELS = { milestones:'Milestones', documents:'Documents', issues:'Issues', money:'Money', history:'History' };
+function jobTabs(j){ const t = ['milestones','documents','issues']; if(canView('money.view', j) || canView('bill.view')) t.push('money'); t.push('history'); return t; }
 function tabCount(j, t){
-  if(t==='tasks'){ const n = j.tasks.filter(x=>['Overdue','To do'].includes(taskStatus(j,x)) && (!isCrew()||x.owner===CURRENT_USER.name)).length; const od = j.tasks.some(x=>taskStatus(j,x)==='Overdue'); return n ? '<span class="ds-tab__count'+(od?' ds-tab__count--danger':'')+'">'+n+'</span>' : ''; }
-  if(t==='documents'){ const n = j.documents.filter(d=>d.status!=='Approved' && (docsDue(j)||d.status!=='Missing')).length; return n ? '<span class="ds-tab__count ds-tab__count--warning">'+n+'</span>' : ''; }
-  if(t==='exceptions'){ const n = j.exceptions.filter(e=>e.status==='Pending Approval').length; return n ? '<span class="ds-tab__count ds-tab__count--danger">'+n+'</span>' : ''; }
-  if(t==='money' && canSeeFunds()){ const n = (fundingGap(j)?1:0) + j.charges.filter(isUnresolved).length; return n ? '<span class="ds-tab__count ds-tab__count--warning">'+n+'</span>' : ''; }
+  if(t==='documents'){ const n = pendingDocs(j).length; return n ? '<span class="ds-tab__count ds-tab__count--warning">'+n+'</span>' : ''; }
+  if(t==='issues'){ return openIssue(j) ? '<span class="ds-tab__count ds-tab__count--danger">1</span>' : ''; }
+  if(t==='money'){ const n = moneyWaitingCount(j); return n ? '<span class="ds-tab__count ds-tab__count--warning">'+n+'</span>' : ''; }
   return '';
 }
+let JOB_MENU = '';
 function renderJob(id, tab){
   const j = jobById(id);
-  if(!j) return '<div class="ds-panel ds-panel--elevated">'+emptyState('search','Job not found','Check the job number, or search for it with Ctrl K.','<a class="ds-btn ds-btn--secondary" href="#/jobs">All shipments</a>')+'</div>';
-  if(!canSeeJob(j)) return accessDenied('Shipments', j.id+' is not assigned to you. Warehouse Crew only see jobs they have tasks on.');
-  const c = custById(j.customerId);
-  const tabs = jobTabs(j);
-  const n = nextStep(j);
-  const active = tabs.includes(tab) ? tab : (tabs.includes(n.tab) ? n.tab : 'tasks');
-  const body = { tasks:jobTasksTab, documents:jobDocumentsTab, exceptions:jobExceptionsTab, delivery:jobDeliveryTab, money:jobMoneyTab, details:jobDetailsTab, history:jobHistoryTab }[active](j);
+  if(!j) return '<div class="ds-panel ds-panel--elevated">'+emptyState('search','Job not found','Jobs live only for this session. Refreshing the page clears them.','<a class="ds-btn ds-btn--secondary" href="#/jobs">All jobs</a>')+'</div>';
+  if(!canView('job.view', j)) return accessDenied('Jobs', j.id+' is not assigned to you.');
+  const c = custById(j.customerId), tabs = jobTabs(j), active = tabs.includes(tab) ? tab : 'milestones';
+  const n = jobNext(j); if(STATE.justNext===j.id) n.enter = true;
+  const body = { milestones:jobMilestonesTab, documents:jobDocumentsTab, issues:jobIssuesTab, money:jobMoneyTab, history:j=>historyList(j.log.slice().reverse()) }[active](j);
   const menu = [];
-  if(canRaiseException() && j.statusIndex<8) menu.push('<button onclick="closePopover(); openRaiseException(\''+id+'\')">'+icon('flag')+'Raise an exception</button>');
-  if(isManagerLike() && STATUS_STEPS[j.statusIndex]===CUSTOMS_PHASE) menu.push(customsHold(j) ? '<button onclick="closePopover(); clearCustomsHold(\''+id+'\')">'+icon('check')+'Clear customs hold</button>' : '<button onclick="closePopover(); openPlaceHold(\''+id+'\')">'+icon('lock')+'Place customs hold</button>', '<button onclick="closePopover(); openLane(\''+id+'\')">'+icon('shield')+'Set customs lane</button>');
-  if(isManagerLike() && j.statusIndex<8) menu.push('<button onclick="closePopover(); openOverride(\''+id+'\')">'+icon('alert')+'Override stage…</button>');
-  menu.push('<a href="#/track/'+id+'" onclick="closePopover()">'+icon('eye')+'Open the client tracking page</a>');
-  if(canSeeFunds() && j.statusIndex>=7) menu.push('<a href="#/jobs/'+id+'/billing-summary" onclick="closePopover()">'+icon('file')+'Billing Summary</a>');
+  if(can('job.issue', j) && j.status==='Active' && !openIssue(j)) menu.push('<button onclick="closePopover(); openFlagIssue(\''+id+'\')">'+icon('flag')+'Flag an issue</button>');
+  if(can('job.freeDays', j) && clockApplies(j) && j.status!=='Completed') menu.push('<button onclick="closePopover(); openFreeDays(\''+id+'\')">'+icon('clock')+'Set free days</button>');
+  if(can('fund.request', j) && j.status!=='Completed') menu.push('<button onclick="closePopover(); openFundRequest(\''+id+'\')">'+icon('wallet')+'New fund request</button>');
+  menu.push('<a href="#/track/'+esc(j.trackingCode)+'" onclick="closePopover()">'+icon('eye')+'Open the client tracking page</a>');
   JOB_MENU = menu.join('');
-  return '<nav class="ds-crumbs"><a href="#/jobs">'+(isCrew()?'My shipments':'Shipments')+'</a>'+icon('chevron-right')+'<span class="ds-mono">'+j.id+'</span></nav>'+
+  return '<nav class="ds-crumbs"><a href="#/jobs">Jobs</a>'+icon('chevron-right')+'<span class="ds-mono">'+j.id+'</span></nav>'+
     '<header class="ds-jobhead"><div><h1>'+j.id+' '+healthPill(j)+'</h1>'+
-      '<div class="ds-jobhead__line"><strong class="ds-strong">'+esc(c.name)+'</strong><span class="ds-routeline">'+esc(j.origin)+icon('arrow-right')+esc(j.portOfEntry)+icon('arrow-right')+esc(j.destination)+'</span><span>'+esc(j.commodity)+'</span></div></div>'+
-      '<div class="ds-jobhead__actions">'+stagePill(j)+'<button class="ds-btn ds-btn--secondary" id="job-more" onclick="event.stopPropagation(); showPopover(this, JOB_MENU)" aria-haspopup="true">'+icon('more')+'More</button></div></header>'+
+      '<div class="ds-jobhead__line"><strong class="ds-strong">'+esc(c.name)+'</strong>'+(routeText(j.origin, j.destination)?'<span class="ds-routeline">'+esc(j.origin||'—')+icon('arrow-right')+esc(j.destination||'—')+'</span>':'')+'<span>'+esc(scopeText(j))+'</span><span>'+esc(servicesText(j.services))+'</span></div></div>'+
+      '<div class="ds-jobhead__actions">'+stagePill(j)+'<button class="ds-btn ds-btn--secondary" id="job-more" onclick="event.stopPropagation(); openPopover(this, JOB_MENU)" aria-haspopup="true">'+icon('more')+'More</button></div></header>'+
     '<div class="ds-stack">'+
-      '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__body">'+journeyHtml(j)+'</div></section>'+
-      '<div class="ds-split">'+nextStepHtml(j)+'<div class="ds-stack">'+clockPanel(j)+factsPanel(j)+'</div></div>'+
+      '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h2>'+icon('flag')+'Progress map</h2><span class="ds-panel__hint">'+j.ms.filter(m=>m.done).length+' of '+j.ms.length+' milestones</span></div><div class="ds-panel__body" id="progress-map-body" style="padding-top:0">'+progressMapHtml(j)+'</div></section>'+
+      '<div class="ds-split"><div class="ds-stack">'+nextPanelHtml(n)+jobSupportDocsPanel(j)+'</div><div class="ds-stack">'+clocksPanel(j)+factsPanel(j)+'</div></div>'+
       '<section class="ds-panel ds-panel--elevated" id="job-tabs"><div class="ds-tabs" role="tablist">'+tabs.map(t=>'<button class="ds-tab" role="tab" aria-selected="'+(t===active)+'" onclick="go(\'#/jobs/'+id+'/'+t+'\')"><span class="ds-tab__label" data-text="'+TAB_LABELS[t]+'">'+TAB_LABELS[t]+'</span>'+tabCount(j,t)+'</button>').join('')+'</div>'+
         '<div class="ds-panel__body" id="tab-body">'+body+'</div></section>'+
     '</div>';
 }
-let JOB_MENU = '';
 
-/* ---------- Tasks tab ---------- */
-function jobTasksTab(j){
-  const mine = isCrew();
-  const list = mine ? j.tasks.filter(t=>t.owner===CURRENT_USER.name) : j.tasks;
-  const rows = list.map(t=>{
-    const st = taskStatus(j,t);
-    let actions = '';
-    if(!t.done){
-      if(canCompleteTask(t)) actions += t.via==='delivery' ? (canConfirmDelivery() && j.statusIndex===5 ? '<button class="ds-btn ds-btn--secondary ds-btn--sm" onclick="openConfirmDelivery(\''+j.id+'\')">Confirm delivery</button>' : '<span class="ds-muted ds-xs">Done by confirming delivery</span>')
-        : '<button class="ds-btn ds-btn--'+(st==='Upcoming'?'ghost':'secondary')+' ds-btn--sm" onclick="openCompleteTask(\''+j.id+'\',\''+t.id+'\')">'+(st==='Upcoming'?'Complete early':'Complete')+'</button>';
-      if(canReassign()) actions += ' <button class="ds-btn ds-btn--ghost ds-btn--sm" onclick="openReassignTask(\''+j.id+'\',\''+t.id+'\')">Reassign</button>';
-    } else if(t.evidenceFile || t.note) actions = '<button class="ds-btn ds-btn--ghost ds-btn--sm" onclick="openTaskProof(\''+j.id+'\',\''+t.id+'\')">'+icon('file')+'View proof</button>';
-    return '<tr><td data-label="Task" class="ds-col-main"><span class="ds-cell-name"><span class="ds-strong">'+esc(t.name)+'</span><span class="ds-cell-sub">'+[t.requiresEvidence?'Needs proof to complete':'', t.corrective?'Fix for an approved exception':'', t.detention?'Stops the detention clock':'', t.done?'Done by '+(t.doneBy||t.owner):''].filter(Boolean).join(' · ')+'</span></span></td>'+
-      '<td data-label="Owner"><span class="ds-row ds-row--tight">'+avatar(t.owner,true)+esc(t.owner)+'</span></td>'+
-      '<td data-label="Due" class="'+(st==='Overdue'?'ds-overdue':'')+'">'+esc(t.done?'—':shortDate(t.due))+'</td>'+
-      '<td data-label="Status">'+pill(st, TASK_TONE[st], TASK_ICON[st])+'</td><td data-label="" class="ds-num">'+actions+'</td></tr>';
+/* ---------- Milestones ---------- */
+function jobMilestonesTab(j){
+  const k = nextMsIndex(j), mine = can('job.update', j) && j.status==='Active' && !openIssue(j);
+  const rows = j.ms.map((m,idx)=>{
+    const st = m.done ? pill('Done','success','check','ds-pill--sm') : idx===k ? pill(openIssue(j)?'On hold':'Next', openIssue(j)?'danger':'info', openIssue(j)?'lock':'arrow-right','ds-pill--sm') : pill('Later','neutral','circle','ds-pill--sm');
+    return '<tr><td data-label="Phase">'+esc(m.phase)+'</td><td data-label="Milestone" style="white-space:normal"><span class="ds-strong">'+esc(m.name)+'</span><div class="ds-muted ds-xs">'+esc((STEP_HINT[m.name]||'')+(m.proof?' Needs proof.':''))+'</div></td>'+
+      '<td data-label="Status">'+st+'</td><td data-label="Date">'+(m.done?esc(m.date):'—')+'</td><td data-label="By">'+(m.done?esc(m.by):'—')+'</td>'+
+      '<td data-label="Remark" style="white-space:normal">'+esc([m.laneValue?'Lane '+m.laneValue:'', m.remark||''].filter(Boolean).join(' · '))+(m.file?' <span class="ds-mono ds-xs">'+esc(m.file)+'</span>':'')+'</td>'+
+      '</tr>';
   }).join('');
-  return '<p class="ds-muted ds-small" style="margin-bottom:var(--t1m-space-3)">'+(mine?'Your tasks on this job. ':'')+'Tasks become <strong>To do</strong> when the job reaches their step, and turn <strong>Overdue</strong> the day after their due date, which emails the owner.</p>'+
-    '<div class="ds-table-wrap" style="margin:0 calc(var(--t1m-space-4) * -1)"><table class="ds-table ds-table--stack" id="tasks-table"><thead><tr><th>Task</th><th>Owner</th><th>Due</th><th>Status</th><th></th></tr></thead><tbody>'+
-    (rows || '<tr><td colspan="5" class="ds-muted">No tasks assigned to you on this job.</td></tr>')+'</tbody></table></div>';
+  return '<p class="ds-muted ds-small" style="margin-bottom:var(--t1m-space-3)">Milestones are done in order from the Next step panel above. No approval per milestone.</p>'+
+    '<div class="ds-table-wrap" style="margin:0 calc(var(--t1m-space-4) * -1)"><table class="ds-table ds-table--stack ds-table--compact"><thead><tr><th>Phase</th><th>Milestone</th><th>Status</th><th>Date</th><th>By</th><th>Remark / file</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
-function openCompleteTask(jobId, taskId){
-  const j = jobById(jobId), t = j.tasks.find(x=>x.id===taskId);
-  if(t.via==='delivery'){ openConfirmDelivery(jobId); return; }
-  if(!canCompleteTask(t)){ showToast('Only '+t.owner+' or a coordinator can complete this task.', 'danger', 'lock'); return; }
-  const gap = t.money ? fundingGap(j) : null;
-  const blockMoney = gap ? '<div class="ds-alert ds-alert--danger" id="complete-blocked">'+icon('wallet')+'<div><strong>Not enough client funds to pay this</strong>'+esc(gap.text)+' '+(canManageFunds()?'Record the client’s deposit first.':'A Manager records the client’s deposit first.')+
-    (canManageFunds()?'<div class="ds-alert__actions"><button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" onclick="openAddFunds(\''+jobId+'\')">'+icon('wallet')+'Add funds received</button></div>':'')+'</div></div>' : '';
-  openDrawer({ title:'Complete task', sub:esc(t.name)+' · <span class="ds-mono">'+j.id+'</span>',
-    body:'<form class="ds-stack--sm" id="complete-form" onsubmit="event.preventDefault(); completeTask(\''+jobId+'\',\''+taskId+'\', this)">'+blockMoney+
-      (t.requiresEvidence ? '<div class="ds-field"><label>Proof of completion</label>'+uploadHtml('taskEvidence', t.name==='Lodge customs entry'?'The lodged entry or BOC acknowledgement':t.money?'The duty payment receipt':'A file that shows it was done')+errorSlot('evidence')+'<p class="ds-field__hint">This task cannot be marked done without a file. That is what makes the record trustworthy later.</p></div>' : '<p class="ds-muted ds-small">No proof needed for this task.</p>')+
-      '<div class="ds-field"><label for="task-note">Note <span class="ds-opt">optional</span></label><textarea class="ds-textarea" id="task-note" name="note" placeholder="Anything the next person should know"></textarea></div></form>',
-    foot: drawerFoot('Mark done','complete-form',{icon:'check'}) });
-  if(gap){ const b = document.querySelector('#drawerRoot button[type=submit]'); b.disabled = true; b.title = 'Record the client deposit first'; }
+function openMilestone(jobId, k){
+  const j = jobById(jobId), m = j.ms[k];
+  if(!canWork(j, m.svc)) return denied('Only the Operations staff assigned to '+SERVICES[m.svc].label+' (or a Manager) can update this step.');
+  if(openIssue(j)) return denied('The job is on hold. Resolve the issue first.');
+  if(nextMsIndex(j)!==k) return denied('Milestones are done in order.');
+  const missing = missingNeeds(j, m);
+  if(missing.length) return denied('Upload first: '+missing.map(d=>d.name).join(', ')+'.');
+  const fg = fundGate(j, m); if(fg) return denied('Duties can only be marked paid after the funds are released. '+fg.sub+'.');
+  const makes = stepDocs(j, m, 'produces').filter(d=>d.status!=='Received');
+  const proofDoc = m.proof && makes.length===1 ? makes[0] : null;
+  openDrawer({ title:'Mark “'+m.name+'” done', sub:'<span class="ds-mono">'+j.id+'</span> · '+esc(m.phase),
+    body:'<form class="ds-stack--sm" id="ms-form" novalidate onsubmit="event.preventDefault(); saveMilestone(\''+jobId+'\','+k+', this)">'+
+      (STEP_HINT[m.name]?'<p class="ds-small ds-muted">'+esc(STEP_HINT[m.name])+'</p>':'')+
+      dateField('ms-date','date','Date', todayDMY())+
+      (m.lane ? '<div class="ds-field"><span class="ds-field__label">Lane assigned by BOC</span><div class="ds-stack--sm">'+LANES.map((l,x)=>'<label class="ds-check" style="align-items:flex-start"><input type="radio" name="lane" value="'+l+'"'+(x===0?' checked':'')+'> <span>'+pill(l, LANE_TONE[l], l==='Green'?'check':'alert','ds-pill--sm')+'<br><span class="ds-muted ds-xs">'+esc(LANE_MEANING[l])+'</span></span></label>').join('')+'</div></div>' : '')+
+      makes.map(d=>'<div class="ds-field"><label>'+esc(d.name)+'</label>'+uploadHtml('doc_'+d.id)+errorSlot('file_'+d.id)+'</div>').join('')+
+      (proofDoc ? '' : '<div class="ds-field"><label>'+(m.proof?'Proof':'Other attachment <span class="ds-opt">optional</span>')+'</label>'+uploadHtml('msFile', m.proof ? (m.name==='Duties paid'?'The duty payment receipt':'Proof for this step') : 'Photo or document')+(m.proof?errorSlot('file'):'')+'</div>')+
+      '<div class="ds-field"><label for="ms-remark">Remark <span class="ds-opt">optional</span></label><textarea class="ds-textarea" id="ms-remark" name="remark" style="min-height:64px"></textarea></div></form>',
+    foot: drawerFoot('Mark done','ms-form',{icon:'check'}) });
 }
-function completeTask(jobId, taskId, form){
-  const j = jobById(jobId), t = j.tasks.find(x=>x.id===taskId);
-  if(t.money && fundingGap(j)){ showToast('Record the client’s deposit before paying.', 'danger', 'wallet'); return; }
-  if(t.requiresEvidence && !UPLOADS.taskEvidence){ fieldError(form,'evidence','Attach the completion evidence first. This task needs proof.'); return; }
-  const note = String(new FormData(form).get('note')||'').trim();
-  t.done = true; t.note = note||null; t.evidenceFile = UPLOADS.taskEvidence||null; t.doneBy = CURRENT_USER.name; t.doneOn = todayDMY();
-  if(t.money){ j.charges.filter(c=>c.dueDate && !c.paidDate && isReimbursable(c)).forEach(c=>{ c.paidDate = todayDMY(); c.dueDate = null; if(!c.evidence) c.evidence = UPLOADS.taskEvidence||null; }); }
-  log(j, 'Task completed', t.name+(t.evidenceFile?' (proof: '+t.evidenceFile+')':'')+'.');
-  closeDrawer();
-  STATE.justNext = j.id;
-  showToast(t.name+' done.', 'success', 'check');
-  render();
-}
-function openReassignTask(jobId, taskId){
-  const j = jobById(jobId), t = j.tasks.find(x=>x.id===taskId);
-  const people = USERS.filter(u=>u.active && ['Dispatcher','Warehouse Crew','Manager'].includes(u.role)).map(u=>({ value:u.name, label:u.name+' · '+u.role }));
-  const quick = [['Today',0],['Tomorrow',1],['In 3 days',3]].map(([l,n])=>'<button type="button" class="ds-chip" onclick="document.getElementById(\'ra-due\').value=\''+dmyToISO(addDaysDMY(n))+'\'">'+l+'</button>').join('');
-  const cur = userByName(t.owner);
-  openDrawer({ title:'Reassign task', sub:esc(t.name)+' · <span class="ds-mono">'+j.id+'</span>',
-    body:'<form class="ds-stack--sm" id="reassign-form" onsubmit="event.preventDefault(); saveReassign(\''+jobId+'\',\''+taskId+'\', this)">'+
-      (cur && !cur.active ? '<div class="ds-alert ds-alert--warning">'+icon('alert')+'<div><strong>'+esc(t.owner)+' is deactivated</strong>This task needs a new owner.</div></div>' : '')+
-      '<div class="ds-field"><label for="ra-owner">New owner</label>'+selectWrap('<select class="ds-select" id="ra-owner" name="owner">'+options(people, t.owner)+'</select>')+'</div>'+
-      '<div class="ds-field"><label for="ra-due">Due date</label><input class="ds-input" type="date" id="ra-due" name="due" value="'+dmyToISO(t.due||todayDMY())+'">'+errorSlot('due')+'<div class="ds-chips" style="margin-top:6px">'+quick+'</div></div></form>',
-    foot: drawerFoot('Reassign','reassign-form',{icon:'user'}) });
-}
-function saveReassign(jobId, taskId, form){
-  const j = jobById(jobId), t = j.tasks.find(x=>x.id===taskId), fd = new FormData(form);
-  const due = isoToDMY(fd.get('due'));
-  if(!due){ fieldError(form,'due','Pick a due date.'); return; }
-  const from = t.owner; t.owner = fd.get('owner'); t.due = due;
-  log(j, 'Task reassigned', t.name+': '+from+' → '+t.owner+', due '+due+'.');
-  closeDrawer(); showToast(t.name+' now with '+t.owner+'.', 'info', 'user'); render();
-}
-function openTaskProof(jobId, taskId){
-  const j = jobById(jobId), t = j.tasks.find(x=>x.id===taskId);
-  openDrawer({ title:'Proof of completion', sub:esc(t.name)+' · <span class="ds-mono">'+j.id+'</span>',
-    body:'<div class="ds-stack--sm"><div class="ds-grid-kv ds-kv">'+kv('Done by', esc(t.doneBy||t.owner))+kv('Done on', esc(t.doneOn||'—'))+'</div>'+
-      (t.evidenceFile ? '<div class="ds-panel"><div class="ds-doc"><span class="ds-doc__icon">'+icon('file')+'</span><div><div class="ds-doc__name">'+esc(t.evidenceFile)+'</div><div class="ds-doc__meta">Attached when the task was completed</div></div><span></span><button class="ds-btn ds-btn--secondary ds-btn--sm" onclick="showToast(\'Mockup: file preview is not wired up.\',\'info\',\'info\')">'+icon('eye')+'Open</button></div></div>' : '<p class="ds-muted">No file was required for this task.</p>')+
-      '<div><span class="ds-label">Note</span><p>'+esc(t.note||'No note.')+'</p></div></div>' });
+function saveMilestone(jobId, k, form){
+  const j = jobById(jobId), m = j.ms[k], fd = new FormData(form), date = isoToDMY(fd.get('date'));
+  const prev = j.ms.slice(0,k).reverse().find(x=>x.done);
+  const bad = fieldError(form,'date', !date?'Pick the date.':daysUntil(date)>0?'The date cannot be in the future.':(prev && daysBetween(prev.date, date)<0)?'Earlier than the previous milestone ('+prev.date+').':'') |
+    0;
+  const makes = stepDocs(j, m, 'produces').filter(d=>d.status!=='Received');
+  const proofDoc = m.proof && makes.length===1 ? makes[0] : null;
+  const proofFile = proofDoc ? UPLOADS['doc_'+proofDoc.id] : UPLOADS.msFile;
+  let missingDoc = 0;
+  makes.forEach(d=>{ if(fieldError(form,'file_'+d.id, UPLOADS['doc_'+d.id] ? '' : 'Upload the '+d.name+' to continue.')) missingDoc = 1; });
+  if(bad | missingDoc | fieldError(form,'file', m.proof && !proofDoc && !proofFile ? 'This step needs proof attached.' : '')) return;
+  if(needConfirm('Mark “'+m.name+'” done?', 'It is recorded in the job history under your name, with the date you picked.', 'Mark done', "saveMilestone('"+jobId+"',"+k+",document.getElementById('"+form.id+"'))")) return;
+  makes.forEach(d=>{ const f = UPLOADS['doc_'+d.id]; if(f){ Object.assign(d, { status:'Received', file:f, by:me(), on:date }); logTo(j, 'Document uploaded', d.name+' ('+f+') with “'+m.name+'”.'); } });
+  Object.assign(m, { done:true, date, by:me(), remark:String(fd.get('remark')||'').trim()||null, file:proofFile||UPLOADS.msFile||null, laneValue: m.lane ? String(fd.get('lane')) : null });
+  logTo(j, 'Milestone done', m.phase+' · '+m.name+(m.laneValue?' (lane '+m.laneValue+')':'')+' on '+date+(m.file?' · '+m.file:'')+'.');
+  closeDrawer(); STATE.justNext = j.id; showToast(m.name+' done.', 'success', 'check'); render();
 }
 
-/* ---------- Documents tab ---------- */
+/* ---------- Documents ---------- */
 function jobDocumentsTab(j){
-  const ok = j.documents.filter(d=>d.status==='Approved').length, total = j.documents.length;
-  const rows = j.documents.map(d=>{
-    let a = '';
-    if(d.status==='Missing' && canUploadDocs()) a = '<button class="ds-btn ds-btn--secondary ds-btn--sm" onclick="openUploadDoc(\''+j.id+'\',\''+d.id+'\')">'+icon('upload')+'Upload</button>';
-    else if(d.status==='Rejected' && canUploadDocs()) a = '<button class="ds-btn ds-btn--secondary ds-btn--sm" onclick="openUploadDoc(\''+j.id+'\',\''+d.id+'\')">'+icon('upload')+'Replace</button>';
-    else if(d.status==='Pending Review' && canApproveDocs()) a = '<button class="ds-btn ds-btn--secondary ds-btn--sm" onclick="openReviewDoc(\''+j.id+'\',\''+d.id+'\')">'+icon('eye')+'Review</button>';
-    else if(d.file) a = '<button class="ds-btn ds-btn--ghost ds-btn--sm" onclick="showToast(\'Mockup: file preview is not wired up.\',\'info\',\'info\')">'+icon('eye')+'View</button>';
-    else a = '<span></span>';
-    const meta = d.status==='Missing' ? (docsDue(j)?'Not uploaded yet':'Not needed until Documentation starts') : d.status==='Rejected' ? 'v'+d.version+' rejected: '+d.rejectReason : 'v'+d.version+' · '+(d.file||'');
-    const st = d.status==='Missing' && !docsDue(j) ? pill('Not due yet','neutral','circle') : pill(DOC_LABEL[d.status], DOC_TONE[d.status], DOC_ICON[d.status]);
-    return '<div class="ds-doc" id="doc-'+d.id+'"><span class="ds-doc__icon">'+icon('file')+'</span><div><div class="ds-doc__name">'+esc(d.name)+'</div><div class="ds-doc__meta'+(d.status==='Rejected'?' ds-overdue':'')+'">'+esc(meta)+'</div></div>'+st+a+'</div>';
+  const got = j.docs.filter(d=>d.status==='Received').length, mine = can('job.update', j) && j.status!=='Completed';
+  const order = d=>{ const k = j.ms.findIndex(m=>m.name===d.step && m.svc===d.svc); return k<0 ? 999 : k; };
+  const rows = j.docs.slice().sort((a,b)=>order(a)-order(b)).map(d=>{
+    const got = d.status==='Received', canAct = got ? (mine && hasRole('Manager')) : (mine && canWork(j, d.svc));
+    const view = got ? '<a class="ds-btn ds-btn--ghost ds-btn--sm" href="dummy.pdf" target="_blank" rel="noopener">'+icon('eye')+'View</a>' : '';
+    const a = '<span class="ds-row ds-row--tight">'+view+(canAct ? '<button class="ds-btn ds-btn--'+(got?'ghost':'secondary')+' ds-btn--sm" onclick="openUploadDoc(\''+j.id+'\',\''+d.id+'\')">'+icon('upload')+(got?'Replace':'Upload')+'</button>' : '')+'</span>';
+    return '<div class="ds-doc" id="doc-'+d.id+'"><span class="ds-doc__icon">'+icon('file')+'</span><div><div class="ds-doc__name">'+esc(d.name)+'</div><div class="ds-doc__meta">'+esc((d.step ? (d.kind==='needs' ? 'Needed before “'+d.step+'”' : 'Comes with “'+d.step+'”') : 'Needed before closing')+' · '+(d.status==='Received'?d.file+' · '+d.by+', '+d.on:'Not received yet'))+'</div></div>'+
+      pill(d.status, d.status==='Received'?'success':'warning', d.status==='Received'?'check':'alert')+a+'</div>';
   }).join('');
-  return '<div class="ds-stack--sm"><div class="ds-row--between"><div><span class="ds-strong">'+ok+' of '+total+' approved</span><span class="ds-muted ds-small"> · every job needs these five before the goods sail</span></div>'+(isCrew()?'<span class="ds-readonly">'+icon('upload')+'You can upload; a coordinator reviews</span>':'')+'</div>'+
-    '<span class="ds-bar-track" style="display:block;height:6px"><span class="ds-bar-fill ds-bar-fill--success" style="width:'+Math.round(ok/total*100)+'%"></span></span>'+
-    '<div class="ds-panel" style="margin-top:var(--t1m-space-4)" id="doc-list">'+rows+'</div></div>';
+  return '<div class="ds-stack--sm"><div class="ds-row--between"><span><span class="ds-strong">'+got+' of '+j.docs.length+' received</span><span class="ds-muted ds-small"> · each belongs to the step where it is needed or produced; all are needed before the job can close</span></span>'+
+    (mine?'<button class="ds-btn ds-btn--ghost ds-btn--sm" onclick="openAddDoc(\''+j.id+'\')">'+icon('plus')+'Add a document</button>':'')+'</div>'+
+    '<span class="ds-bar-track" style="display:block;height:6px"><span class="ds-bar-fill ds-bar-fill--success" style="width:'+(j.docs.length?Math.round(got/j.docs.length*100):0)+'%"></span></span>'+
+    '<div class="ds-panel" style="margin-top:var(--t1m-space-4)" id="doc-list">'+(rows||'<div class="ds-panel__body ds-muted">No documents on the checklist.</div>')+'</div></div>';
 }
 function openUploadDoc(jobId, docId){
-  const j = jobById(jobId), d = j.documents.find(x=>x.id===docId);
-  openDrawer({ title:(d.status==='Rejected'?'Replace ':'Upload ')+d.name, sub:'<span class="ds-mono">'+j.id+'</span> · becomes v'+((d.version||0)+1)+' and goes to review',
-    body:'<form class="ds-stack--sm" id="upload-form" onsubmit="event.preventDefault(); saveUpload(\''+jobId+'\',\''+docId+'\', this)">'+
-      (d.status==='Rejected'?'<div class="ds-alert ds-alert--danger">'+icon('x')+'<div><strong>Why v'+d.version+' was rejected</strong>'+esc(d.rejectReason)+'</div></div>':'')+
-      '<div class="ds-field"><label>File</label>'+uploadHtml('docUpload','PDF, image or scan')+errorSlot('file')+'</div></form>',
-    foot: drawerFoot('Upload for review','upload-form',{icon:'upload'}) });
+  const j = jobById(jobId), d = j.docs.find(x=>x.id===docId);
+  if(!can('job.update', j)) return denied();
+  if(d.status==='Received' && !hasRole('Manager')) return denied('Only a Manager can replace a received document.');
+  if(!canWork(j, d.svc)) return denied('Only the Operations staff assigned to '+SERVICES[d.svc].label+' (or a Manager) can upload this.');
+  openDrawer({ title:(d.status==='Received'?'Replace ':'Upload ')+d.name, sub:'<span class="ds-mono">'+j.id+'</span>',
+    body:'<form class="ds-stack--sm" id="doc-form" novalidate onsubmit="event.preventDefault(); saveDoc(\''+jobId+'\',\''+docId+'\', this)"><div class="ds-field"><label>File</label>'+uploadHtml('docFile','PDF, image or scan')+errorSlot('file')+'</div></form>',
+    foot: drawerFoot('Save document','doc-form',{icon:'upload'}) });
 }
-function saveUpload(jobId, docId, form){
-  if(!UPLOADS.docUpload){ fieldError(form,'file','Choose a file to upload first.'); return; }
-  const j = jobById(jobId), d = j.documents.find(x=>x.id===docId);
-  d.version = (d.version||0)+1; d.status='Pending Review'; d.rejectReason=null; d.file = UPLOADS.docUpload;
-  log(j, 'Document uploaded', d.name+' v'+d.version+' submitted for review.');
-  closeDrawer(); STATE.justNext = j.id; showToast(d.name+' uploaded. It now waits for review.', 'info', 'upload'); render();
+function saveDoc(jobId, docId, form){
+  if(fieldError(form,'file', UPLOADS.docFile?'':'Choose a file first.')) return;
+  const j = jobById(jobId), d = j.docs.find(x=>x.id===docId);
+  Object.assign(d, { status:'Received', file:UPLOADS.docFile, by:me(), on:todayDMY() });
+  logTo(j, 'Document uploaded', d.name+' ('+d.file+').');
+  closeDrawer(); STATE.justNext = j.id; showToast(d.name+' received.', 'success', 'upload'); render();
 }
-function openReviewDoc(jobId, docId){
-  const j = jobById(jobId), d = j.documents.find(x=>x.id===docId);
-  const cust = custById(j.customerId);
-  openDrawer({ title:'Review '+d.name, sub:'<span class="ds-mono">'+j.id+'</span> · v'+d.version,
-    body:'<form class="ds-stack--sm" id="review-form" onsubmit="event.preventDefault(); approveDoc(\''+jobId+'\',\''+docId+'\')">'+
-      '<div class="ds-panel"><div class="ds-doc"><span class="ds-doc__icon">'+icon('file')+'</span><div><div class="ds-doc__name">'+esc(d.file||d.name)+'</div><div class="ds-doc__meta">Uploaded for review</div></div><span></span><button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" onclick="showToast(\'Mockup: file preview is not wired up.\',\'info\',\'info\')">'+icon('eye')+'Open</button></div></div>'+
-      '<div class="ds-alert ds-alert--info">'+icon('info')+'<div><strong>Check against the customer’s requirements</strong>'+esc(cust.requirements)+'</div></div>'+
-      '<div class="ds-field"><label for="reject-reason">If it is wrong, say what to fix <span class="ds-opt">needed only to reject</span></label><textarea class="ds-textarea" id="reject-reason" name="reason" placeholder="e.g. Signature block expired. Reissue with the current signatory."></textarea>'+errorSlot('reason')+'</div></form>',
-    foot:'<button type="button" class="ds-btn ds-btn--ghost" onclick="closeDrawer()">Cancel</button><button type="button" class="ds-btn ds-btn--secondary" id="reject-doc" onclick="rejectDoc(\''+jobId+'\',\''+docId+'\')">'+icon('x')+'Reject</button><button type="submit" form="review-form" class="ds-btn ds-btn--primary" id="approve-doc">'+icon('check')+'Approve</button>' });
+function openAddDoc(jobId){
+  const j = jobById(jobId);
+  openDrawer({ title:'Add a document to the checklist', sub:'<span class="ds-mono">'+j.id+'</span> · e.g. an import permit for regulated goods',
+    body:'<form class="ds-stack--sm" id="adddoc-form" novalidate onsubmit="event.preventDefault(); saveAddDoc(\''+jobId+'\', this)">'+
+      '<div class="ds-field"><label for="ad-name">Document</label><input class="ds-input" id="ad-name" name="name" placeholder="e.g. FDA Import Permit">'+errorSlot('name')+'</div>'+
+      '<div class="ds-field"><label for="ad-svc">For</label>'+selectWrap('<select class="ds-select" id="ad-svc" name="svc">'+options(j.services.map(s=>({value:s,label:SERVICES[s].label})))+'</select>')+'</div></form>',
+    foot: drawerFoot('Add to checklist','adddoc-form',{icon:'plus'}) });
 }
-function approveDoc(jobId, docId){
-  const j = jobById(jobId), d = j.documents.find(x=>x.id===docId);
-  d.status='Approved';
-  log(j, 'Document approved', d.name+' v'+d.version+' approved.');
-  closeDrawer(); STATE.justNext = j.id; showToast(d.name+' approved.', 'success', 'check'); render();
+function saveAddDoc(jobId, form){
+  const fd = new FormData(form), name = String(fd.get('name')||'').trim();
+  if(fieldError(form,'name', name?'':'Name the document.')) return;
+  const j = jobById(jobId);
+  j.docs.push({ id:nextId('doc'), svc:String(fd.get('svc')), name, status:'Pending', file:null, by:null, on:null, step:null, kind:null });
+  logTo(j, 'Document added', name+' added to the checklist.');
+  closeDrawer(); showToast(name+' added.', 'success', 'plus'); render();
 }
-function rejectDoc(jobId, docId){
-  const form = document.getElementById('review-form');
+
+/* ---------- Issues ---------- */
+function jobIssuesTab(j){
+  const mine = can('job.issue', j) && j.status==='Active';
+  const cards = j.issues.slice().reverse().map(x=>'<article class="ds-panel" style="margin-bottom:var(--t1m-space-3)"><div class="ds-panel__body ds-stack--sm"><div class="ds-row--between"><strong class="ds-strong">'+esc(x.reason)+'</strong>'+
+    (x.resolved?pill('Resolved','success','check'):pill('Open · job on hold','danger','lock'))+'</div><p class="ds-muted ds-xs">Flagged by '+esc(x.by)+' on '+esc(x.on)+'</p>'+
+    (x.resolved?'<div class="ds-alert ds-alert--success">'+icon('check')+'<div><strong>Resolved by '+esc(x.resolved.by)+', '+esc(x.resolved.on)+'</strong>'+esc(x.resolved.note)+'</div></div>':(mine?'<div><button class="ds-btn ds-btn--secondary" onclick="openResolveIssue(\''+j.id+'\',\''+x.id+'\')">'+icon('check')+'Resolve</button></div>':''))+'</div></article>').join('');
+  return '<div class="ds-row--between" style="margin-bottom:var(--t1m-space-4)"><p class="ds-muted ds-small" style="max-width:60ch">Anything that stops the job (red lane, missing permit, short shipment, damage). Flagging puts the job on hold until it is resolved; managers and the assigned sales staff are told.</p>'+
+    (mine && !openIssue(j) ? '<button class="ds-btn ds-btn--secondary" onclick="openFlagIssue(\''+j.id+'\')">'+icon('flag')+'Flag an issue</button>' : '')+'</div>'+
+    (cards || emptyState('shield','No issues on this job','Everything has gone to plan so far.'));
+}
+function openFlagIssue(jobId){
+  const j = jobById(jobId);
+  if(!can('job.issue', j)) return denied();
+  openDrawer({ title:'Flag an issue', sub:'<span class="ds-mono">'+j.id+'</span> · '+esc(stageText(j)),
+    body:'<form class="ds-stack--sm" id="issue-form" novalidate onsubmit="event.preventDefault(); saveIssue(\''+jobId+'\', this)">'+
+      '<div class="ds-alert ds-alert--warning">'+icon('lock')+'<div><strong>This puts the job on hold</strong>Milestones are frozen until the issue is resolved.</div></div>'+
+      '<div class="ds-field"><label for="is-reason">What is wrong?</label><textarea class="ds-textarea" id="is-reason" name="reason" placeholder="e.g. Red lane: physical inspection, FDA permit missing"></textarea>'+errorSlot('reason')+'</div></form>',
+    foot: drawerFoot('Flag issue','issue-form',{icon:'flag', danger:true}) });
+}
+function saveIssue(jobId, form){
   const reason = String(new FormData(form).get('reason')||'').trim();
-  if(!reason){ fieldError(form,'reason','Say what is wrong, so whoever replaces it knows what to fix.'); document.getElementById('reject-reason').focus(); return; }
-  const j = jobById(jobId), d = j.documents.find(x=>x.id===docId);
-  d.status='Rejected'; d.rejectReason = reason;
-  log(j, 'Document rejected', d.name+' v'+d.version+' rejected: '+reason);
-  closeDrawer(); showToast(d.name+' rejected. The reason is on the document.', 'warning', 'x'); render();
-}
-
-/* ---------- Exceptions tab ---------- */
-const CORRECTIVE_FOR = { 'Documentation Discrepancy':'Reissue the corrected document', 'Customs Hold':'Provide what customs asked for', 'Valuation Dispute':'Submit valuation evidence to customs', 'Damage':'File the damage claim', 'Delay':'Agree a new date with the client', 'Consignee Not Ready':'Rebook the delivery slot' };
-function jobExceptionsTab(j){
-  const cards = j.exceptions.slice().reverse().map(e=>{
-    const fix = e.correctiveTaskId ? j.tasks.find(t=>t.id===e.correctiveTaskId) : null;
-    return '<article class="ds-panel" style="margin-bottom:var(--t1m-space-3)"><div class="ds-panel__body ds-stack--sm">'+
-      '<div class="ds-row--between"><strong class="ds-strong">'+esc(e.category)+'</strong>'+pill(EX_LABEL[e.status], EX_TONE[e.status], EX_ICON[e.status])+'</div>'+
-      '<p>'+esc(e.reason)+'</p>'+
-      '<div class="ds-grid-kv ds-kv">'+kv('Stage', esc(e.stage))+kv('Impact', esc(e.impact+(e.impactNote?' · '+e.impactNote:'')))+kv('Raised by', esc(e.raisedBy+', '+shortDate(e.date)))+kv('Evidence', '<span class="ds-mono ds-small">'+esc(e.evidence)+'</span>')+'</div>'+
-      (fix ? '<div class="ds-alert ds-alert--'+(fix.done?'success':'info')+'">'+icon(fix.done?'check':'tasks')+'<div><strong>Fix: '+esc(fix.name)+'</strong>'+esc(fix.owner)+(fix.done?' · done':' · due '+fix.due)+'</div></div>' : '')+
-      (e.status==='Rejected' && e.decisionNote ? '<p class="ds-muted ds-small">Rejected: '+esc(e.decisionNote)+'</p>' : '')+
-      (e.status==='Pending Approval' ? (canApproveExceptions() ? '<div><button class="ds-btn ds-btn--secondary" onclick="openReviewException(\''+j.id+'\',\''+e.id+'\')">'+icon('eye')+'Review</button></div>' : '<p class="ds-muted ds-small">'+icon('lock')+' Waiting for a Manager or Admin to review.</p>') : '')+
-    '</div></article>';
-  }).join('');
-  return '<div class="ds-row--between" style="margin-bottom:var(--t1m-space-4)"><p class="ds-muted ds-small" style="max-width:60ch">An exception is anything off plan that needs a decision. Raising one freezes the job until a Manager reviews it and assigns a fix, so a problem can never be quietly skipped.</p>'+
-    (canRaiseException() && j.statusIndex<8 ? '<button class="ds-btn ds-btn--secondary" onclick="openRaiseException(\''+j.id+'\')">'+icon('flag')+'Raise exception</button>' : '')+'</div>'+
-    (cards || emptyState('shield','No exceptions on this job','Everything has gone to plan so far.'));
-}
-function openRaiseException(jobId){
+  if(fieldError(form,'reason', reason?'':'Describe the issue.')) return;
+  if(needConfirm('Flag this issue?', 'The job goes on hold and its milestones are frozen until the issue is resolved.', 'Flag issue', "saveIssue('"+jobId+"',document.getElementById('"+form.id+"'))", true)) return;
   const j = jobById(jobId);
-  const impacts = [['Low','Minor, no delay'],['Medium','May delay a day'],['High','Delays clearance or delivery']];
-  openDrawer({ title:'Raise an exception', sub:'<span class="ds-mono">'+j.id+'</span> · stage '+esc(STATUS_STEPS[j.statusIndex]),
-    body:'<form class="ds-stack--sm" id="ex-form" onsubmit="event.preventDefault(); saveException(\''+jobId+'\', this)">'+
-      '<div class="ds-alert ds-alert--warning">'+icon('lock')+'<div><strong>This freezes the job</strong>Nobody can move it on until a Manager or Admin reviews the exception.</div></div>'+
-      '<div class="ds-field"><label for="ex-cat">What kind of problem</label>'+selectWrap('<select class="ds-select" id="ex-cat" name="category">'+options(EXCEPTION_CATEGORIES)+'</select>')+'</div>'+
-      '<div class="ds-field"><label for="ex-reason">What happened</label><textarea class="ds-textarea" id="ex-reason" name="reason" placeholder="Be specific: what is wrong, and where"></textarea>'+errorSlot('reason')+'</div>'+
-      '<div class="ds-field"><span class="ds-field__label">Impact</span><div class="ds-stack--sm">'+impacts.map(([v,h],i)=>'<label class="ds-check"><input type="radio" name="impact" value="'+v+'"'+(i===2?' checked':'')+'> '+v+' <span class="ds-muted ds-xs">'+h+'</span></label>').join('')+'</div></div>'+
-      '<div class="ds-field"><label>Evidence <span class="ds-opt">optional</span></label>'+uploadHtml('exEvidence','Photo, email or document')+'</div></form>',
-    foot: drawerFoot('Raise and freeze job','ex-form',{icon:'flag', danger:true}) });
+  j.issues.push({ id:nextId('issue'), reason, by:me(), on:todayDMY(), resolved:null });
+  logTo(j, 'Issue flagged', reason);
+  notify({ roles:['Manager'], users:j.sales }, 'Job '+j.id+' is on hold: '+reason, '#/jobs/'+j.id+'/issues');
+  closeDrawer(); STATE.justNext = j.id; showToast('Issue flagged. The job is on hold.', 'warning', 'flag'); render();
 }
-function saveException(jobId, form){
-  const j = jobById(jobId), fd = new FormData(form);
-  const reason = String(fd.get('reason')||'').trim();
-  if(!reason){ fieldError(form,'reason','Describe what happened.'); return; }
-  const ex = { id:'EX'+(j.exceptions.length+1), stage:STATUS_STEPS[j.statusIndex], category:fd.get('category'), reason, impact:fd.get('impact'), raisedBy:actorLabel(), date:todayDMY(), status:'Pending Approval', evidence:UPLOADS.exEvidence||'no file attached', correctiveTaskId:null };
-  j.exceptions.push(ex);
-  log(j, 'Exception raised', ex.category+': '+reason);
-  closeDrawer(); STATE.justNext = j.id; showToast('Exception raised. The job is frozen until a manager reviews it.', 'warning', 'flag'); render();
+function openResolveIssue(jobId, issueId){
+  const j = jobById(jobId), x = j.issues.find(y=>y.id===issueId);
+  if(!can('job.issue', j)) return denied();
+  openDrawer({ title:'Resolve issue', sub:'<span class="ds-mono">'+j.id+'</span>',
+    body:'<form class="ds-stack--sm" id="resolve-form" novalidate onsubmit="event.preventDefault(); saveResolve(\''+jobId+'\',\''+issueId+'\', this)"><div class="ds-alert ds-alert--danger">'+icon('lock')+'<div><strong>Open issue</strong>'+esc(x.reason)+'</div></div>'+
+      '<div class="ds-field"><label for="rs-note">How was it resolved?</label><textarea class="ds-textarea" id="rs-note" name="note"></textarea>'+errorSlot('note')+'</div></form>',
+    foot: drawerFoot('Mark resolved','resolve-form',{icon:'check'}) });
 }
-function openReviewException(jobId, exId){
-  const j = jobById(jobId), e = j.exceptions.find(x=>x.id===exId);
-  if(!canApproveExceptions()){ showToast('Only a Manager or Admin can review exceptions.', 'danger', 'lock'); return; }
-  const people = USERS.filter(u=>u.active && ['Dispatcher','Warehouse Crew','Manager'].includes(u.role)).map(u=>({ value:u.name, label:u.name+' · '+u.role }));
-  openDrawer({ title:'Review exception', sub:'<span class="ds-mono">'+j.id+'</span> · '+esc(custById(j.customerId).name),
-    body:'<form class="ds-stack--sm" id="rex-form" onsubmit="event.preventDefault(); approveException(\''+jobId+'\',\''+exId+'\', this)">'+
-      '<div class="ds-panel"><div class="ds-panel__body ds-stack--sm"><div class="ds-row--between"><strong class="ds-strong">'+esc(e.category)+'</strong>'+pill('Impact '+e.impact, e.impact==='High'?'danger':e.impact==='Medium'?'warning':'neutral','alert')+'</div><p>'+esc(e.reason)+'</p><p class="ds-muted ds-xs">Raised by '+esc(e.raisedBy)+' on '+esc(e.date)+' · evidence '+esc(e.evidence)+'</p></div></div>'+
-      '<p class="ds-small"><strong>Approve</strong> if the problem is real: name the fix and who does it. The job unfreezes, and the fix becomes a task it must finish before moving on. <strong>Reject</strong> if it is not a real problem.</p>'+
-      '<div class="ds-field"><label for="rex-task">The fix</label><input class="ds-input" id="rex-task" name="task" value="'+esc(CORRECTIVE_FOR[e.category]||'Corrective action')+'">'+errorSlot('task')+'</div>'+
-      '<div class="ds-grid-2" style="gap:var(--t1m-space-3)"><div class="ds-field"><label for="rex-owner">Who does it</label>'+selectWrap('<select class="ds-select" id="rex-owner" name="owner">'+options(people, coordinatorFor(j.customerId))+'</select>')+'</div>'+
-      '<div class="ds-field"><label for="rex-due">By</label><input class="ds-input" type="date" id="rex-due" name="due" value="'+dmyToISO(addDaysDMY(2))+'">'+errorSlot('due')+'</div></div>'+
-      '<div class="ds-field"><label for="rex-note">Decision note <span class="ds-opt">required to reject</span></label><textarea class="ds-textarea" id="rex-note" name="note" style="min-height:64px"></textarea>'+errorSlot('note')+'</div></form>',
-    foot:'<button type="button" class="ds-btn ds-btn--ghost" onclick="closeDrawer()">Cancel</button><button type="button" class="ds-btn ds-btn--secondary" onclick="rejectException(\''+jobId+'\',\''+exId+'\')">'+icon('x')+'Reject</button><button type="submit" form="rex-form" class="ds-btn ds-btn--primary" id="approve-ex">'+icon('check')+'Approve &amp; assign fix</button>' });
-}
-function approveException(jobId, exId, form){
-  const j = jobById(jobId), e = j.exceptions.find(x=>x.id===exId), fd = new FormData(form);
-  const task = String(fd.get('task')||'').trim(), due = isoToDMY(fd.get('due'));
-  if(fieldError(form,'task', task?'':'Name the fix.') | fieldError(form,'due', due?'':'Pick the date the fix is due.')) return;
-  const t = { id:'T'+(j.tasks.length+1), name:task, owner:fd.get('owner'), due, done:false, requiresEvidence:true, corrective:true, flat:null, note:null };
-  j.tasks.push(t);
-  e.status='Approved'; e.correctiveTaskId = t.id; e.decisionNote = String(fd.get('note')||'').trim()||null; e.decidedBy = CURRENT_USER.name;
-  log(j, 'Exception approved', e.category+' approved. Fix "'+task+'" assigned to '+t.owner+', due '+due+'.');
-  closeDrawer(); STATE.justNext = j.id; showToast('Exception approved. '+t.owner+' has the fix on their list.', 'success', 'check'); render();
-}
-function rejectException(jobId, exId){
-  const form = document.getElementById('rex-form');
+function saveResolve(jobId, issueId, form){
   const note = String(new FormData(form).get('note')||'').trim();
-  if(!note){ fieldError(form,'note','Say why this is not a real problem.'); return; }
-  const j = jobById(jobId), e = j.exceptions.find(x=>x.id===exId);
-  e.status='Rejected'; e.decisionNote = note; e.decidedBy = CURRENT_USER.name;
-  log(j, 'Exception rejected', e.category+' rejected: '+note);
-  closeDrawer(); STATE.justNext = j.id; showToast('Exception rejected. The job is unfrozen.', 'info', 'x'); render();
+  if(fieldError(form,'note', note?'':'Say how it was resolved.')) return;
+  if(needConfirm('Resolve this issue?', 'The job moves again.', 'Resolve', "saveResolve('"+jobId+"','"+issueId+"',document.getElementById('"+form.id+"'))")) return;
+  const j = jobById(jobId), x = j.issues.find(y=>y.id===issueId);
+  x.resolved = { by:me(), on:todayDMY(), note };
+  logTo(j, 'Issue resolved', x.reason+' → '+note);
+  notify({ roles:['Manager'], users:j.sales.concat(j.ops) }, 'Job '+j.id+' is moving again: issue resolved.', '#/jobs/'+j.id);
+  closeDrawer(); STATE.justNext = j.id; showToast('Resolved. The job can move again.', 'success', 'check'); render();
 }
 
-/* ---------- Delivery tab ---------- */
-function jobDeliveryTab(j){
-  const c = custById(j.customerId);
-  const ret = j.tasks.find(t=>t.detention);
-  const instr = '<div class="ds-alert ds-alert--info">'+icon('info')+'<div><strong>Customer delivery instructions</strong>'+esc(c.instructions)+'</div></div>';
-  if(j.delivery.confirmed){
-    const d = j.delivery;
-    return '<div class="ds-stack--sm">'+
-      (d.damage ? '<div class="ds-alert ds-alert--'+(d.damageResolved?'success':'danger')+'">'+icon(d.damageResolved?'check':'alert')+'<div><strong>'+(d.damageResolved?'Damage reported and resolved':'Damage or incomplete delivery reported')+'</strong>'+esc(d.damageNote||'')+(d.damageResolved?' Resolution: '+esc(d.damageResolved.note)+' ('+esc(d.damageResolved.by)+')':' Billing is blocked until a Manager resolves it.')+
-        (!d.damageResolved && isManagerLike()?'<div class="ds-alert__actions"><button class="ds-btn ds-btn--secondary ds-btn--sm" onclick="openResolveDamage(\''+j.id+'\')">Resolve damage</button></div>':'')+'</div></div>'
-        : '<div class="ds-alert ds-alert--success">'+icon('check')+'<div><strong>Delivered in full</strong>No damage reported.</div></div>')+
-      '<div class="ds-grid-kv ds-kv">'+kv('Delivered on', esc(d.date))+kv('Received by', esc(d.receiver))+kv('Consignee', esc(j.consignee))+'</div>'+
-      '<div class="ds-panel"><div class="ds-doc"><span class="ds-doc__icon">'+icon('file')+'</span><div><div class="ds-doc__name">Proof of delivery</div><div class="ds-doc__meta">'+esc(d.podFile)+'</div></div>'+pill('On file','success','check')+'<button class="ds-btn ds-btn--ghost ds-btn--sm" onclick="showToast(\'Mockup: file preview is not wired up.\',\'info\',\'info\')">'+icon('eye')+'View</button></div>'+
-      (ret ? '<div class="ds-doc"><span class="ds-doc__icon">'+icon('refresh')+'</span><div><div class="ds-doc__name">Empty container returned</div><div class="ds-doc__meta">'+(ret.done?'Returned, detention clock stopped':'Not yet. Free detention until '+esc(j.detentionDeadline||'—'))+'</div></div>'+(ret.done?pill('Done','success','check'):pill(taskStatus(j,ret), TASK_TONE[taskStatus(j,ret)], TASK_ICON[taskStatus(j,ret)]))+
-        (!ret.done && canCompleteTask(ret) ? '<button class="ds-btn ds-btn--secondary ds-btn--sm" onclick="openCompleteTask(\''+j.id+'\',\''+ret.id+'\')">Mark returned</button>' : '<span></span>')+'</div>' : '')+'</div></div>';
-  }
-  const ready = j.statusIndex===5;
-  return '<div class="ds-stack--sm">'+
-    '<div class="ds-grid-kv ds-kv">'+kv('Consignee', esc(j.consignee))+kv('Deliver to', esc(c.consignees[0].address))+kv('Crew', esc(crewFor(j)))+'</div>'+instr+
-    (ready ? (canConfirmDelivery() ? '<div><button class="ds-btn ds-btn--secondary" onclick="openConfirmDelivery(\''+j.id+'\')">'+icon('truck')+'Confirm delivery</button></div>' : '<p class="ds-muted ds-small">'+icon('user')+' The delivery crew or a Manager confirms delivery with proof.</p>')
-      : '<div class="ds-alert ds-alert--info" id="delivery-locked">'+icon('lock')+'<div><strong>Not out for delivery yet</strong>Delivery is confirmed once the job is Out for Delivery. It is at '+esc(STATUS_STEPS[j.statusIndex])+' now.</div></div>')+
-  '</div>';
+/* ---------- Free days and references ---------- */
+function openFreeDays(jobId){
+  const j = jobById(jobId), f = j.free || {}, needArrival = !msByFlag(j,'arrival');
+  if(!can('job.freeDays', j)) return denied();
+  openDrawer({ title:'Set free days', sub:'<span class="ds-mono">'+j.id+'</span> · from the arrival notice or the shipping line',
+    body:'<form class="ds-stack--sm" id="free-form" novalidate onsubmit="event.preventDefault(); saveFreeDays(\''+jobId+'\', this)">'+
+      '<div class="ds-field"><label for="fr-port">Port free days</label><input class="ds-input" id="fr-port" name="portDays" type="number" min="0" value="'+(f.portDays??SETTINGS.portFreeDays)+'"><p class="ds-field__hint">Counts from arrival until the gate pass (storage + demurrage).</p></div>'+
+      (j.cargoType==='FCL'?'<div class="ds-field"><label for="fr-cont">Container free days</label><input class="ds-input" id="fr-cont" name="containerDays" type="number" min="0" value="'+(f.containerDays??SETTINGS.containerFreeDays)+'"><p class="ds-field__hint">Counts from the gate pass until the empty container is returned (detention).</p></div>':'')+
+      (needArrival?dateField('fr-arr','arrival','Arrival date (no freight milestone on this job)', f.arrival, true):'')+'</form>',
+    foot: drawerFoot('Save','free-form',{icon:'clock'}) });
 }
-function openConfirmDelivery(jobId){
-  const j = jobById(jobId), c = custById(j.customerId);
-  if(!canConfirmDelivery()){ showToast('Delivery is confirmed by the Warehouse Crew or a Manager.', 'danger', 'lock'); return; }
-  if(j.statusIndex!==5){ showToast('This job is not out for delivery yet.', 'danger', 'lock'); return; }
-  openDrawer({ title:'Confirm delivery', sub:'<span class="ds-mono">'+j.id+'</span> · '+esc(j.consignee),
-    body:'<form class="ds-stack--sm" id="pod-form" onsubmit="event.preventDefault(); confirmDelivery(\''+jobId+'\', this)">'+
-      '<div class="ds-alert ds-alert--info">'+icon('info')+'<div><strong>Customer instructions</strong>'+esc(c.instructions)+'</div></div>'+
-      '<div class="ds-field"><label for="pod-receiver">Received by</label><input class="ds-input" id="pod-receiver" name="receiver" placeholder="Name and role of the person who signed" autocomplete="off">'+errorSlot('receiver')+'</div>'+
-      '<div class="ds-field"><label for="pod-date">Delivery date</label><input class="ds-input" type="date" id="pod-date" name="date" value="'+dmyToISO(todayDMY())+'"></div>'+
-      '<div class="ds-field"><label>Proof of delivery</label>'+uploadHtml('podFile','Photo of the signed delivery receipt')+errorSlot('pod')+'</div>'+
-      '<label class="ds-switch"><input type="checkbox" role="switch" name="damage" onchange="document.getElementById(\'damage-fields\').hidden=!this.checked"><span class="ds-switch__track"></span>Something arrived damaged or incomplete</label>'+
-      '<div id="damage-fields" hidden class="ds-field"><label for="pod-damage">What is wrong</label><textarea class="ds-textarea" id="pod-damage" name="damageNote" placeholder="Which items, how many, what damage"></textarea></div></form>',
-    foot: drawerFoot('Confirm delivery','pod-form',{icon:'check'}) });
-}
-function confirmDelivery(jobId, form){
+function saveFreeDays(jobId, form){
   const j = jobById(jobId), fd = new FormData(form);
-  const receiver = String(fd.get('receiver')||'').trim(), damage = fd.get('damage')==='on';
-  const bad = fieldError(form,'receiver', receiver?'':'Enter who received the goods.') | fieldError(form,'pod', UPLOADS.podFile?'':'Attach the proof of delivery.');
-  if(bad) return;
-  j.delivery = { confirmed:true, date:isoToDMY(fd.get('date'))||todayDMY(), receiver, damage, damageNote: damage ? (String(fd.get('damageNote')||'').trim()||'Damage reported.') : null, podFile:UPLOADS.podFile };
-  const t = j.tasks.find(x=>x.via==='delivery'); if(t){ t.done = true; t.doneBy = CURRENT_USER.name; t.doneOn = todayDMY(); t.evidenceFile = UPLOADS.podFile; }
-  j.statusIndex = 6;
-  log(j, 'Delivery confirmed', (damage?'Delivered with reported damage. ':'Delivered in full. ')+'Received by '+receiver+'. POD '+UPLOADS.podFile+'.');
-  STATE.justAdvanced = { id:j.id, idx:6 }; STATE.justNext = j.id;
-  closeDrawer(); showToast(damage ? 'Delivery confirmed, damage reported.' : 'Delivery confirmed in full.', damage?'warning':'success', damage?'alert':'check');
-  render();
+  j.free = Object.assign(j.free||{}, { portDays:Math.max(0, parseInt(fd.get('portDays'),10)||0) });
+  if(fd.get('containerDays')!==null) j.free.containerDays = Math.max(0, parseInt(fd.get('containerDays'),10)||0);
+  if(fd.get('arrival')!==null) j.free.arrival = isoToDMY(fd.get('arrival')) || null;
+  logTo(j, 'Free days set', 'Port '+j.free.portDays+(j.free.containerDays!=null&&j.cargoType==='FCL'?', container '+j.free.containerDays:'')+(j.free.arrival?', arrival '+j.free.arrival:'')+'.');
+  closeDrawer(); showToast('Free days saved.', 'success', 'clock'); render();
 }
-function openResolveDamage(jobId){
+function openRefs(jobId){
   const j = jobById(jobId);
-  openDrawer({ title:'Resolve damage', sub:'<span class="ds-mono">'+j.id+'</span>',
-    body:'<form class="ds-stack--sm" id="dmg-form" onsubmit="event.preventDefault(); saveResolveDamage(\''+jobId+'\', this)"><div class="ds-alert ds-alert--danger">'+icon('alert')+'<div><strong>Reported at delivery</strong>'+esc(j.delivery.damageNote||'')+'</div></div>'+
-      '<div class="ds-field"><label for="dmg-note">How was it settled?</label><textarea class="ds-textarea" id="dmg-note" name="note" placeholder="e.g. Insurer accepted claim CLM-0091; client agreed to bill as normal"></textarea>'+errorSlot('note')+'</div></form>',
-    foot: drawerFoot('Mark resolved','dmg-form',{icon:'check'}) });
+  openDrawer({ title:'Shipment references', sub:'<span class="ds-mono">'+j.id+'</span>',
+    body:'<form class="ds-stack--sm" id="refs-form" onsubmit="event.preventDefault(); saveRefs(\''+jobId+'\', this)">'+
+      '<div class="ds-field"><label for="rf-bl">BL / AWB no.</label><input class="ds-input" id="rf-bl" name="bl" value="'+esc(j.refs.bl)+'"></div>'+
+      '<div class="ds-field"><label for="rf-cont">Container no(s).</label><input class="ds-input" id="rf-cont" name="containers" value="'+esc(j.refs.containers)+'" placeholder="Comma separated"></div></form>',
+    foot: drawerFoot('Save','refs-form',{icon:'check'}) });
 }
-function saveResolveDamage(jobId, form){
+function saveRefs(jobId, form){
+  const j = jobById(jobId), fd = new FormData(form);
+  j.refs = { bl:String(fd.get('bl')||'').trim(), containers:String(fd.get('containers')||'').trim() };
+  logTo(j, 'References updated', 'BL '+(j.refs.bl||'—')+', containers '+(j.refs.containers||'—')+'.');
+  closeDrawer(); showToast('References saved.', 'success', 'check'); render();
+}
+
+/* ---------- Closing ---------- */
+function submitForClosing(jobId){
+  const j = jobById(jobId);
+  if(!can('job.submitClose', j)) return denied();
+  if(!closingGate(j).every(g=>g.ok)) return denied('Finish the closing checklist first.');
+  if(needConfirm('Submit for closing?', 'A manager will confirm completion. Make sure every milestone and document is in.', 'Submit for closing', "submitForClosing('"+jobId+"')")) return;
+  j.status = 'For closing'; j.submitted = { by:me(), on:todayDMY() };
+  logTo(j, 'Submitted for closing', 'All milestones and documents done.');
+  notify({ roles:['Manager'] }, 'Job '+j.id+' was submitted for closing by '+me()+'.', '#/jobs/'+j.id);
+  STATE.justNext = j.id; showToast('Submitted. A manager will confirm it.', 'success', 'flag'); render();
+}
+function openConfirmComplete(jobId){
+  const j = jobById(jobId);
+  if(!can('job.complete')) return denied('Only a Manager confirms completion.');
+  const unverified = j.funds.filter(f=>f.status!=='Verified').length;
+  openDrawer({ title:'Confirm job completed', sub:'<span class="ds-mono">'+j.id+'</span> · '+esc(custById(j.customerId).name),
+    body:'<div class="ds-stack--sm"><ul class="ds-gate">'+closingGate(j).map(g=>gateItemHtml({ label:g.label, sub:g.sub, met:g.ok })).join('')+'</ul>'+
+      (unverified?'<div class="ds-alert ds-alert--info">'+icon('wallet')+'<div><strong>'+plural(unverified,'fund request')+' not verified yet</strong>That does not stop completion. Accounting finishes them before the job is financially closed.</div></div>':'')+
+      '<p class="ds-small">Completing hands the job to Accounting’s “Ready to bill” list.</p></div>',
+    foot:'<button type="button" class="ds-btn ds-btn--ghost" onclick="closeDrawer()">Cancel</button><button type="button" class="ds-btn ds-btn--primary" id="confirm-complete" onclick="confirmComplete(\''+jobId+'\')">'+icon('check')+'Confirm completed</button>' });
+}
+function confirmComplete(jobId){
+  const j = jobById(jobId);
+  if(needConfirm('Confirm job completed?', 'The job is handed to Accounting’s “Ready to bill” list.', 'Confirm completed', "confirmComplete('"+jobId+"')")) return;
+  j.status = 'Completed'; j.completed = { by:me(), on:todayDMY() }; j.billing = j.billing || { versions:[], payments:[] };
+  logTo(j, 'Job completed', 'Confirmed by '+me()+'. Ready to bill.');
+  notify({ roles:['Accounting'] }, 'Job '+j.id+' is completed and ready to bill.', '#/jobs/'+j.id+'/money');
+  notify({ users:j.ops.concat(j.sales) }, 'Job '+j.id+' was confirmed completed.', '#/jobs/'+j.id);
+  closeDrawer(); STATE.justNext = j.id; showToast(j.id+' completed. Accounting can bill it now.', 'success', 'check'); render();
+}
+function openSendBack(jobId){
+  const j = jobById(jobId);
+  openDrawer({ title:'Send back to Operations', sub:'<span class="ds-mono">'+j.id+'</span>',
+    body:'<form class="ds-stack--sm" id="back-form" novalidate onsubmit="event.preventDefault(); saveSendBack(\''+jobId+'\', this)"><div class="ds-field"><label for="bk-note">What still needs doing?</label><textarea class="ds-textarea" id="bk-note" name="note"></textarea>'+errorSlot('note')+'</div></form>',
+    foot: drawerFoot('Send back','back-form',{icon:'refresh'}) });
+}
+function saveSendBack(jobId, form){
   const note = String(new FormData(form).get('note')||'').trim();
-  if(!note){ fieldError(form,'note','Describe how it was settled.'); return; }
-  const j = jobById(jobId);
-  j.delivery.damageResolved = { note, by:CURRENT_USER.name, on:todayDMY() };
-  log(j, 'Damage resolved', note);
-  closeDrawer(); STATE.justNext = j.id; showToast('Damage marked resolved.', 'success', 'check'); render();
-}
-
-/* ---------- Details & history tabs ---------- */
-function jobDetailsTab(j){
-  const c = custById(j.customerId);
-  return '<div class="ds-stack">'+
-    '<div class="ds-grid-kv ds-kv">'+kv('Customer',esc(c.name))+kv('Consignee',esc(j.consignee))+kv('Commodity',esc(j.commodity))+kv('Route',esc(j.origin+' → '+j.portOfEntry+' → '+j.destination))+
-      kv('Container','<span class="ds-mono">'+esc(j.containerNo)+'</span>')+kv('Bill of lading','<span class="ds-mono">'+esc(j.blNo)+'</span>')+kv('Shipping line',esc(j.shippingLine))+
-      kv('Import / export',esc(j.importExportFlag))+kv('Ownership',esc(j.ownership))+(canSeeFunds()?kv('Declared value',money(j.declaredValue)):'')+kv('Quotation', j.quotationId?'<span class="ds-mono">'+esc(j.quotationId)+'</span>':'<span class="ds-muted">Not linked in sample data</span>')+'</div>'+
-    '<div class="ds-grid-2"><div class="ds-alert ds-alert--info">'+icon('info')+'<div><strong>Customer requirements</strong>'+esc(c.requirements)+'</div></div><div class="ds-alert ds-alert--info">'+icon('truck')+'<div><strong>Delivery instructions</strong>'+esc(c.instructions)+'</div></div></div>'+
-    '<p class="ds-mockbadge" style="white-space:normal">'+icon('info')+'To confirm with the client: several containers per job, vessel delay or rollover as its own status, and partial deliveries.</p></div>';
-}
-const HISTORY_ICON = { 'Job created':'plus', 'Stage changed':'arrow-right', 'Customs step':'shield', 'Task completed':'check', 'Task reassigned':'user', 'Document uploaded':'upload', 'Document approved':'check', 'Document rejected':'x',
-  'Exception raised':'flag', 'Exception approved':'check', 'Exception rejected':'x', 'Delivery confirmed':'truck', 'Funds received':'arrow-in', 'Charge recorded':'receipt', 'Ready for Finance':'receipt', 'Customs hold placed':'lock', 'Customs hold cleared':'check', 'Stage override':'alert' };
-function historyList(entries){
-  return '<ul class="ds-activity">'+entries.map(a=>'<li><span class="ds-activity__icon">'+icon(HISTORY_ICON[a.action]||(a.finance?'wallet':'clock'))+'</span><div><strong>'+esc(a.action)+'</strong> · '+esc(a.detail)+'<time>'+esc(a.ts)+' · '+esc(a.actor)+'</time></div></li>').join('')+'</ul>';
-}
-function jobHistoryTab(j){
-  const e = visibleAudit(j).slice().reverse();
-  return '<p class="ds-muted ds-small" style="margin-bottom:var(--t1m-space-2)">Every change to this job, newest first. '+(canSeeFunds()?'':'Money entries are hidden for your role.')+'</p>'+historyList(e);
-}
-
-/* ---------- Stage moves ---------- */
-function advanceStage(id){
-  const j = jobById(id), g = stageGate(j), n = nextStep(j);
-  if(isOnHold(j) || customsHold(j)){ showToast('This job is frozen. Resolve the block first.', 'danger', 'lock'); return; }
-  if(!g || g.items.some(i=>!i.met)){ showToast('Finish the checklist first: '+(g.items.find(i=>!i.met)||{}).label, 'danger', 'lock'); return; }
-  if(g.managerOnly ? !isManagerLike() : !canMoveStage()){ showToast('Your role cannot move this job on.', 'danger', 'lock'); return; }
-  if(j.statusIndex===4 && j.customs && j.customs.subIndex<CUSTOMS_SUBSTAGES.length-1){ showToast('Finish the customs steps first.', 'danger', 'lock'); return; }
-  j.statusIndex++;
-  const to = STATUS_STEPS[j.statusIndex];
-  if(to===CUSTOMS_PHASE && !j.customs) j.customs = { subIndex:0, lane:'Green', hold:null, paymentParty:null };
-  if(to==='Arrived at Port' && !j.storageDeadline) j.storageDeadline = addDaysDMY(5);
-  if(to==='Out for Delivery' && !j.detentionDeadline) j.detentionDeadline = addDaysDMY(5);
-  if(to==='Arrived at Port') j.eta = todayDMY();
-  log(j, to==='Closed'?'Job closed':'Stage changed', 'Moved to '+to+'.');
-  STATE.justAdvanced = { id, idx:j.statusIndex }; STATE.justNext = id;
-  showToast(j.id+' moved to '+to+'.', 'success', 'arrow-right');
-  render();
-}
-function openAdvanceCustoms(id){
-  const j = jobById(id);
-  openDrawer({ title:'Mark as Payment Pending', sub:'<span class="ds-mono">'+j.id+'</span> · customs has stated the duty',
-    body:'<form class="ds-stack--sm" id="party-form" onsubmit="event.preventDefault(); advanceCustoms(\''+id+'\', new FormData(this).get(\'party\'))">'+
-      '<p>Who pays the duty? The job page will show whose move it is, so nobody has to ask.</p>'+
-      '<label class="ds-check"><input type="radio" name="party" value="Top1Movers" checked> <span><strong class="ds-strong">Top1Movers pays</strong><br><span class="ds-muted ds-xs">From the client’s deposit, then bills back</span></span></label>'+
-      '<label class="ds-check"><input type="radio" name="party" value="Client"> <span><strong class="ds-strong">Waiting for the client</strong><br><span class="ds-muted ds-xs">The client must release funds or pay customs directly</span></span></label></form>',
-    foot: drawerFoot('Mark as Payment Pending','party-form',{icon:'arrow-right'}) });
-}
-function advanceCustoms(id, party){
-  const j = jobById(id);
-  if(customsHold(j) || isOnHold(j)){ showToast('Customs steps are frozen by a hold or an exception.', 'danger', 'lock'); return; }
-  const g = stageGate(j);
-  if(g.items.some(i=>!i.met)){ showToast('Finish the checklist first.', 'danger', 'lock'); return; }
-  j.customs.subIndex++;
-  const to = CUSTOMS_SUBSTAGES[j.customs.subIndex];
-  if(to==='Payment Pending') j.customs.paymentParty = party||'Top1Movers';
-  log(j, 'Customs step', 'Moved to '+to+(to==='Payment Pending'?' (waiting on '+j.customs.paymentParty+')':'')+'.');
-  STATE.justNext = id;
-  closeDrawer(); STATE.justNext = id;
-  showToast('Customs: '+to+'.', 'success', 'shield'); render();
-}
-/* Proof the client paid the duty: reuse the slip from a deposit recorded while we waited on
-   the client (Add funds received), otherwise ask for one here. Earlier deposits don't count. */
-function dutyDepositOnFile(j){ return j.fundsReceived.filter(f=>f.forDuty && f.evidence).slice(-1)[0] || null; }
-function openConfirmClientPaid(id){
-  const j = jobById(id), c = custById(j.customerId), onFile = dutyDepositOnFile(j);
-  const duty = j.charges.filter(x=>x.dueDate && !x.paidDate && isReimbursable(x));
-  const dutyRow = canSeeFunds() && duty.length ? '<dt>Duty due</dt><dd>'+money(sumOf(duty, x=>x.amount))+'</dd>' : '';
-  const proof = onFile
-    ? '<div class="ds-field"><label>Proof of payment</label><div class="ds-upload" data-filled="true"><div class="ds-upload__file">'+icon('file')+'<span>'+esc(onFile.evidence)+'</span></div></div><p class="ds-field__hint">Deposit slip already on file: '+(canSeeFunds()?money(onFile.amount)+', ':'')+'received '+esc(onFile.date)+'.</p></div>'
-    : '<div class="ds-field"><label>Proof of payment</label>'+uploadHtml('clientPaidProof','Bank slip or transfer confirmation from the client')+errorSlot('proof')+'<p class="ds-field__hint">Needed to confirm. It stays on the job’s record.</p></div>';
-  openDrawer({ title:'Confirm client payment', sub:'<span class="ds-mono">'+j.id+'</span> · '+esc(c.name),
-    body:'<form class="ds-stack--sm" id="client-paid-form" onsubmit="event.preventDefault(); setPaymentParty(\''+id+'\',\'Top1Movers\', this)">'+
-      '<div class="ds-alert ds-alert--warning">'+icon('alert')+'<div><strong>Only confirm once the money is in</strong>This tells the team the client has released the duty payment, and Top1Movers goes ahead and pays customs.</div></div>'+
-      '<dl class="ds-facts"><dt>Customer</dt><dd>'+esc(c.name)+'</dd><dt>Contact</dt><dd>'+esc(c.contact.name)+'</dd>'+dutyRow+'</dl>'+proof+
-      '<div class="ds-field"><label for="paid-note">How was it confirmed? <span class="ds-opt">optional</span></label><textarea class="ds-textarea" id="paid-note" name="note" placeholder="e.g. Bank transfer slip received by email"></textarea></div></form>',
-    foot: drawerFoot('Yes, client has paid','client-paid-form',{icon:'check'}) });
-}
-function setPaymentParty(id, party, form){
-  const j = jobById(id);
-  let proofFile = null;
-  if(form){
-    const onFile = dutyDepositOnFile(j);
-    proofFile = onFile ? onFile.evidence : UPLOADS.clientPaidProof;
-    if(fieldError(form,'proof', proofFile?'':'Attach the client’s proof of payment first.')) return;
-  }
-  j.customs.paymentParty = party;
-  if(proofFile) j.customs.paymentProof = proofFile;
-  const note = form ? String(new FormData(form).get('note')||'').trim() : '';
-  log(j, 'Customs step', (party==='Top1Movers'?'Client released the duty payment. Top1Movers to pay.':'Waiting on the client.')+(proofFile?' (proof: '+proofFile+')':'')+(note?' '+note:''));
-  closeDrawer();
-  STATE.justNext = id; showToast('Recorded: the client has released payment.', 'success', 'check'); render();
-}
-function openLane(id){
-  const j = jobById(id);
-  openDrawer({ title:'Customs lane', sub:'<span class="ds-mono">'+j.id+'</span> · set from the customs selectivity result',
-    body:'<form class="ds-stack--sm" id="lane-form" onsubmit="event.preventDefault(); saveLane(\''+id+'\', new FormData(this).get(\'lane\'))">'+
-      ['Green','Yellow','Red'].map(l=>'<label class="ds-check" style="align-items:flex-start"><input type="radio" name="lane" value="'+l+'"'+(j.customs.lane===l?' checked':'')+'> <span>'+pill(l, LANE_TONE[l], l==='Green'?'check':'alert','ds-pill--sm')+'<br><span class="ds-muted ds-xs">'+esc(LANE_MEANING[l])+'</span></span></label>').join('')+'</form>',
-    foot: drawerFoot('Save lane','lane-form') });
-}
-function saveLane(id, lane){ const j = jobById(id); j.customs.lane = lane; log(j, 'Customs lane set', 'Lane '+lane+'.'); closeDrawer(); showToast('Customs lane set to '+lane+'.', 'info', 'shield'); render(); }
-function openPlaceHold(id){
-  const j = jobById(id);
-  openDrawer({ title:'Place customs hold', sub:'<span class="ds-mono">'+j.id+'</span> · freezes the customs steps',
-    body:'<form class="ds-stack--sm" id="hold-form" onsubmit="event.preventDefault(); savePlaceHold(\''+id+'\', this)">'+
-      '<div class="ds-field"><span class="ds-field__label">Type</span><div class="ds-row"><label class="ds-check"><input type="radio" name="type" value="Under Inspection" checked> Under inspection</label><label class="ds-check"><input type="radio" name="type" value="On Hold"> On hold</label></div></div>'+
-      '<div class="ds-field"><label for="hold-note">What is customs waiting on?</label><textarea class="ds-textarea" id="hold-note" name="note"></textarea>'+errorSlot('note')+'</div></form>',
-    foot: drawerFoot('Place hold','hold-form',{icon:'lock', danger:true}) });
-}
-function savePlaceHold(id, form){
-  const fd = new FormData(form), note = String(fd.get('note')||'').trim();
-  if(!note){ fieldError(form,'note','Say what customs is waiting on.'); return; }
-  const j = jobById(id); j.customs.hold = { type:fd.get('type'), note, by:CURRENT_USER.name, on:todayDMY() };
-  log(j, 'Customs hold placed', j.customs.hold.type+': '+note);
-  closeDrawer(); STATE.justNext = id; showToast('Customs hold placed on '+j.id+'.', 'warning', 'lock'); render();
-}
-function clearCustomsHold(id){
-  if(!isManagerLike()){ showToast('Only a Manager or Admin can clear a customs hold.', 'danger', 'lock'); return; }
-  const j = jobById(id); const h = j.customs.hold;
-  log(j, 'Customs hold cleared', (h?h.type:'Hold')+' cleared.');
-  j.customs.hold = null; STATE.justNext = id;
-  showToast('Hold cleared. Customs steps can continue.', 'success', 'check'); render();
-}
-function openOverride(id){
-  const j = jobById(id);
-  const opts = [];
-  STATUS_STEPS.forEach((s,i)=>{ if(s===CUSTOMS_PHASE) CUSTOMS_SUBSTAGES.forEach((c,k)=>opts.push({ value:i+':'+k, label:'Customs Clearance · '+c })); else opts.push({ value:i+':', label:s }); });
-  const cur = j.statusIndex+':'+(STATUS_STEPS[j.statusIndex]===CUSTOMS_PHASE?j.customs.subIndex:'');
-  openDrawer({ title:'Override stage', sub:'<span class="ds-mono">'+j.id+'</span> · Manager / Admin only',
-    body:'<form class="ds-stack--sm" id="ov-form" onsubmit="event.preventDefault(); commitOverride(\''+id+'\', this)">'+
-      '<div class="ds-alert ds-alert--warning">'+icon('alert')+'<div><strong>Skips the checklist</strong>Real jobs are not always in order (customs is often filed before the ship arrives). Use it when that happens. The reason is written to the audit trail with your name.</div></div>'+
-      '<div class="ds-field"><label for="ov-to">Move to</label>'+selectWrap('<select class="ds-select" id="ov-to" name="to">'+options(opts, cur)+'</select>')+'</div>'+
-      '<div class="ds-field"><label for="ov-reason">Reason</label><textarea class="ds-textarea" id="ov-reason" name="reason" placeholder="Why is this job leaving the normal order?"></textarea>'+errorSlot('reason')+'</div></form>',
-    foot: drawerFoot('Override','ov-form',{icon:'alert', danger:true}) });
-}
-function commitOverride(id, form){
-  const fd = new FormData(form), reason = String(fd.get('reason')||'').trim();
-  if(!reason){ fieldError(form,'reason','A reason is required for an override.'); return; }
-  const j = jobById(id), [si, sub] = String(fd.get('to')).split(':');
-  j.statusIndex = +si;
-  if(STATUS_STEPS[j.statusIndex]===CUSTOMS_PHASE){ if(!j.customs) j.customs = { subIndex:0, lane:'Green', hold:null, paymentParty:null }; j.customs.subIndex = +sub; }
-  const label = STATUS_STEPS[j.statusIndex]+(sub!==''?' · '+CUSTOMS_SUBSTAGES[+sub]:'');
-  log(j, 'Stage override', 'Forced to '+label+'. Reason: '+reason);
-  closeDrawer(); STATE.justNext = id; showToast('Overridden to '+label+'. Logged.', 'warning', 'alert'); render();
+  if(fieldError(form,'note', note?'':'Say what still needs doing.')) return;
+  const j = jobById(jobId); j.status = 'Active'; j.submitted = null;
+  logTo(j, 'Sent back to Ops', note);
+  notify({ users:j.ops }, 'Job '+j.id+' was sent back: '+note, '#/jobs/'+j.id);
+  closeDrawer(); showToast('Sent back to Operations.', 'info', 'refresh'); render();
 }

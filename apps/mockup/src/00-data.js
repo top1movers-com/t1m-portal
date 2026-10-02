@@ -1,333 +1,325 @@
-/* ============================== MOCK DATA ==============================
-   Everything here is fictional. The portal's clock is frozen at Monday 28 Sep 2026 so that
-   "overdue", "days left" and fee clocks read the same in every demo. */
-const TODAY = new Date(2026, 8, 28);
+/* ============================== DATA ==============================
+   Only the demo USERS are seeded. Customers, inquiries, jobs and money start EMPTY and live in
+   memory for this browser session: everything created while testing disappears on refresh.
+   Requirements: docs/requirements/01–05. */
+const TODAY = (()=>{ const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); })();
 
-/* Dates are stored as "28 Sep 2026" strings, the way staff write them. */
+/* Dates are stored as "05 Oct 2026" strings, the way staff write them. */
 const MONTHS = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 function parseDMY(str){
   const m = str && String(str).match(/(\d{1,2}) (\w{3}) (\d{4})/);
   return m && MONTHS[m[2]]!=null ? new Date(+m[3], MONTHS[m[2]], +m[1]) : null;
 }
-// <input type="date"> speaks YYYY-MM-DD; the app stores "05 Oct 2026".
+function fmtDMY(d){ return String(d.getDate()).padStart(2,'0')+' '+Object.keys(MONTHS)[d.getMonth()]+' '+d.getFullYear(); }
 function dmyToISO(str){ const d = parseDMY(str); return d ? d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0') : ''; }
 function isoToDMY(iso){ const m = String(iso||'').match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? m[3]+' '+Object.keys(MONTHS)[+m[2]-1]+' '+m[1] : ''; }
 function daysUntil(str){ const d = parseDMY(str); return d ? Math.round((d - TODAY) / 86400000) : null; }
-function todayDMY(){ return String(TODAY.getDate()).padStart(2,'0')+' '+Object.keys(MONTHS)[TODAY.getMonth()]+' '+TODAY.getFullYear(); }
-function addDaysDMY(n){ const d = new Date(TODAY); d.setDate(d.getDate()+n); return String(d.getDate()).padStart(2,'0')+' '+Object.keys(MONTHS)[d.getMonth()]+' '+d.getFullYear(); }
-function nowStamp(){ const d=new Date(); let h=d.getHours(); const ap=h>=12?'PM':'AM'; h=h%12||12; return todayDMY()+' '+h+':'+String(d.getMinutes()).padStart(2,'0')+' '+ap; }
+function daysBetween(a, b){ const x = parseDMY(a), y = parseDMY(b); return x && y ? Math.round((y - x) / 86400000) : null; }
+function todayDMY(){ return fmtDMY(TODAY); }
+function addDaysDMY(n, from){ const d = new Date(from ? parseDMY(from) : TODAY); d.setDate(d.getDate()+n); return fmtDMY(d); }
+function nowStamp(){ const d = new Date(); let h = d.getHours(); const ap = h>=12?'PM':'AM'; h = h%12||12; return todayDMY()+' '+h+':'+String(d.getMinutes()).padStart(2,'0')+' '+ap; }
 function shortDate(str){ return String(str||'').replace(/ \d{4}$/,''); }
+function todayLong(){ return TODAY.toLocaleDateString('en-PH', { weekday:'long', day:'numeric', month:'long', year:'numeric' }); }
 
-const CUSTOMERS = [
-  { id:'CUST-01', name:'Sample Trading Co.', city:'Manila, PH', contact:{name:'Ana Reyes',email:'ana.reyes@sampletrading.example',phone:'+63 917 000 1234'},
-    consignees:[{name:'Sample Trading Co. — Cebu Branch',address:'123 Osmeña Blvd, Cebu City, PH'}],
-    deliveryAddresses:['Warehouse 4, Pier 15, Manila North Harbor, PH'],
-    requirements:'Temperature-controlled container for perishable SKUs.', instructions:'Call the receiving dock 30 minutes before arrival, Mon–Fri 8AM–5PM only.' },
-  { id:'CUST-02', name:'Golden Harvest Exports Inc.', city:'Batangas, PH', contact:{name:'Marco Villanueva',email:'marco.v@goldenharvest.example',phone:'+63 917 000 5678'},
-    consignees:[{name:'Golden Harvest — Davao Depot',address:'Km 12 Diversion Rd, Davao City, PH'}],
-    deliveryAddresses:['Bldg 7, Batangas Container Terminal, PH'],
-    requirements:'Documentation must match Bureau of Customs HS codes exactly.', instructions:'Provide 48-hour pickup notice.' },
-  { id:'CUST-03', name:'Pacific Rim Logistics Partners', city:'Subic, PH', contact:{name:'Liza Fernandez',email:'liza.f@pacificrimlp.example',phone:'+63 917 000 9012'},
-    consignees:[{name:'Pacific Rim — Iloilo Cross-dock',address:'Sto Niño Wharf, Iloilo City, PH'}],
-    deliveryAddresses:['Subic Bay Freeport Zone, Bldg 22, PH'],
-    requirements:'Dry van only, no reefer.', instructions:'Consignee requires 1-hour delivery window confirmation by SMS.' },
-  { id:'CUST-04', name:'BlueWave Distribution Corp.', city:'Cavite, PH', contact:{name:'Ramon Cruz',email:'ramon.cruz@bluewavedist.example',phone:'+63 917 000 3456'},
-    consignees:[{name:'BlueWave — Laguna Hub',address:'LTI Compound, Biñan, Laguna, PH'}],
-    deliveryAddresses:['PEZA Zone 3, Cavite, PH'],
-    requirements:'Fragile goods — stacking limit 2 pallets high.', instructions:'No weekend deliveries.' },
-  { id:'CUST-05', name:'Meridian Import Export Ltd.', city:'Manila, PH', contact:{name:'Gloria Tan',email:'gloria.tan@meridianie.example',phone:'+63 917 000 7890'},
-    consignees:[{name:'Meridian — Pasig Distribution',address:'Ortigas Ave Ext, Pasig City, PH'}],
-    deliveryAddresses:['Manila South Harbor, Berth 6, PH'],
-    requirements:'Insurance certificate required for all shipments over ₱2,000,000.', instructions:'Deliver with 2-person unloading crew.' }
-];
-const custById = id => CUSTOMERS.find(c=>c.id===id);
-
-/* Which dispatcher owns each customer's account. The dispatcher is the job's coordinator. */
-const DISPATCHER_FOR_CUSTOMER = { 'CUST-01':'Ana Cruz', 'CUST-02':'Ana Cruz', 'CUST-03':'Ana Cruz', 'CUST-04':'Cathy Lim', 'CUST-05':'Ana Cruz' };
-function coordinatorFor(customerId){ return DISPATCHER_FOR_CUSTOMER[customerId] || 'Ana Cruz'; }
-
-/* An inquiry needs these before it can become a job. Anything empty is "missing information":
-   you can still price the request, but you cannot run a shipment without it. */
-const CONTAINER_TYPES = ['20ft dry','40ft dry','40ft high cube','40ft reefer','LCL (shared container)'];
-const INQUIRY_REQUIRED = [
-  { key:'containerType', label:'Container type' },
-  { key:'pickupDate', label:'Requested pickup date' },
-  { key:'deliveryAddress', label:'Consignee delivery address' }
-];
-let INQUIRIES = [
-  { id:'INQ-2026-0041', customerId:'CUST-01', dateReceived:'10 Sep 2026', assignedTo:'Ana Cruz', cargo:'Canned goods, 2 containers', origin:'Shanghai, CN', portOfEntry:'Manila, PH', destination:'Cebu, PH',
-    containerType:'20ft dry', pickupDate:'15 Sep 2026', deliveryAddress:'123 Osmeña Blvd, Cebu City, PH', status:'Converted', quotationId:'QT-2026-0041' },
-  { id:'INQ-2026-0042', customerId:'CUST-02', dateReceived:'15 Sep 2026', assignedTo:'Ana Cruz', cargo:'Frozen goods, 1 reefer', origin:'Ningbo, CN', portOfEntry:'Batangas, PH', destination:'Davao, PH',
-    containerType:'40ft reefer', pickupDate:'02 Oct 2026', deliveryAddress:'', status:'Quoted', quotationId:'QT-2026-0042' },
-  { id:'INQ-2026-0043', customerId:'CUST-03', dateReceived:'22 Sep 2026', assignedTo:'Ana Cruz', cargo:'Electronics, palletized', origin:'Busan, KR', portOfEntry:'Subic, PH', destination:'Iloilo, PH',
-    containerType:'', pickupDate:'', deliveryAddress:'Sto Niño Wharf, Iloilo City, PH', status:'New', quotationId:null },
-  { id:'INQ-2026-0044', customerId:'CUST-04', dateReceived:'18 Sep 2026', assignedTo:'Cathy Lim', cargo:'Glassware, palletized', origin:'Ningbo, CN', portOfEntry:'Cavite, PH', destination:'Laguna, PH',
-    containerType:'40ft dry', pickupDate:'25 Sep 2026', deliveryAddress:'LTI Compound, Biñan, Laguna, PH', status:'Declined', quotationId:null, declineReason:'Customer chose another forwarder on price.' }
-];
-function inquiryMissing(i){ return INQUIRY_REQUIRED.filter(f=>!String(i[f.key]||'').trim()).map(f=>f.label); }
-
-let QUOTATIONS = {
-  'QT-2026-0041': { id:'QT-2026-0041', inquiryId:'INQ-2026-0041',
-    versions:[
-      { v:1, date:'11 Sep 2026', total:186000, terms:'Net 30, FOB Manila', notes:'Initial quote based on standard dry container rate.' },
-      { v:2, date:'12 Sep 2026', total:174500, terms:'Net 30, FOB Manila', notes:'Adjusted freight rate after customer requested 2 containers instead of 1.' },
-      { v:3, date:'13 Sep 2026', total:174500, terms:'Net 45, FOB Manila', notes:'Payment terms revised to Net 45 per customer request.' }
-    ],
-    conforme:{ approvedBy:'Ana Reyes', date:'14 Sep 2026', method:'Signed conforme (PDF)', file:'conforme-QT-2026-0041-v3.pdf', version:3 } },
-  'QT-2026-0042': { id:'QT-2026-0042', inquiryId:'INQ-2026-0042',
-    versions:[ { v:1, date:'16 Sep 2026', total:245000, terms:'Net 30, FOB Batangas', notes:'Reefer container rate, temperature-controlled.' } ],
-    conforme:null }
+/* ============================== SERVICES ==============================
+   Picked (any combination) when the Manager creates an inquiry. Scope and direction decide which
+   ones make sense: Domestic has no customs or accreditation; Export has no importer accreditation. */
+const SCOPES = ['Domestic','International'];
+const DIRECTIONS = ['Import','Export'];
+const SERVICE_ORDER = ['accreditation','freight','customs','trucking','warehousing','lto'];
+const SERVICES = {
+  accreditation:{ label:'Importer Accreditation', short:'Accreditation', icon:'shield' },
+  freight:{ label:'Freight Forwarding', short:'Freight', icon:'ship' },
+  customs:{ label:'Customs Clearance', short:'Customs', icon:'file' },
+  trucking:{ label:'Trucking / Delivery', short:'Trucking', icon:'truck' },
+  warehousing:{ label:'Warehousing & Distribution', short:'Warehousing', icon:'building' },
+  lto:{ label:'LTO Transaction', short:'LTO', icon:'book' }
 };
-
-const OWNERS = ['Ana Cruz','Ben Santos','Cathy Lim','Rico Domingo'];
-
-/* ---------- The workflow ----------
-   Nine stages a shipment job moves through, in order. Customs Clearance has seven inner steps of
-   its own; the main track stays scannable and shows customs progress as a small inner meter. */
-const STATUS_STEPS = ['Booked','Documentation','Sailed','Arrived at Port','Customs Clearance','Out for Delivery','Delivered','Billing Ready','Closed'];
-const STAGE_HINT = [
-  'Booking confirmed with the shipping line.',
-  'Collecting and checking the five shipping documents.',
-  'The vessel has left the origin port.',
-  'The container is at the Philippine port. Free storage days are running.',
-  'Lodging the entry, paying duties and getting the goods released.',
-  'Released and on a truck to the consignee.',
-  'Received with proof of delivery. The empty container must go back.',
-  'Money checked and handed to Finance.',
-  'Nothing left to do.'
-];
-const PHASES = [
-  { label:'Pre-shipment', stages:[0,1] },
-  { label:'On the water', stages:[2] },
-  { label:'Port & customs', stages:[3,4] },
-  { label:'Delivery', stages:[5,6] },
-  { label:'Finance', stages:[7,8] }
-];
-const CUSTOMS_PHASE = 'Customs Clearance';
-const CUSTOMS_SUBSTAGES = ['Lodging Pending','Lodged','Assessment Pending','Payment Pending','Payment Completed','Release Pending','Released'];
-const LANE_TONE = { 'Green':'success','Yellow':'warning','Red':'danger' };
-const LANE_MEANING = { 'Green':'Light check: documents only, fastest release.', 'Yellow':'Document review by customs before release.', 'Red':'Physical inspection of the container. Takes longest.' };
-const PRIORITY_TONE = { 'Low':'neutral','Normal':'neutral','High':'warning','Urgent':'danger' };
-const SHIPPING_LINES = ['Maersk','MSC','CMA CGM','COSCO Shipping','Evergreen Marine','ONE (Ocean Network Express)'];
-
-const FLAT_SEQUENCE = [];
-STATUS_STEPS.forEach(phase=>{
-  if(phase===CUSTOMS_PHASE) CUSTOMS_SUBSTAGES.forEach(sub=>FLAT_SEQUENCE.push({phase,sub}));
-  else FLAT_SEQUENCE.push({phase,sub:null});
-});
-function flatIndexOf(phase, sub){ return FLAT_SEQUENCE.findIndex(f=>f.phase===phase && f.sub===(sub||null)); }
-function jobFlatIndex(j){
-  const phase = STATUS_STEPS[j.statusIndex];
-  const sub = phase===CUSTOMS_PHASE && j.customs ? CUSTOMS_SUBSTAGES[j.customs.subIndex] : null;
-  return flatIndexOf(phase, sub);
+function serviceAllowed(key, scope, direction){
+  if(scope==='Domestic') return !['customs','accreditation'].includes(key);
+  if(direction==='Export') return key!=='accreditation';
+  return true;
 }
-
-function crewFor(j){ const n = parseInt(String(j.id||'').replace(/\D/g,'').slice(-3), 10) || 0; return n%2 ? 'Ben Santos' : 'Rico Domingo'; }
-
-/* The standard import task list. Each task belongs to the point in the workflow where it
-   becomes today's work; some need proof (a file) before they can be marked done. */
-const TASK_MILESTONES = [
-  { name:'Verify shipment documents complete', evidence:true, atPhase:'Documentation' },
-  { name:'Lodge customs entry', evidence:true, atPhase:CUSTOMS_PHASE, atSub:'Lodging Pending' },
-  { name:'Pay duties and assessment', evidence:true, atPhase:CUSTOMS_PHASE, atSub:'Payment Pending', money:true },
-  { name:'Secure delivery order', evidence:false, atPhase:CUSTOMS_PHASE, atSub:'Release Pending' },
-  { name:'Book delivery truck', evidence:false, atPhase:CUSTOMS_PHASE, atSub:'Released' },
-  { name:'Deliver to consignee', evidence:true, crew:true, atPhase:'Out for Delivery', via:'delivery' },
-  { name:'Return empty container', evidence:false, crew:true, atPhase:'Delivered', detention:true }
-];
-const DOC_TEMPLATE = ['Commercial Invoice','Packing List','Bill of Lading','Certificate of Origin','Import Permit'];
-
-function defaultTasks(j){
-  const jobFlat = jobFlatIndex(j);
-  return TASK_MILESTONES.map((t,i)=>{
-    const flat = flatIndexOf(t.atPhase, t.atSub||null);
-    const done = jobFlat > flat;
-    const owner = t.crew ? crewFor(j) : coordinatorFor(j.customerId);
-    return {
-      id:'T'+(i+1), name:t.name, owner, flat,
-      due: done ? null : (jobFlat===flat ? '30 Sep 2026' : '0'+(3+i)+' Oct 2026'),
-      done, requiresEvidence:t.evidence, detention:!!t.detention, via:t.via||null, money:!!t.money,
-      evidenceFile: done && t.evidence ? t.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-evidence.pdf' : null,
-      note:null, doneBy: done ? owner : null, doneOn: done ? '2026-09-'+String(10+i).padStart(2,'0') : null
-    };
-  });
+function serviceBlockReason(key, scope, direction){
+  if(scope==='Domestic' && ['customs','accreditation'].includes(key)) return 'Not used for domestic shipments';
+  if(direction==='Export' && key==='accreditation') return 'Importers only';
+  return '';
 }
-function defaultDocuments(statusIndex){
-  return DOC_TEMPLATE.map((name,i)=>({
-    id:'D'+(i+1), name, version: statusIndex>0 ? 1 : 0,
-    status: statusIndex>1 ? 'Approved' : (statusIndex>0 ? 'Pending Review' : 'Missing'),
-    rejectReason:null, file: statusIndex>0 ? name.toLowerCase().replace(/ /g,'-')+'-v1.pdf' : null
-  }));
-}
-function job(o){
-  const j = Object.assign({
-    exceptions:[], delivery:{confirmed:false}, charges:[], fundsReceived:[],
-    customs:null, priority:'Normal', importExportFlag:'Import',
-    storageDeadline:null, detentionDeadline:null,
-    auditLog:[{ ts:'—', actor:'System', action:'Job created', detail:'Converted from inquiry/quotation. No re-keying.' }]
-  }, o);
-  if(!o.tasks) j.tasks = defaultTasks(j);
-  if(!o.documents) j.documents = defaultDocuments(j.statusIndex);
-  return j;
-}
-function releasedCustoms(lane){ return { subIndex:CUSTOMS_SUBSTAGES.indexOf('Released'), lane:lane||'Green', hold:null, paymentParty:null }; }
+const CARGO_TYPES = ['FCL','LCL','RoRo','Air','Bulk','Breakbulk','Land (truck)'];
+const CARGO_TYPE_SHORT = { 'FCL':'Full container load', 'LCL':'Shared container', 'RoRo':'Drive-on vehicles', 'Air':'By plane', 'Bulk':'Loose goods in the hold', 'Breakbulk':'Oversized, piece by piece', 'Land (truck)':'Road only' };
+const CARGO_TYPE_INFO = {
+  'FCL':'Full container load: one shipper fills a whole container. Adds the empty-container steps and, on imports with delivery, the container free-time clock.',
+  'LCL':'Less than container load: the cargo shares a container with other shippers and is deconsolidated at the destination port.',
+  'RoRo':'Roll-on/roll-off: vehicles and wheeled cargo are driven onto the vessel, not put in containers.',
+  'Air':'Air freight: the cargo travels by plane on an air waybill.',
+  'Bulk':'Loose, unpackaged goods such as grain, coal or liquids, loaded straight into the ship’s hold.',
+  'Breakbulk':'Oversized or heavy goods that do not fit a container, loaded piece by piece.',
+  'Land (truck)':'Moved by road only, with no sea or air leg.'
+};
+const CHANNELS = ['Email','Viber','WhatsApp','Phone call','Text message','Walk-in'];
+const CURRENCIES = ['PHP','USD'];
+const USD_PHP = 56; /* mock rate, used only to compare quoted vs billed in reports */
 
-let JOBS = [
-  job({ id:'SJ-2026-00101', customerId:'CUST-01', commodity:'Canned goods', origin:'Shanghai, CN', portOfEntry:'Manila, PH', destination:'Cebu, PH',
-    containerNo:'TMWU-330218-4', blNo:'BL-2026-04471', consignee:'Sample Trading Co. — Cebu Branch', ownership:'Direct',
-    shippingLine:'Maersk', vessel:'Maersk Shenzhen', voyage:'118E', declaredValue:1850000,
-    eta:'20 Sep 2026', statusIndex:7, quotationId:'QT-2026-0041', billingReadyDays:1,
-    customs:releasedCustoms('Green'),
-    delivery:{ confirmed:true, date:'20 Sep 2026', receiver:'A. Reyes (Cebu Branch)', damage:false, podFile:'POD-SJ-2026-00101.pdf' },
-    /* Matches apps/mockup/assets/sample-invoice-SJ-2026-00101.pdf, which is pre-built; keep in sync by hand. */
-    charges:[ {id:'C1',desc:'Ocean freight',category:'Freight',amount:132000,evidence:'freight-invoice.pdf',type:'Reimbursable',quoted:true,paidDate:'14 Sep 2026',dueDate:null}, {id:'C2',desc:'Customs duty',category:'Duties & Taxes',amount:18400,evidence:'boc-receipt.pdf',type:'Reimbursable',quoted:true,paidDate:'17 Sep 2026',dueDate:null}, {id:'C3',desc:'Documentation fee',category:'Fees',amount:3500,evidence:'docfee-receipt.pdf',type:'Service fee',quoted:true,paidDate:null,dueDate:null} ],
-    fundsReceived:[ {id:'F1',date:'10 Sep 2026',amount:135000,method:'Bank transfer',reference:'BT-778120',evidence:'deposit-slip-1.pdf'}, {id:'F2',date:'16 Sep 2026',amount:5000,method:'Bank transfer',reference:'BT-778392',evidence:'deposit-slip-2.pdf'} ],
-    auditLog:[
-      { ts:'13 Sep 2026 4:02 PM', actor:'Ana Cruz (Dispatcher)', action:'Client approval recorded', detail:'QT-2026-0041 v3 approved by Ana Reyes.' },
-      { ts:'13 Sep 2026 4:10 PM', actor:'Ana Cruz (Dispatcher)', action:'Job created', detail:'Converted from INQ-2026-0041 / QT-2026-0041. No re-keying.' },
-      { ts:'27 Sep 2026 5:10 PM', actor:'Grace Tan (Manager)', action:'Ready for Finance', detail:'Billing checklist complete. Handed to Finance.' }
-    ] }),
-  job({ id:'SJ-2026-00095', customerId:'CUST-02', commodity:'Frozen goods (reefer)', origin:'Ningbo, CN', portOfEntry:'Batangas, PH', destination:'Davao, PH',
-    containerNo:'TMWU-118845-1', blNo:'BL-2026-04412', consignee:'Golden Harvest — Davao Depot', ownership:'Agent',
-    shippingLine:'COSCO Shipping', vessel:'COSCO Fortune', voyage:'112W', declaredValue:920000, priority:'High',
-    eta:'08 Oct 2026', statusIndex:1,
-    documents:[
-      { id:'D1', name:'Commercial Invoice', version:1, status:'Approved', rejectReason:null, file:'commercial-invoice-v1.pdf' },
-      { id:'D2', name:'Packing List', version:1, status:'Approved', rejectReason:null, file:'packing-list-v1.pdf' },
-      { id:'D3', name:'Bill of Lading', version:1, status:'Pending Review', rejectReason:null, file:'bill-of-lading-v1.pdf' },
-      { id:'D4', name:'Certificate of Origin', version:2, status:'Rejected', rejectReason:'Signature block expired. Reissue with the current authorized signatory.', file:'certificate-of-origin-v2.pdf' },
-      { id:'D5', name:'Import Permit', version:0, status:'Missing', rejectReason:null, file:null }
-    ] }),
-  job({ id:'SJ-2026-00088', customerId:'CUST-03', commodity:'Electronics (palletized)', origin:'Busan, KR', portOfEntry:'Subic, PH', destination:'Iloilo, PH',
-    containerNo:'TMWU-552091-7', blNo:'BL-2026-04380', consignee:'Pacific Rim — Iloilo Cross-dock', ownership:'Direct',
-    shippingLine:'ONE (Ocean Network Express)', vessel:'ONE Busan', voyage:'078N', declaredValue:640000,
-    eta:'05 Oct 2026', statusIndex:2, storageDeadline:'10 Oct 2026' }),
-  job({ id:'SJ-2026-00082', customerId:'CUST-04', commodity:'Glassware (palletized)', origin:'Ningbo, CN', portOfEntry:'Cavite, PH', destination:'Laguna, PH',
-    containerNo:'TMWU-771002-9', blNo:'BL-2026-04355', consignee:'BlueWave — Laguna Hub', ownership:'Direct',
-    shippingLine:'Maersk', vessel:'Maersk Ningbo', voyage:'203S', declaredValue:410000, priority:'High',
-    eta:'22 Sep 2026', statusIndex:3, storageDeadline:'26 Sep 2026',
-    tasks:(()=>{ const t=defaultTasks({id:'SJ-2026-00082', customerId:'CUST-04', statusIndex:3}); const k=t.findIndex(x=>x.name==='Lodge customs entry'); t[k]={...t[k], due:'24 Sep 2026'}; return t; })() }),
-  job({ id:'SJ-2026-00077', customerId:'CUST-05', commodity:'Insured goods', origin:'Shanghai, CN', portOfEntry:'Manila, PH', destination:'Pasig, PH',
-    containerNo:'TMWU-990117-2', blNo:'BL-2026-04301', consignee:'Meridian — Pasig Distribution', ownership:'Direct',
-    shippingLine:'CMA CGM', vessel:'CMA CGM Shanghai', voyage:'091W', declaredValue:2650000,
-    eta:'28 Sep 2026', statusIndex:5, detentionDeadline:'03 Oct 2026',
-    customs:releasedCustoms('Green') }),
-  job({ id:'SJ-2026-00130', customerId:'CUST-01', commodity:'Canned goods', origin:'Shanghai, CN', portOfEntry:'Manila, PH', destination:'Cebu, PH',
-    containerNo:'TMWU-330301-8', blNo:'BL-2026-04599', consignee:'Sample Trading Co. — Cebu Branch', ownership:'Direct',
-    shippingLine:'CMA CGM', vessel:'CMA CGM Shanghai', voyage:'094W', declaredValue:1980000, priority:'Urgent',
-    eta:'24 Sep 2026', statusIndex:4, storageDeadline:'01 Oct 2026',
-    customs:{ subIndex:CUSTOMS_SUBSTAGES.indexOf('Lodged'), lane:'Red', hold:{ type:'Under Inspection', note:'BOC flagged the shipment for physical examination at the container yard.', by:'Grace Tan', on:'26 Sep 2026' }, paymentParty:null } }),
-  job({ id:'SJ-2026-00070', customerId:'CUST-01', commodity:'Canned goods', origin:'Shanghai, CN', portOfEntry:'Manila, PH', destination:'Cebu, PH',
-    containerNo:'TMWU-330099-3', blNo:'BL-2026-04205', consignee:'Sample Trading Co. — Cebu Branch', ownership:'Direct',
-    shippingLine:'Maersk', vessel:'Maersk Shenzhen', voyage:'115E', declaredValue:1720000,
-    eta:'25 Sep 2026', statusIndex:6, detentionDeadline:'30 Sep 2026',
-    customs:releasedCustoms('Green'),
-    delivery:{ confirmed:true, date:'25 Sep 2026', receiver:'J. Manalo (Warehouse Supervisor)', damage:false, podFile:'POD-SJ-2026-00070.pdf' },
-    charges:[ {id:'C1',desc:'Ocean freight',category:'Freight',amount:120000,evidence:'freight-invoice.pdf',type:'Reimbursable',quoted:true,paidDate:'15 Sep 2026',dueDate:null},
-      {id:'C2',desc:'Customs duty',category:'Duties & Taxes',amount:16500,evidence:'boc-receipt.pdf',type:'Reimbursable',quoted:true,paidDate:'20 Sep 2026',dueDate:null},
-      {id:'C3',desc:'Port handling fee',category:'Fees',amount:2400,evidence:null,type:'Reimbursable',quoted:true,paidDate:'24 Sep 2026',dueDate:null},
-      {id:'C4',desc:'Extra storage fee',category:'Fees',amount:6800,evidence:'storage-receipt.pdf',type:'Reimbursable',quoted:false,paidDate:'27 Sep 2026',dueDate:null},
-      {id:'C5',desc:'Documentation fee',category:'Fees',amount:3500,evidence:'docfee-receipt.pdf',type:'Service fee',quoted:true,paidDate:null,dueDate:null} ],
-    fundsReceived:[ {id:'F1',date:'10 Sep 2026',amount:160000,method:'Bank transfer',reference:'BT-771554',evidence:'deposit-slip.pdf'} ] }),
-  job({ id:'SJ-2026-00065', customerId:'CUST-02', commodity:'Frozen goods (reefer)', origin:'Ningbo, CN', portOfEntry:'Batangas, PH', destination:'Davao, PH',
-    containerNo:'TMWU-118820-5', blNo:'BL-2026-04188', consignee:'Golden Harvest — Davao Depot', ownership:'Agent',
-    shippingLine:'COSCO Shipping', vessel:'COSCO Ningbo', voyage:'109W', declaredValue:880000, priority:'High',
-    eta:'23 Sep 2026', statusIndex:4, storageDeadline:'29 Sep 2026',
-    customs:{ subIndex:CUSTOMS_SUBSTAGES.indexOf('Payment Pending'), lane:'Yellow', hold:null, paymentParty:'Client' },
-    exceptions:[{ id:'EX1', stage:'Customs Clearance', category:'Documentation Discrepancy', reason:'HS code on the commercial invoice does not match the Bill of Lading.', impact:'High', impactNote:'Up to 3-day clearance delay', raisedBy:'Ben Santos (Warehouse Crew)', date:'26 Sep 2026', status:'Pending Approval', evidence:'discrepancy-photo.jpg', correctiveTaskId:null }] }),
-  job({ id:'SJ-2026-00120', customerId:'CUST-02', commodity:'Frozen goods (reefer)', origin:'Ningbo, CN', portOfEntry:'Batangas, PH', destination:'Davao, PH',
-    containerNo:'TMWU-118899-2', blNo:'BL-2026-04520', consignee:'Golden Harvest — Davao Depot', ownership:'Agent',
-    shippingLine:'COSCO Shipping', vessel:'COSCO Harmony', voyage:'121W', declaredValue:760000,
-    eta:'25 Sep 2026', statusIndex:4, storageDeadline:'30 Sep 2026',
-    customs:{ subIndex:CUSTOMS_SUBSTAGES.indexOf('Payment Pending'), lane:'Green', hold:null, paymentParty:'Top1Movers' },
-    charges:[ {id:'C1',desc:'Ocean freight',category:'Freight',amount:96000,evidence:'freight-invoice.pdf',type:'Reimbursable',quoted:true,paidDate:'20 Sep 2026',dueDate:null},
-      {id:'C2',desc:'Customs duty',category:'Duties & Taxes',amount:18400,evidence:'boc-assessment.pdf',type:'Reimbursable',quoted:true,paidDate:null,dueDate:'30 Sep 2026'} ],
-    fundsReceived:[ {id:'F1',date:'18 Sep 2026',amount:106000,method:'Bank transfer',reference:'BT-780043',evidence:'deposit-slip.pdf'} ] }),
-  job({ id:'SJ-2026-00060', customerId:'CUST-03', commodity:'Electronics (palletized)', origin:'Busan, KR', portOfEntry:'Subic, PH', destination:'Iloilo, PH',
-    containerNo:'TMWU-552040-2', blNo:'BL-2026-04099', consignee:'Pacific Rim — Iloilo Cross-dock', ownership:'Direct',
-    shippingLine:'ONE (Ocean Network Express)', vessel:'ONE Busan', voyage:'074N', declaredValue:610000,
-    eta:'20 Sep 2026', statusIndex:7, billingReadyDays:6,
-    customs:releasedCustoms('Green'),
-    delivery:{ confirmed:true, date:'20 Sep 2026', receiver:'R. Aquino (Site Lead)', damage:false, podFile:'POD-SJ-2026-00060.pdf' },
-    charges:[ {id:'C1',desc:'Ocean freight',category:'Freight',amount:132000,markup:5000,evidence:'freight-invoice.pdf',type:'Reimbursable',quoted:true,paidDate:'12 Sep 2026',dueDate:null}, {id:'C2',desc:'Customs duty',category:'Duties & Taxes',amount:18400,evidence:'boc-receipt.pdf',type:'Reimbursable',quoted:true,paidDate:'15 Sep 2026',dueDate:null}, {id:'C3',desc:'Documentation fee',category:'Fees',amount:3500,evidence:'docfee-receipt.pdf',type:'Service fee',quoted:true,paidDate:null,dueDate:null} ],
-    fundsReceived:[ {id:'F1',date:'08 Sep 2026',amount:100000,method:'Bank transfer',reference:'BT-768801',evidence:'deposit-slip-1.pdf'}, {id:'F2',date:'11 Sep 2026',amount:75000,method:'Bank transfer',reference:'BT-769015',evidence:'deposit-slip-2.pdf'} ] }),
-  job({ id:'SJ-2026-00050', customerId:'CUST-04', commodity:'Glassware (palletized)', origin:'Ningbo, CN', portOfEntry:'Cavite, PH', destination:'Laguna, PH',
-    containerNo:'TMWU-771050-1', blNo:'BL-2026-03950', consignee:'BlueWave — Laguna Hub', ownership:'Direct',
-    shippingLine:'Maersk', vessel:'Maersk Ningbo', voyage:'198S', declaredValue:395000, priority:'Low',
-    eta:'10 Sep 2026', statusIndex:8,
-    customs:releasedCustoms('Green'),
-    delivery:{ confirmed:true, date:'10 Sep 2026', receiver:'F. Domingo (Receiving)', damage:false, podFile:'POD-SJ-2026-00050.pdf' },
-    charges:[ {id:'C1',desc:'Ocean freight',category:'Freight',amount:98000,evidence:'freight-invoice.pdf',type:'Reimbursable',quoted:true,paidDate:'02 Sep 2026',dueDate:null}, {id:'C2',desc:'Storage fee',category:'Fees',amount:4200,evidence:'storage-receipt.pdf',type:'Reimbursable',quoted:true,paidDate:'05 Sep 2026',dueDate:null}, {id:'C3',desc:'Documentation fee',category:'Fees',amount:2500,evidence:'docfee-receipt.pdf',type:'Service fee',quoted:true,paidDate:null,dueDate:null} ],
-    fundsReceived:[ {id:'F1',date:'30 Aug 2026',amount:100000,method:'Bank transfer',reference:'BT-761220',evidence:'deposit-slip-1.pdf'}, {id:'F2',date:'04 Sep 2026',amount:4700,method:'Bank transfer',reference:'BT-762377',evidence:'deposit-slip-2.pdf'} ] }),
-  job({ id:'SJ-2026-00110', customerId:'CUST-05', commodity:'Insured goods', origin:'Shanghai, CN', portOfEntry:'Manila, PH', destination:'Pasig, PH',
-    containerNo:'TMWU-990201-6', blNo:'BL-2026-04502', consignee:'Meridian — Pasig Distribution', ownership:'Direct',
-    shippingLine:'CMA CGM', vessel:'CMA CGM Shanghai', voyage:'095W', declaredValue:2100000,
-    eta:'12 Oct 2026', statusIndex:0 })
-];
-const jobById = id => JOBS.find(j=>j.id===id);
-
-/* A believable dated history for every seed job, so the audit trail and its date filter have
-   something real to show. */
-(function seedHistory(){
-  const CREATED = { '00095':18, '00088':16, '00082':12, '00077':10, '00130':14, '00070':5, '00065':13, '00120':14, '00060':2, '00050':-6, '00110':27 };
-  const END = { '00060':22, '00050':15, '00070':25 };
-  const day = n => n>0 ? (String(n).padStart(2,'0')+' Sep 2026') : (String(31+n).padStart(2,'0')+' Aug 2026');
-  const times = ['9:05 AM','10:20 AM','11:45 AM','1:30 PM','2:15 PM','3:40 PM','4:10 PM','9:50 AM'];
-  JOBS.forEach(j=>{
-    const key = j.id.slice(-5), d0 = CREATED[key];
-    if(d0!=null && j.auditLog.length===1 && j.auditLog[0].ts==='—'){
-      const who = coordinatorFor(j.customerId)+' (Dispatcher)';
-      const end = END[key] || 27;
-      const log = [{ ts:day(d0)+' '+times[0], actor:who, action:'Job created', detail:'Converted from inquiry/quotation. No re-keying.' }];
-      for(let k=1;k<=j.statusIndex;k++){
-        const dd = Math.max(d0, Math.round(d0 + k*(end-d0)/Math.max(1,j.statusIndex)));
-        const label = STATUS_STEPS[k];
-        log.push(label==='Billing Ready'
-          ? { ts:day(dd)+' '+times[k%8], actor:'Grace Tan (Manager)', action:'Ready for Finance', detail:'Billing checklist complete. Handed to Finance.' }
-          : label==='Closed'
-          ? { ts:day(dd)+' '+times[k%8], actor:'Grace Tan (Manager)', action:'Job closed', detail:'Finance confirmed the handoff.' }
-          : { ts:day(dd)+' '+times[k%8], actor:who, action:'Stage changed', detail:'Moved to '+label+'.' });
-      }
-      j.auditLog = log;
+/* ============================== THE JOB PLAN (progress map) ==============================
+   A job is ONE ordered list of steps, grouped into phases, built from scope + direction + services.
+   The order follows how the work really happens:
+     Import:   accreditation → shipping in → customs → delivery → warehousing → LTO
+     Export:   LTO clearance → warehousing → booking → pickup to port → export customs → shipping out
+     Domestic: booking → pickup → sea/land freight → delivery → warehousing → LTO
+   Trucking is a delivery leg on imports and a pickup leg on exports; on domestic freight the inquiry
+   says which legs Top1Movers covers (pickup, delivery or both). Steps are typical PH practice.
+   Flags: proof = needs a file · lane = records the BOC lane · arrival / cargoOut / doRelease /
+   emptyReturned = start or stop the free-time clocks. */
+const STEP_HINT = {
+  'Requirements complete':'Every document the agency asks for is in hand.',
+  'Filed with BOC':'Application submitted to the Bureau of Customs.',
+  'Under evaluation':'BOC is reviewing the application.',
+  'Approved':'Accreditation granted. The client can now import.',
+  'Booked with shipping line':'Space confirmed with the carrier (ship, plane or truck line).',
+  'Departed origin port':'The vessel or flight has left the origin port.',
+  'Arrived at port':'The cargo is at the Philippine port. Port free time starts.',
+  'Cargo arrived at port':'The cargo (shipped by someone else) is at the port. Port free time starts.',
+  'D/O released':'Local charges paid; the shipping line issued the Delivery Order so the cargo can be collected.',
+  'Entry lodged':'The import entry is filed with BOC.',
+  'Lane assigned':'BOC picked the lane: Green (no check), Yellow (document review) or Red (physical inspection).',
+  'Duties paid':'Duties and taxes paid. Attach the payment receipt.',
+  'BOC released':'Customs released the cargo.',
+  'Port charges paid':'Arrastre, wharfage and any storage paid to the port.',
+  'Gate pass':'The cargo is cleared to leave the port. Port free time stops.',
+  'Truck scheduled':'Truck, driver and date booked.',
+  'Picked up at port':'The truck collected the cargo at the port.',
+  'Picked up at shipper':'The truck collected the cargo from the shipper.',
+  'Picked up':'The truck has the cargo.',
+  'Delivered':'The cargo reached the delivery address.',
+  'Delivered to warehouse':'The cargo reached the Top1Movers warehouse.',
+  'Delivered to origin port':'The cargo is at the port of departure.',
+  'POD signed':'The receiver signed the proof of delivery. Attach it.',
+  'Empty container returned':'The empty container is back with the shipping line. Container free time stops.',
+  'Received at warehouse':'The cargo is checked in at the warehouse.',
+  'Stored':'Put away; storage billing runs from here.',
+  'Release requested':'The client asked for the goods to go out.',
+  'Dispatched':'The goods left the warehouse.',
+  'Empty container released':'The shipping line released an empty container for loading.',
+  'Empty container picked up':'The truck collected the empty container for loading.',
+  'Cargo loaded at shipper':'The goods are packed into the container at the shipper.',
+  'Cargo loaded':'The goods are packed and ready to go to the port.',
+  'Delivered to port (gate-in)':'The cargo entered the port terminal.',
+  'Gate-in at port':'The cargo entered the port terminal.',
+  'Export declaration lodged':'Export declaration filed with BOC.',
+  'Inspection / permits (if any)':'Any inspection or export permit needed for this cargo is done.',
+  'Cleared for export':'BOC cleared the cargo to leave the country.',
+  'Loaded on vessel':'The cargo is on board.',
+  'Departed':'The vessel or flight has left.',
+  'BL released to client':'The Bill of Lading is issued and given to the client.',
+  'Booked':'Space confirmed with the shipping line.',
+  'Loaded at origin port':'The cargo is on board at the port of departure.',
+  'Arrived at destination port':'The cargo reached the destination port.',
+  'Released at destination port':'The cargo is released at the destination port for pickup.',
+  'Released to consignee':'The consignee collected the cargo at the destination port.',
+  'Filed at LTO':'Papers submitted to the Land Transportation Office.',
+  'Fees paid':'LTO fees paid.',
+  'OR/CR released':'Official Receipt and Certificate of Registration (and plates) released.',
+  'Clearance released':'The LTO clearance is released.',
+  'Handed to client':'Documents handed over to the client.'
+};
+function buildPlan(services, scope, direction, cargoType, truckLegs){
+  const has = s=>services.includes(s), fcl = cargoType==='FCL', out = [];
+  const add = (svc, phase, names)=>names.forEach(n=>{ if(!n) return; const [name, flags] = Array.isArray(n) ? n : [n, {}]; out.push(Object.assign({ svc, phase, name }, flags)); });
+  const simpleTrip = ['Truck scheduled','Picked up','Delivered',['POD signed',{proof:true}]];
+  const warehousing = ()=>{ if(has('warehousing')) add('warehousing','Warehousing',['Received at warehouse','Stored','Release requested','Dispatched']); };
+  if(scope==='International' && direction==='Import'){
+    if(has('accreditation')) add('accreditation','Importer accreditation',['Requirements complete','Filed with BOC','Under evaluation','Approved']);
+    if(has('freight')) add('freight','Shipping to the Philippines',['Booked with shipping line','Departed origin port',['Arrived at port',{arrival:true}],['D/O released',{doRelease:true}]]);
+    if(has('customs')) add('customs','Customs clearance',[!has('freight') && ['Cargo arrived at port',{arrival:true}],'Entry lodged',['Lane assigned',{lane:true}],['Duties paid',{proof:true}],'BOC released','Port charges paid',['Gate pass',{cargoOut:true}]]);
+    if(has('trucking')){
+      if(has('freight') || has('customs')) add('trucking', has('warehousing') ? 'Trucking to the warehouse' : 'Delivery to the consignee',['Truck scheduled','Picked up at port', has('warehousing') ? 'Delivered to warehouse' : 'Delivered',['POD signed',{proof:true}], fcl && ['Empty container returned',{emptyReturned:true}]]);
+      else add('trucking','Trucking',simpleTrip);
     }
-    if(j.customs && j.customs.hold) j.auditLog.push({ ts:'26 Sep 2026 10:40 AM', actor:'Grace Tan (Manager)', action:'Customs hold placed', detail:j.customs.hold.type+': '+j.customs.hold.note });
-    j.exceptions.forEach(e=>j.auditLog.push({ ts:e.date+' 8:55 AM', actor:e.raisedBy, action:'Exception raised', detail:e.category+': '+e.reason }));
-    j.fundsReceived.forEach(fr=>j.auditLog.push({ ts:fr.date+' 3:00 PM', actor:'Grace Tan (Manager)', action:'Funds received', detail:'₱'+fr.amount.toLocaleString('en-PH')+' by '+fr.method.toLowerCase()+(fr.reference?' (ref '+fr.reference+')':'')+'.', finance:true }));
-    j.auditLog = j.auditLog.map((a,i)=>({a,i})).sort((x,y)=>((parseDMY(x.a.ts)||0)-(parseDMY(y.a.ts)||0)) || (x.i-y.i)).map(o=>o.a);
-  });
-})();
+    warehousing();
+    if(has('lto')) add('lto','LTO registration',['Requirements complete','Filed at LTO','Fees paid','OR/CR released','Handed to client']);
+  } else if(scope==='International'){
+    if(has('lto')) add('lto','LTO clearance',['Requirements complete','Filed at LTO','Fees paid','Clearance released']);
+    warehousing();
+    if(has('freight')) add('freight','Booking',['Booked with shipping line', fcl && 'Empty container released']);
+    if(has('trucking')){
+      if(has('freight') || has('customs')) add('trucking','Pickup to the port',['Truck scheduled', fcl && 'Empty container picked up','Cargo loaded at shipper','Delivered to port (gate-in)']);
+      else add('trucking','Trucking',simpleTrip);
+    } else if(has('freight')) add('freight','Cargo to the port',['Cargo loaded','Gate-in at port']);
+    if(has('customs')) add('customs','Export customs',['Export declaration lodged','Inspection / permits (if any)','Cleared for export']);
+    if(has('freight')) add('freight','Shipping out',['Loaded on vessel','Departed','BL released to client']);
+  } else {
+    const legs = truckLegs && truckLegs.length ? truckLegs : ['pickup','delivery'];
+    if(has('freight')){
+      add('freight','Booking',['Booked']);
+      if(has('trucking') && legs.includes('pickup')) add('trucking','Pickup from the shipper',['Truck scheduled','Picked up at shipper','Delivered to origin port']);
+      add('freight','Sea / land freight',['Loaded at origin port','Departed','Arrived at destination port', has('trucking') && legs.includes('delivery') ? 'Released at destination port' : 'Released to consignee']);
+      if(has('trucking') && legs.includes('delivery')) add('trucking','Delivery to the consignee',['Truck scheduled','Picked up at port','Delivered',['POD signed',{proof:true}]]);
+    } else if(has('trucking')) add('trucking','Trucking',simpleTrip);
+    warehousing();
+    if(has('lto')) add('lto','LTO registration',['Requirements complete','Filed at LTO','Fees paid','OR/CR released','Handed to client']);
+  }
+  return out;
+}
+/* Domestic freight + trucking: which legs Top1Movers covers. */
+function needsTruckLegs(services, scope){ return scope==='Domestic' && services.includes('freight') && services.includes('trucking'); }
+/* Document checklist per service. Editable in Settings (applies to new jobs). */
+let DOC_TEMPLATES = {
+  'freight:Import':['Bill of Lading / AWB','Arrival Notice','Delivery Order'],
+  'freight:Export':['Booking Confirmation','Shipping Instructions','Bill of Lading'],
+  'freight:Domestic':['Booking Confirmation','Domestic Bill of Lading'],
+  'customs:Import':['Commercial Invoice','Packing List','Bill of Lading / AWB','Import Entry','Gate Pass'],
+  'customs:Export':['Commercial Invoice','Packing List','Export Declaration'],
+  'trucking':['Delivery Receipt / POD'],
+  'warehousing':['Warehouse Receipt','Release Order'],
+  'accreditation':['SEC / DTI Registration','BIR Certificate of Registration','Accreditation Application'],
+  'lto':['Vehicle Release Documents','CTPL Insurance','OR/CR Copy']
+};
+/* Each document belongs to the step where it is really needed or produced.
+   needs    = the step cannot be ticked until the document is received (real-world dependency).
+   produces = the step creates the document; it is uploaded in that step's "Mark done" drawer.
+   First matching step on the job (same service) wins. Documents with no match (or added by Ops)
+   are only needed before closing. */
+const DOC_RULES = {
+  'Bill of Lading / AWB':[['Departed origin port','produces'],['Entry lodged','needs'],['Export declaration lodged','needs']],
+  'Arrival Notice':[['Arrived at port','produces']],
+  'Delivery Order':[['D/O released','produces']],
+  'Commercial Invoice':[['Entry lodged','needs'],['Export declaration lodged','needs']],
+  'Packing List':[['Entry lodged','needs'],['Export declaration lodged','needs']],
+  'Import Entry':[['Entry lodged','produces']],
+  'Gate Pass':[['Gate pass','produces']],
+  'Booking Confirmation':[['Booked with shipping line','produces'],['Booked','produces']],
+  'Shipping Instructions':[['Loaded on vessel','needs']],
+  'Bill of Lading':[['BL released to client','produces']],
+  'Domestic Bill of Lading':[['Loaded at origin port','produces']],
+  'Export Declaration':[['Export declaration lodged','produces']],
+  'Delivery Receipt / POD':[['POD signed','produces']],
+  'Warehouse Receipt':[['Received at warehouse','produces']],
+  'Release Order':[['Release requested','produces']],
+  'SEC / DTI Registration':[['Requirements complete','needs']],
+  'BIR Certificate of Registration':[['Requirements complete','needs']],
+  'Accreditation Application':[['Filed with BOC','produces']],
+  'Vehicle Release Documents':[['Requirements complete','needs']],
+  'CTPL Insurance':[['Requirements complete','needs']],
+  'OR/CR Copy':[['OR/CR released','produces']]
+};
+function docTemplateKey(svc, scope, direction){
+  if(svc==='freight') return 'freight:'+(scope==='Domestic'?'Domestic':direction);
+  if(svc==='customs') return 'customs:'+direction;
+  return svc;
+}
+const DOC_TEMPLATE_LABEL = { 'freight:Import':'Freight · International import', 'freight:Export':'Freight · International export', 'freight:Domestic':'Freight · Domestic',
+  'customs:Import':'Customs · Import', 'customs:Export':'Customs · Export', trucking:'Trucking / Delivery', warehousing:'Warehousing & Distribution', accreditation:'Importer Accreditation', lto:'LTO Transaction' };
 
-let USERS = [
-  { id:'U1', name:'Ana Cruz', dept:'Manila Ops', role:'Dispatcher', active:true },
-  { id:'U2', name:'Ben Santos', dept:'Warehouse', role:'Warehouse Crew', active:true },
-  { id:'U3', name:'Cathy Lim', dept:'Manila Ops', role:'Dispatcher', active:true },
-  { id:'U4', name:'Rico Domingo', dept:'Warehouse', role:'Warehouse Crew', active:true },
-  { id:'U5', name:'Grace Tan', dept:'Management', role:'Manager', active:true },
-  { id:'U6', name:'Paolo Reyes', dept:'Finance', role:'Finance', active:true },
-  { id:'U7', name:'Mark Villar', dept:'Management', role:'Admin', active:true }
-];
-const ROLES = ['Dispatcher','Warehouse Crew','Manager','Admin','Finance'];
+/* ============================== REASONS (dropdown + free text) ============================== */
+const MANAGER_RETURN_REASONS = ['Pricing error','Missing charge','Wrong details','Other'];
+const CLIENT_REASONS = ['Price too high','Transit time','Chose competitor','Shipment cancelled','No response','Other'];
+const LANES = ['Green','Yellow','Red'];
+const LANE_TONE = { Green:'success', Yellow:'warning', Red:'danger' };
+const LANE_MEANING = { Green:'Released with no inspection (fastest).', Yellow:'BOC reviews the documents.', Red:'Physical inspection of the cargo (slowest).' };
+const PAY_MODES = ['Cash','Check','Bank transfer'];
+
+/* ============================== SETTINGS (Admin + Manager) ============================== */
+const SETTINGS = { quoteValidityDays:15, awaitingClientDays:5, reminderEveryDays:2, unliquidatedDays:5, portFreeDays:5, containerFreeDays:7, paymentTermsDays:30 };
+
+/* ============================== ROLES & PERMISSIONS ==============================
+   Levels: Y = can do · A = assigned records only · V = view only · VA = view assigned · VL = view linked. */
+const ROLES = ['Admin','Manager','Sales','Operations','Accounting'];
 const ROLE_BLURB = {
-  'Dispatcher':'Runs customer work: inquiries, quotes, jobs, documents and tasks. No money.',
-  'Warehouse Crew':'Field work on a phone: own tasks, deliveries with proof.',
-  'Manager':'Decisions: exceptions, customs holds, client money, handoff to Finance.',
-  'Admin':'Everything a Manager does, plus people and access.',
-  'Finance':'Read-only: billing-ready jobs, money and the Billing Summary.'
+  Admin:'Users, permissions and settings. Sees dashboards.',
+  Manager:'Creates customers and inquiries, assigns staff, approves quotes, money and billing.',
+  Sales:'Uploads quotations, sends them and records the client’s answer.',
+  Operations:'Runs jobs: milestones, documents, issues, fund requests and liquidation.',
+  Accounting:'Releases funds, verifies liquidation, bills the client and records payments.'
 };
-const MODULES = ['Customer Mgmt','Inquiry & Quotation','Shipment Job','Milestones & Tasks','Document Mgmt','Exceptions & Approval','Delivery & POD','Charges & Billing','User & Role Mgmt','Dashboard & Reports','Audit Trail'];
-/* Permission matrix (illustrative until agreed with the client). Rows gate what is RENDERED,
-   not just what is disabled: a role never sees a menu it cannot use. */
-const PERM = {
-  'Dispatcher':      [1,1,1,1,1,1,0,0,0,1,0],
-  'Warehouse Crew':  [0,0,1,1,1,1,1,0,0,0,0],
-  'Manager':         [1,1,1,1,1,1,1,1,0,1,1],
-  'Admin':           [1,1,1,1,1,1,1,1,1,1,1],
-  'Finance':         [0,0,1,0,0,0,0,1,0,1,1]
-};
-const PERM_NOTE = {
-  'Dispatcher':{ 'Dashboard & Reports':'Own customers', 'Document Mgmt':'Upload, approve, reject', 'Exceptions & Approval':'Raise only' },
-  'Warehouse Crew':{ 'Shipment Job':'Assigned jobs only', 'Milestones & Tasks':'Own tasks', 'Document Mgmt':'Upload only', 'Exceptions & Approval':'Raise only' },
-  'Finance':{ 'Shipment Job':'Read only', 'Charges & Billing':'Read only', 'Dashboard & Reports':'Finance view' }
-};
-const EXCEPTION_CATEGORIES = ['Documentation Discrepancy','Customs Hold','Valuation Dispute','Damage','Delay','Consignee Not Ready'];
+const PERM_GROUPS = [
+  { group:'Administration', items:[
+    ['users.manage','Add, edit roles, deactivate users', { Admin:'Y' }],
+    ['perms.edit','Edit permission matrix', { Admin:'Y' }],
+    ['settings.edit','System settings (tracks, checklists, defaults)', { Admin:'Y', Manager:'Y' }],
+    ['audit.view','View audit log', { Admin:'Y', Manager:'Y' }] ]},
+  { group:'Customers & Inquiry/Quotation', items:[
+    ['customer.edit','Create/edit customer (others view)', { Manager:'Y', Sales:'V', Operations:'V', Accounting:'V' }],
+    ['inquiry.create','Create inquiry, set scope/services, assign staff', { Manager:'Y' }],
+    ['inquiry.view','View inquiries', { Manager:'Y', Sales:'V', Operations:'VL' }],
+    ['quote.submit','Upload quote + submit for approval', { Manager:'Y', Sales:'A' }],
+    ['quote.approve','Approve / return quote', { Manager:'Y' }],
+    ['quote.send','Mark sent, record client outcome + proof', { Manager:'Y', Sales:'A' }],
+    ['inquiry.close','Acknowledge acceptance / close inquiry', { Manager:'Y' }] ]},
+  { group:'Job', items:[
+    ['job.convert','Convert to job, assign Ops', { Manager:'Y' }],
+    ['job.view','View job', { Manager:'Y', Operations:'A', Accounting:'V' }],
+    ['job.update','Update milestones, upload documents', { Manager:'Y', Operations:'A' }],
+    ['job.issue','Flag / resolve issue', { Manager:'Y', Operations:'A' }],
+    ['job.freeDays','Set free days', { Manager:'Y', Operations:'A' }],
+    ['job.submitClose','Submit job for closing', { Manager:'Y', Operations:'A' }],
+    ['job.complete','Confirm job completed', { Manager:'Y' }] ]},
+  { group:'Money', items:[
+    ['fund.request','Create fund request', { Manager:'Y', Operations:'A' }],
+    ['fund.approve','Approve / return fund request', { Manager:'Y' }],
+    ['fund.release','Release funds', { Accounting:'Y' }],
+    ['fund.liquidate','Liquidate (upload receipts)', { Manager:'Y', Operations:'A' }],
+    ['fund.verify','Verify liquidation', { Accounting:'Y' }],
+    ['money.view','See fund requests, costs, vendor bills', { Manager:'Y', Operations:'A', Accounting:'Y' }],
+    ['bill.submit','Upload SOA + submit for approval', { Accounting:'Y' }],
+    ['bill.approve','Approve / return billing', { Manager:'Y' }],
+    ['bill.send','Send billing, record payments', { Accounting:'Y' }],
+    ['bill.view','See billing and payments', { Manager:'Y', Accounting:'Y' }],
+    ['vendor.record','Record vendor bills', { Accounting:'Y' }],
+    ['profit.view','View job profit', { Manager:'Y' }] ]},
+  { group:'Reports', items:[
+    ['dash.view','View dashboards / analytics / job profit', { Admin:'Y', Manager:'Y' }],
+    ['mywork.view','“My Work” home page (to-do lists)', { Sales:'Y', Operations:'Y', Accounting:'Y' }] ]}
+];
+/* The live matrix. DEFAULT keeps the original level so a re-ticked box restores it. */
+const PERM = {}, PERM_DEFAULT = {}, PERM_LABEL = {};
+PERM_GROUPS.forEach(g=>g.items.forEach(([key,label,lv])=>{ PERM_LABEL[key] = label; PERM_DEFAULT[key] = {}; PERM[key] = {}; ROLES.forEach(r=>{ PERM_DEFAULT[key][r] = lv[r]||''; PERM[key][r] = lv[r]||''; }); }));
+
+/* ============================== DEMO USERS ==============================
+   Many people so the demo feels real. Two founders hold several roles. Names are illustrative. */
+let USERS = [];
+(function seedUsers(){
+  const list = [
+    ['Mark Villar','Management',['Admin','Manager']],
+    ['Grace Tan','Management',['Manager','Accounting']],
+    ['Jun Robles','IT',['Admin']],
+    ['Lorna Bautista','Management',['Manager']],
+    ['Ana Cruz','Sales',['Sales']], ['Cathy Lim','Sales',['Sales']], ['Paolo Santiago','Sales',['Sales']],
+    ['Mia Navarro','Sales',['Sales']], ['Dennis Ocampo','Sales',['Sales']], ['Rhea Mendoza','Sales',['Sales']],
+    ['Ben Santos','Operations',['Operations']], ['Rico Domingo','Operations',['Operations']], ['Jessa Aquino','Operations',['Operations']],
+    ['Noel Garcia','Operations',['Operations']], ['Karen Flores','Operations',['Operations']],
+    ['Arnel Torres','Operations',['Operations']], ['Mike Salazar','Operations',['Operations']],
+    ['Liza Ramos','Operations',['Operations']], ['Edwin Castro','Operations',['Operations']],
+    ['Paolo Reyes','Accounting',['Accounting']], ['Joy Dizon','Accounting',['Accounting']], ['Carlo Pascual','Accounting',['Accounting']],
+    ['Tess Villanueva','Sales',['Sales']], ['Ramon Lopez','Operations',['Operations']]
+  ];
+  USERS = list.map(([name, dept, roles], i)=>({ id:'U'+(i+1), name, dept, roles, active:true }));
+})();
+function emailForUser(name){ return name.toLowerCase().replace(/[^a-z ]/g,'').trim().split(' ').join('.')+'@top1movers.example'; }
+
+/* ============================== SESSION STORES (start empty) ============================== */
+let CUSTOMERS = [];
+let INQUIRIES = [];
+let JOBS = [];
+let NOTIFS = [];        // { id, ts, to:{roles:[], users:[]}, text, link, readBy:[] }
+let ADMIN_LOG = [];     // user / permission / settings events for the audit log
+let INTAKE = [];        // "report an inquiry to the manager" notes from staff
+const SEQ = { cust:0, inq:0, job:0, fr:0, vb:0, pay:0, issue:0, doc:0, notif:0, intake:0 };
+const YEAR = TODAY.getFullYear();
+function nextId(kind){
+  SEQ[kind]++;
+  if(kind==='cust') return 'CUST-'+String(SEQ.cust).padStart(3,'0');
+  if(kind==='inq') return 'INQ-'+YEAR+'-'+String(SEQ.inq).padStart(4,'0');
+  if(kind==='job') return 'SJ-'+YEAR+'-'+String(SEQ.job).padStart(5,'0');
+  return kind.toUpperCase()+'-'+SEQ[kind];
+}
+const custById = id => CUSTOMERS.find(c=>c.id===id);
+const inqById = id => INQUIRIES.find(i=>i.id===id);
+const jobById = id => JOBS.find(j=>j.id===id);
+function quoteNo(inq){ return inq.id.replace('INQ','QT'); }
+/* Non-guessable public tracking code (the client tracking page accepts only this). */
+function newTrackingCode(){
+  const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', p = ()=>Array.from({length:4},()=>A[Math.floor(Math.random()*A.length)]).join('');
+  let c; do { c = 'T1M-'+p()+'-'+p(); } while(JOBS.some(j=>j.trackingCode===c));
+  return c;
+}

@@ -1,3 +1,5 @@
+> **Superseded (2026-10-02).** This describes the old import-only, nine-stage mockup (Dispatcher / Warehouse Crew / Finance). The agreed workflow is in `docs/requirements/` and the mockup now follows it. Kept for history only.
+
 # Top1Movers Shipment Workflow: Inquiry to Closed
 
 As of 30 Sep 2026

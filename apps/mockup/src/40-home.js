@@ -1,252 +1,298 @@
-/* ============================== HOME ==============================
-   Every role lands on Home and it answers the same question for each of them: what needs me today?
-   Manager/Admin: a command center (decisions, money, deadlines across all jobs).
-   Dispatcher: my tasks, my customers' shipments, my sales follow-ups.
-   Warehouse Crew: today's deliveries and containers to return, touch-first.
-   Finance: jobs waiting for Finance and how each one settles. */
-const TONE_RANK = { danger:0, warning:1, brand:2, info:3, success:4 };
-/* Consequence order: frozen jobs first, then late work, then money, then clocks, then good news. */
-const QUEUE_PRIO = { exception:0, hold:1, damage:2, overdue:3, expired:4, funds:5, charge:6, clock:7, finance:8 };
-function greeting(){ return 'Good morning, '+CURRENT_USER.name.split(' ')[0]+'.'; }
-function todayLong(){ return 'Monday 28 September 2026'; }
-
-function managerQueue(){
-  const q = [];
-  JOBS.forEach(j=>{
-    const c = custById(j.customerId).name, id = j.id;
-    const ex = openException(j);
-    if(ex) q.push({ p:QUEUE_PRIO.exception, tone:'danger', icon:'flag', cat:'decisions', job:j, title:'Decide an exception: '+ex.category, why:ex.reason, whyTone:'danger',
-      btn:{ label:'Review', js:"openReviewException('"+id+"','"+ex.id+"')" } });
-    const hold = customsHold(j);
-    if(hold) q.push({ p:QUEUE_PRIO.hold, tone:'danger', icon:'lock', cat:'decisions', job:j, title:'Customs hold: '+hold.type+' (lane '+j.customs.lane+')', why:hold.note, btn:{ label:'Open', js:"go('#/jobs/"+id+"')" } });
-    if(j.delivery.confirmed && j.delivery.damage && !j.delivery.damageResolved) q.push({ p:QUEUE_PRIO.damage, tone:'danger', icon:'alert', cat:'decisions', job:j, title:'Damage reported at delivery', why:j.delivery.damageNote||'', btn:{ label:'Resolve', js:"openResolveDamage('"+id+"')" } });
-    const gap = fundingGap(j);
-    if(gap) q.push({ p:QUEUE_PRIO.funds, tone:'warning', icon:'wallet', cat:'money', job:j, title:'Short on client funds: '+gap.first.desc+' due '+shortDate(gap.first.dueDate), why:'Short by '+money(gap.short)+'. '+gap.storageText, whyTone:'warning', btn:{ label:'Add funds', js:"openAddFunds('"+id+"')" } });
-    j.charges.filter(isUnresolved).forEach(ch=>q.push({ p:QUEUE_PRIO.charge, tone:'warning', icon:'receipt', cat:'money', job:j, title:'Extra charge not in the quote: '+ch.desc+' '+money(ch.amount), why:'Get client approval or absorb it before this job can go to Finance.', btn:{ label:'Decide', js:"openDecideCharge('"+id+"','"+ch.id+"')" } }));
-    j.tasks.filter(t=>taskStatus(j,t)==='Overdue').forEach(t=>q.push({ p:QUEUE_PRIO.overdue, tone:'danger', icon:'alert', cat:'deadlines', job:j, title:'Overdue: '+t.name, why:t.owner+' · due '+shortDate(t.due)+', '+plural(-daysUntil(t.due),'day')+' late', whyTone:'danger', btn:{ label:'Reassign', js:"openReassignTask('"+id+"','"+t.id+"')" } }));
-    const clk = deadlineInfo(j);
-    if(clk && clk.days!=null && clk.days<=2) q.push({ p: clk.days<0?QUEUE_PRIO.expired:QUEUE_PRIO.clock, tone: clk.days<0?'danger':'warning', icon:'clock', cat:'deadlines', job:j, title:clk.label+': '+clockText(clk).toLowerCase(), why:(clk.days<0?'The '+clk.who+' is charging daily since ':'The '+clk.who+' starts charging after ')+shortDate(clk.deadline)+'.', whyTone:clk.days<0?'danger':'warning', btn:{ label:'Open', js:"go('#/jobs/"+id+"')" } });
-    if(j.statusIndex===6 && billingChecklist(j).every(x=>x.ok)) q.push({ p:QUEUE_PRIO.finance, tone:'brand', icon:'receipt', cat:'money', job:j, title:'Ready to hand to Finance', why:'Every billing check is done.', btn:{ label:'Mark ready', js:"markBillingReady('"+id+"')" } });
-  });
-  return q.sort((a,b)=>a.p-b.p);
-}
-function dispatcherQueue(){
-  const q = [];
-  myJobs().forEach(j=>{
-    const id = j.id;
-    j.documents.forEach(d=>{
-      if(d.status==='Pending Review') q.push({ tone:'info', icon:'eye', cat:'docs', job:j, title:'Review '+d.name, why:'Uploaded v'+d.version+'. Approve it or reject it with a reason.', btn:{ label:'Review', js:"openReviewDoc('"+id+"','"+d.id+"')" } });
-      else if(docProblem(j,d)) q.push({ tone:'warning', icon:'upload', cat:'docs', job:j, title:(d.status==='Rejected'?'Replace ':'Upload ')+d.name, why: d.status==='Rejected' ? 'Rejected: '+d.rejectReason : 'Still missing. Chase the client or shipper for it.', btn:{ label:d.status==='Rejected'?'Replace':'Upload', js:"openUploadDoc('"+id+"','"+d.id+"')" } });
-    });
-    const n = nextStep(j);
-    if(n && n.tone==='ready' && n.primary && n.primary.js.startsWith('advance')) q.push({ tone:'brand', icon:'arrow-right', cat:'moves', job:j, title:'Ready: '+n.primary.label, why:'Everything needed is done. One click moves it on.', btn:{ label:'Move on', js:n.primary.js } });
-    const ex = openException(j);
-    if(ex) q.push({ tone:'danger', icon:'lock', cat:'moves', job:j, title:'Blocked: '+ex.category, why:'Waiting for a Manager to review it. Nothing for you to do yet.', btn:{ label:'Open', js:"go('#/jobs/"+id+"')" } });
-  });
-  return q.sort((a,b)=>TONE_RANK[a.tone]-TONE_RANK[b.tone]);
-}
-function salesQueue(){
-  return INQUIRIES.filter(i=>i.assignedTo===CURRENT_USER.name || isManagerLike()).map(i=>{
-    const st = inquiryStage(i); if(!['New','Quoted','Approved'].includes(st.key)) return null;
-    return { tone:'brand', icon:'quote', cat:'sales', inq:i, title:st.next+' · '+custById(i.customerId).name, why:i.cargo+', '+i.origin+' to '+i.destination, btn:{ label:'Open', js:"go('#/inquiries/"+i.id+"')" } };
-  }).filter(Boolean);
-}
-function myTaskList(){
-  const out = [];
-  JOBS.filter(canSeeJob).forEach(j=>j.tasks.forEach(t=>{ if(!t.done && t.owner===CURRENT_USER.name) out.push({ j, t, st:taskStatus(j,t) }); }));
-  const order = { 'Overdue':0, 'To do':1, 'Upcoming':2 };
-  return out.sort((a,b)=>order[a.st]-order[b.st] || (parseDMY(a.t.due)-parseDMY(b.t.due)));
-}
-function crewDeliveries(){ return JOBS.filter(j=>canSeeJob(j) && j.statusIndex===5 && !j.delivery.confirmed); }
-function homeQueueCount(){
-  const r = role();
-  if(r==='Manager'||r==='Admin') return managerQueue().filter(x=>x.tone==='danger'||x.tone==='warning'||x.tone==='brand').length;
-  if(r==='Finance') return JOBS.filter(j=>j.statusIndex===7).length;
-  if(r==='Warehouse Crew') return crewDeliveries().length + myTaskList().filter(x=>x.st!=='Upcoming').length;
-  return myTaskList().filter(x=>x.st!=='Upcoming').length + dispatcherQueue().filter(x=>x.cat==='docs'||x.cat==='moves').length;
-}
-
-/* ---------- shared pieces ---------- */
+/* ============================== HOME (Stage 5) ==============================
+   Admin + Manager land on the Dashboard: "Needs attention" first, then four tabs of analytics.
+   Sales, Operations and Accounting land on "My Work": to-do lists only, no charts. */
+function greeting(){ const h = new Date().getHours(); return (h<12?'Good morning':h<18?'Good afternoon':'Good evening')+', '+CURRENT_USER.name.split(' ')[0]+'.'; }
 function queueHtml(items, emptyText){
   if(!items.length) return '<div class="ds-queue__empty">'+icon('check')+'<span>'+esc(emptyText)+'</span></div>';
-  return '<ul class="ds-queue">'+items.map((x,i)=>{
-    const meta = x.job ? '<span class="ds-mono">'+x.job.id+'</span><span>'+esc(custById(x.job.customerId).name)+'</span><span>'+esc(STATUS_STEPS[x.job.statusIndex])+'</span>'
-      : '<span class="ds-mono">'+x.inq.id+'</span><span>'+esc(x.inq.assignedTo)+'</span>';
-    const href = x.job ? "go('#/jobs/"+x.job.id+"')" : "go('#/inquiries/"+x.inq.id+"')";
-    return '<li class="ds-queue__item" data-tone="'+x.tone+'" style="--i:'+i+'"><span class="ds-queue__icon">'+icon(x.icon)+'</span>'+
-      '<div style="min-width:0;cursor:pointer" onclick="'+href+'"><div class="ds-queue__title">'+esc(x.title)+'</div><div class="ds-queue__meta">'+meta+'</div>'+(x.why?'<div class="ds-queue__why'+(x.whyTone?' ds-queue__why--'+x.whyTone:'')+'">'+esc(x.why)+'</div>':'')+'</div>'+
-      '<div class="ds-queue__actions"><button class="ds-btn ds-btn--secondary ds-btn--sm" onclick="event.stopPropagation(); '+x.btn.js+'">'+esc(x.btn.label)+'</button></div></li>';
-  }).join('')+'</ul>';
+  return '<ul class="ds-queue">'+items.map((x,i)=>
+    '<li class="ds-queue__item" data-tone="'+x.tone+'" style="--i:'+i+'"><span class="ds-queue__icon">'+icon(x.icon)+'</span>'+
+      '<div style="min-width:0;cursor:pointer" onclick="'+(x.open||'go(\''+x.href+'\')')+'"><div class="ds-queue__title">'+esc(x.title)+'</div><div class="ds-queue__meta">'+(x.meta||[]).map(m=>'<span'+(/^(INQ|SJ|FR)-/.test(m)?' class="ds-mono"':'')+'>'+esc(m)+'</span>').join('')+'</div>'+
+      (x.why?'<div class="ds-queue__why'+(x.whyTone?' ds-queue__why--'+x.whyTone:'')+'">'+esc(x.why)+'</div>':'')+'</div>'+
+      '<div class="ds-queue__actions">'+(x.btn?'<button class="ds-btn ds-btn--secondary ds-btn--sm" onclick="event.stopPropagation(); '+x.btn.js+'">'+esc(x.btn.label)+'</button>':'')+'</div></li>').join('')+'</ul>';
 }
-function kpi(ic, label, value, hint, tone, js, id){
-  return '<button class="ds-kpi'+(tone?' ds-kpi--'+tone:'')+'"'+(id?' id="'+id+'"':'')+' onclick="'+js+'"><span class="ds-kpi__icon">'+icon(ic)+'</span><span class="ds-kpi__label">'+esc(label)+'</span><span class="ds-kpi__value">'+value+'</span><span class="ds-kpi__hint">'+esc(hint)+'</span></button>';
+const TONE_RANK = { danger:0, warning:1, brand:2, info:3, success:4, neutral:5, '':6 };
+const byTone = (a,b)=>TONE_RANK[a.tone]-TONE_RANK[b.tone];
+const cname = id => (custById(id)||{}).name || '';
+
+/* ---------- My Work ---------- */
+function salesWork(){
+  const out = [];
+  INQUIRIES.filter(i=>i.staff.includes(me())).forEach(i=>{
+    const s = inqStatus(i), v = latestV(i), meta = [i.id, cname(i.customerId), servicesText(i.services)], href = '#/inquiries/'+i.id;
+    if(['preparing','revise','expired'].includes(s.key)) out.push({ tone: s.key==='preparing'?'info':'warning', icon:'upload', title:'Upload quotation v'+(v?v.v+1:1), meta, href,
+      why: s.key==='preparing' ? 'New inquiry assigned to you.' : s.key==='expired' ? 'v'+v.v+' expired on '+v.validUntil+'.' : REVISE_LABEL[v.status]+': '+((v.review&&v.review.decision==='Returned')?v.review.reasonType:(v.outcome?v.outcome.reasonType:'')),
+      whyTone: s.key==='preparing'?null:'warning', btn:{ label:'Upload', js: s.key==='expired' ? "openUploadQuote('"+i.id+"',true)" : "openUploadQuote('"+i.id+"')" } });
+    if(s.key==='ready') out.push({ tone:'brand', icon:'arrow-right', title:'Send v'+v.v+' to the client', meta, href, why:'Approved by '+v.review.by+'.', btn:{ label:'Mark as sent', js:"openMarkSent('"+i.id+"')" } });
+    if(s.key==='awaiting'){ const d = awaitingDays(i), late = d>=SETTINGS.awaitingClientDays;
+      out.push({ tone: late?'warning':'info', icon:'clock', title:'Follow up: awaiting client · '+plural(d,'day'), meta, href, why:'Sent '+v.sent.on+' via '+v.sent.channel+'. Valid until '+v.validUntil+'.', whyTone: late?'warning':null, btn:{ label:'Record response', js:"openClientOutcome('"+i.id+"')" } }); }
+  });
+  return out.sort(byTone);
 }
-function jobsFilterJs(filter, stage){ return "STATE.jobFilter='"+filter+"'; STATE.jobStage="+(stage==null?'null':stage)+"; STATE.jobQuery=''; go('#/jobs')"; }
-function pipelineHtml(jobs){
-  const stops = STATUS_STEPS.map((s,idx)=>{
-    const here = jobs.filter(j=>j.statusIndex===idx);
-    const blocked = here.filter(j=>jobHealth(j).tone==='danger').length;
-    return '<li class="ds-pipeline__stop"'+(here.length?'':' data-empty')+'><button class="ds-pipeline__btn" onclick="'+jobsFilterJs('all', idx)+'" title="'+esc(s+': '+STAGE_HINT[idx])+'">'+
-      '<span class="ds-pipeline__count">'+here.length+(blocked?'<span class="ds-pipeline__flag" title="'+blocked+' blocked">'+icon('lock')+blocked+'</span>':'')+'</span>'+
-      '<span class="ds-pipeline__label">'+esc(s)+'</span></button></li>';
-  }).join('');
-  const phases = PHASES.map(p=>'<span class="ds-pipeline__phase" style="grid-column:span '+p.stages.length+'">'+esc(p.label)+'</span>').join('');
-  return '<div class="ds-pipeline-wrap"><div><ol class="ds-pipeline" style="grid-template-columns:repeat(9,minmax(84px,1fr))">'+stops+'</ol><div class="ds-pipeline__phases" style="grid-template-columns:repeat(9,minmax(84px,1fr))">'+phases+'</div></div></div>';
+function opsWork(){
+  const out = [];
+  JOBS.filter(j=>j.ops.includes(me()) && j.status!=='Completed').forEach(j=>{
+    const meta = [j.id, cname(j.customerId), servicesText(j.services)], href = '#/jobs/'+j.id, iss = openIssue(j);
+    if(j.status==='For closing') return;
+    if(iss) out.push({ tone:'danger', icon:'lock', title:'On hold: '+iss.reason, meta, href, why:'Resolve it so the job can move again.', whyTone:'danger', btn:{ label:'Resolve', js:"openResolveIssue('"+j.id+"','"+iss.id+"')" } });
+    else { const k = nextMsIndex(j);
+      if(k>=0) out.push({ tone:'info', icon:SERVICES[j.ms[k].svc].icon, title:'Next: '+j.ms[k].name, meta, href, why:j.ms[k].phase+(pendingDocs(j).length?' · '+plural(pendingDocs(j).length,'document')+' still pending':''), btn:{ label:'Mark done', js:"openMilestone('"+j.id+"',"+k+")" } });
+      else out.push({ tone: closingGate(j).every(g=>g.ok)?'brand':'warning', icon:'flag', title: closingGate(j).every(g=>g.ok)?'Submit for closing':'Finish the closing checklist', meta, href, why:closingGate(j).filter(g=>!g.ok).map(g=>g.label+': '+g.sub).join(' · ')||'Everything is done.', btn: closingGate(j).every(g=>g.ok)?{ label:'Submit', js:"submitForClosing('"+j.id+"')" }:{ label:'Open', js:"goTab('"+j.id+"','documents')" } }); }
+    jobClocks(j).filter(c=>c.state==='running' && c.left<=3).forEach(c=>out.push({ tone:c.left<=0?'danger':'warning', icon:'clock', title:c.label+': '+clockText(c), meta, href, why:'Fees ('+c.risk+') start after '+c.lastFree+'. Stops at '+c.ends+'.', whyTone:c.left<=0?'danger':'warning', btn:{ label:'Open', js:"go('"+href+"')" } }));
+    if(clockApplies(j) && j.free && j.free.portDays==null) out.push({ tone:'warning', icon:'clock', title:'Set free days', meta, href, btn:{ label:'Set', js:"openFreeDays('"+j.id+"')" } });
+  });
+  JOBS.filter(j=>j.ops.includes(me())).forEach(j=>j.funds.forEach(f=>{
+    const meta = [f.id, j.id, cname(j.customerId)], href = '#/jobs/'+j.id+'/money';
+    if(f.status==='Returned' && f.by===me()) out.push({ tone:'warning', icon:'refresh', title:'Fund request returned: '+f.purpose, meta, href, why:f.review.comment, whyTone:'warning', btn:{ label:'Edit & resubmit', js:"openFundRequest('"+j.id+"','"+f.id+"')" } });
+    if(f.status==='Released'){ const d = daysBetween(f.release.on, todayDMY()), late = d>SETTINGS.unliquidatedDays;
+      out.push({ tone: late?'warning':'info', icon:'receipt', title:'Liquidate '+money(f.amount)+' ('+f.purpose+')', meta, href, why:'Released '+f.release.on+' · '+plural(d,'day')+' ago'+(late?'. Overdue for liquidation.':'.'), whyTone: late?'warning':null, btn:{ label:'Liquidate', js:"openLiquidate('"+j.id+"','"+f.id+"')" } }); }
+  }));
+  return out.sort(byTone);
 }
-function feeClocksPanel(jobs){
-  const rows = jobs.map(j=>({ j, c:deadlineInfo(j) })).filter(x=>x.c && x.c.days!=null).sort((a,b)=>a.c.days-b.c.days);
-  const body = rows.length ? '<div class="ds-stack--sm">'+rows.map(({j,c})=>{
-    const tone = clockTone(c.days), pct = Math.max(0, Math.min(100, c.days/FREE_WINDOW_DAYS*100));
-    return '<div class="ds-clock ds-clock--'+tone+'" style="cursor:pointer" onclick="go(\'#/jobs/'+j.id+'\')"><div class="ds-clock__row"><span><span class="ds-mono ds-cell-primary">'+j.id+'</span><span class="ds-muted ds-xs"> · '+esc(c.label)+'</span></span><span class="ds-strong ds-small" style="color:var(--t1m-'+(tone==='neutral'?'ink':tone)+')">'+esc(clockText(c))+'</span></div>'+
-      '<span class="ds-bar-track" role="img" aria-label="'+esc(clockText(c))+'"><span class="ds-bar-fill'+(tone==='neutral'?'':' ds-bar-fill--'+tone)+'" style="width:'+(c.days<0?100:pct)+'%"></span></span>'+
-      '<div class="ds-muted ds-xs">'+esc(custById(j.customerId).name)+' · '+(c.days<0?'fees since ':'fees start after ')+shortDate(c.deadline)+'</div></div>';
-  }).join('')+'</div>' : '<p class="ds-muted ds-small">No containers are on a free-time clock right now.</p>';
-  return '<section class="ds-panel ds-panel--elevated" id="fee-clocks"><div class="ds-panel__head"><h2>'+icon('clock')+'Fee clocks</h2><span class="ds-panel__hint">free days before fees</span></div><div class="ds-panel__body">'+body+
-    '<p class="ds-chart-note">'+icon('info')+'<span>Storage runs while the container sits at the port; detention runs until the empty container is returned to the shipping line. A full bar is '+FREE_WINDOW_DAYS+' or more free days.</span></p></div></section>';
+function acctWork(){
+  const out = [];
+  JOBS.forEach(j=>{
+    j.funds.forEach(f=>{
+      const meta = [f.id, j.id, cname(j.customerId)], href = '#/jobs/'+j.id+'/money';
+      if(f.status==='Approved') out.push({ tone:'brand', icon:'arrow-out', title:'Release '+money(f.amount)+' to '+f.payee, meta, href, why:f.purpose+' · needed by '+f.neededBy+' · approved by '+f.review.by, whyTone: daysUntil(f.neededBy)<=0?'warning':null, btn:{ label:'Release', js:"openReleaseFund('"+j.id+"','"+f.id+"')" } });
+      if(f.status==='Liquidated') out.push({ tone:'info', icon:'check', title:'Verify liquidation: '+money(f.liq.actual), meta, href, why:'Released '+money(f.amount)+' · '+f.purpose, btn:{ label:'Verify', js:"openVerify('"+j.id+"','"+f.id+"')" } });
+    });
+    const bs = billingStatus(j).key, meta = [j.id, cname(j.customerId)], href = '#/jobs/'+j.id+'/money';
+    if(bs==='tobill') out.push({ tone:'brand', icon:'receipt', title:'Ready to bill', meta, href, why:'Completed '+j.completed.on+' · pass-through on file '+money(reimbursable(j)), btn:{ label:'Upload SOA', js:"openUploadSOA('"+j.id+"')" } });
+    if(bs==='returned') out.push({ tone:'warning', icon:'refresh', title:'SOA returned: '+latestBill(j).review.reasonType, meta, href, why:latestBill(j).review.comment, whyTone:'warning', btn:{ label:'Upload revised', js:"openUploadSOA('"+j.id+"')" } });
+    if(bs==='ready') out.push({ tone:'brand', icon:'arrow-right', title:'Send the approved SOA', meta, href, btn:{ label:'Mark as sent', js:"openSendBill('"+j.id+"')" } });
+    if(bs==='overdue') out.push({ tone:'danger', icon:'alert', title:'Overdue: '+money(latestBill(j).amount-paidTotal(j))+' unpaid', meta, href, why:'Due '+latestBill(j).dueDate+'.', whyTone:'danger', btn:{ label:'Record payment', js:"openPayment('"+j.id+"')" } });
+  });
+  return out.sort(byTone);
 }
-function workloadPanel(jobs){
-  const w = {};
-  jobs.forEach(j=>j.tasks.forEach(t=>{ if(!t.done){ w[t.owner] = w[t.owner]||{open:0,overdue:0}; w[t.owner].open++; if(taskStatus(j,t)==='Overdue') w[t.owner].overdue++; } }));
-  const max = Math.max(1, ...Object.values(w).map(x=>x.open));
-  const rows = Object.entries(w).sort((a,b)=>b[1].open-a[1].open).map(([name,x])=>{
-    const onTime = x.open - x.overdue;
-    return '<div class="ds-bar-row" data-tip="'+esc(name+': '+x.open+' open, '+x.overdue+' overdue')+'"><span class="ds-bar-row__name">'+esc(name)+'</span><span class="ds-bar-track" style="background:transparent">'+
-      '<span class="ds-bar-stack" style="width:'+Math.round(x.open/max*100)+'%">'+(onTime?'<span style="flex:'+onTime+';background:var(--t1m-navy-700);border-radius:'+(x.overdue?'0':'0 4px 4px 0')+'"></span>':'')+(x.overdue?'<span style="flex:'+x.overdue+';background:var(--t1m-danger);border-radius:0 4px 4px 0"></span>':'')+'</span></span>'+
-      '<span class="ds-bar-row__value">'+x.open+(x.overdue?' <span class="ds-overdue">('+x.overdue+')</span>':'')+'</span></div>';
-  }).join('');
-  return '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h2>'+icon('users')+'Team workload</h2><span class="ds-panel__hint">open tasks</span></div><div class="ds-panel__body">'+
-    '<div class="ds-legend" style="margin-bottom:var(--t1m-space-4)"><span><i style="background:var(--t1m-navy-700)"></i>On time</span><span><i style="background:var(--t1m-danger)"></i>Overdue (count in brackets)</span></div>'+
-    '<div class="ds-bars">'+(rows||'<p class="ds-muted">No open tasks.</p>')+'</div></div></section>';
+function myWorkSections(){
+  const s = [];
+  if(hasRole('Sales')) s.push({ key:'sales', title:'Inquiries & quotes', icon:'quote', items:salesWork(), empty:'Nothing waiting on you. New inquiries appear here when a manager assigns you.' });
+  if(hasRole('Operations')) s.push({ key:'ops', title:'Jobs', icon:'box', items:opsWork(), empty:'No job steps waiting on you.' });
+  if(hasRole('Accounting')) s.push({ key:'acct', title:'Money', icon:'wallet', items:acctWork(), empty:'No funds to release, liquidations to verify or bills to send.' });
+  return s;
 }
-function taskCard(x, i){
-  const { j, t, st } = x;
-  const c = custById(j.customerId);
-  const btn = t.via==='delivery' ? '<button class="ds-btn ds-btn--secondary" onclick="openConfirmDelivery(\''+j.id+'\')">'+icon('truck')+'Confirm delivery</button>'
-    : '<button class="ds-btn ds-btn--secondary" onclick="openCompleteTask(\''+j.id+'\',\''+t.id+'\')">'+icon('check')+'Complete</button>';
-  return '<article class="ds-workcard" data-tone="'+(st==='Overdue'?'danger':'')+'" style="--i:'+i+'">'+
-    '<div><div class="ds-workcard__title">'+esc(t.name)+'</div><div class="ds-workcard__meta">'+jobLink(j.id)+'<span>'+esc(c.name)+'</span>'+pill(st==='Overdue'?'Overdue since '+shortDate(t.due):(st==='To do'?'Due '+shortDate(t.due):'Later · '+shortDate(t.due)), TASK_TONE[st], TASK_ICON[st], 'ds-pill--sm')+(t.requiresEvidence?pill('Needs proof','neutral','file','ds-pill--sm'):'')+'</div></div>'+
-    '<div class="ds-workcard__actions"><button class="ds-btn ds-btn--ghost" onclick="go(\'#/jobs/'+j.id+'\')">Open job</button>'+btn+'</div></article>';
-}
-function taskSections(list){
-  const overdue = list.filter(x=>x.st==='Overdue'), todo = list.filter(x=>x.st==='To do'), later = list.filter(x=>x.st==='Upcoming');
-  let i = 0;
-  const sec = (title, items, ic, tone)=> items.length ? '<div class="ds-section-head" style="margin-top:var(--t1m-space-5)"><h2>'+icon(ic)+esc(title)+' '+pill(String(items.length), tone, null, 'ds-pill--sm')+'</h2></div><div class="ds-cards">'+items.map(x=>taskCard(x,i++)).join('')+'</div>' : '';
-  return sec('Overdue', overdue, 'alert', 'danger') + sec('To do now', todo, 'clock', 'info') +
-    (later.length ? (STATE.showUpcoming ? sec('Coming up later', later, 'circle', 'neutral') : '<button class="ds-btn ds-btn--ghost" style="margin-top:var(--t1m-space-4)" onclick="STATE.showUpcoming=true; render()">'+icon('chevron-down')+'Show '+plural(later.length,'task')+' coming up later</button>') : '') +
-    (!list.length ? '<div class="ds-panel ds-panel--elevated">'+emptyState('check','No tasks assigned to you','New work appears here the moment a job reaches your step.')+'</div>' : '');
+function myWorkCount(){ return hasMyWork() ? sumOf(myWorkSections(), s=>s.items.length) : 0; }
+function renderMyWork(){
+  const secs = myWorkSections(), total = sumOf(secs, s=>s.items.length);
+  const reports = INTAKE.filter(t=>t.by===me()).slice().reverse();
+  const waiting = hasRole('Sales') ? INQUIRIES.filter(i=>i.staff.includes(me()) && ['approval','accepted'].includes(inqStatus(i).key)) : [];
+  return '<div class="ds-page-head"><div class="ds-hello"><h1>'+esc(greeting())+'</h1><p>'+esc(todayLong())+'. <strong>'+plural(total,'thing')+'</strong> waiting on you.</p></div>'+
+    (hasRole('Sales') && !can('inquiry.create') ? '<div class="ds-page-head__actions"><button class="ds-btn ds-btn--secondary" onclick="openReportInquiry()">'+icon('flag')+'Report an inquiry to the manager</button></div>' : '')+'</div>'+
+    '<div class="ds-stack">'+(secs.length ? secs.map(s=>'<section class="ds-panel ds-panel--elevated" id="mywork-'+s.key+'"><div class="ds-panel__head"><h2>'+icon(s.icon)+esc(s.title)+'</h2><span class="ds-panel__hint">'+plural(s.items.length,'item')+' · most urgent first</span></div>'+queueHtml(s.items, s.empty)+'</section>').join('')
+      : '<div class="ds-panel ds-panel--elevated">'+emptyState('check','Nothing assigned','Your roles do not have a to-do list.')+'</div>')+
+    (reports.length ? '<section class="ds-panel ds-panel--elevated" id="my-reports"><div class="ds-panel__head"><h2>'+icon('flag')+'My reports</h2><span class="ds-panel__hint">inquiries you reported to the manager</span></div>'+
+      queueHtml(reports.map(t=>{ const st = intakeState(t); return { tone: t.status==='open'?'info':t.status==='done'?'success':'neutral', icon:st.icon, title:t.client+' · '+st.label+(t.inquiryId?' → '+t.inquiryId:''), meta:[t.on], why:t.note+(t.file?' · Attached: '+t.file:''), href:'#/mywork', open:"openIntake('"+t.id+"')", btn:{ label:'View', js:"openIntake('"+t.id+"')" } }; }), '')+'</section>' : '')+
+    (waiting.length ? '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h2>'+icon('clock')+'Waiting on a manager</h2><span class="ds-panel__hint">nothing to do yet</span></div>'+
+      queueHtml(waiting.map(i=>({ tone:'neutral', icon:'clock', title:inqStatus(i).label, meta:[i.id, cname(i.customerId)], href:'#/inquiries/'+i.id })), '')+'</section>' : '')+'</div>';
 }
 
-/* ---------- role pages ---------- */
-function renderHome(){
-  const r = role();
-  if(r==='Manager'||r==='Admin') return renderManagerHome();
-  if(r==='Finance') return renderFinanceHome();
-  if(r==='Warehouse Crew') return renderCrewHome();
-  return renderDispatcherHome();
+/* ---------- Needs attention (Dashboard) ---------- */
+function needsAttention(){
+  const q = [], P = (p,o)=>q.push(Object.assign({ p }, o));
+  const mgr = can('quote.approve');
+  INTAKE.filter(t=>t.status==='open').forEach(t=>P(1, { tone:'brand', icon:'flag', title:'New inquiry reported: '+t.client, meta:[t.by, t.on], why:t.note+(t.file?' · Attached: '+t.file:''), href:'#/home', open:"openIntake('"+t.id+"')", btn:{ label:'View', js:"openIntake('"+t.id+"')" } }));
+  USERS.filter(u=>u.pendingDeactivation).forEach(u=>P(0, { tone:'warning', icon:'users', title:'Reassign '+u.name+'’s open work before deactivation', meta:[rolesText(u)], why:'Requested by '+u.pendingDeactivation.by+'.', href:'#/users', btn: can('inquiry.create') ? { label:'Reassign', js:"openHandover('"+u.id+"')" } : null }));
+  INQUIRIES.forEach(i=>{
+    const s = inqStatus(i), v = latestV(i), meta = [i.id, cname(i.customerId)], href = '#/inquiries/'+i.id;
+    if(s.key==='approval') P(2, { tone:'warning', icon:'eye', title:'Quote v'+v.v+' waiting for approval · '+amountText(v), meta:meta.concat([v.by]), href, btn: mgr ? { label:'Review', js:"openReviewQuote('"+i.id+"')" } : null });
+    if(s.key==='accepted') P(3, { tone:'success', icon:'check', title:'Client accepted v'+v.v+': acknowledge and close', meta, href, btn: can('inquiry.close') ? { label:'Acknowledge', js:"openAckAccept('"+i.id+"')" } : null });
+    if(s.key==='won') P(3, { tone:'brand', icon:'box', title:'Won: convert to job', meta, href, btn: can('job.convert') ? { label:'Convert', js:"openConvert('"+i.id+"')" } : null });
+    if(s.key==='awaiting' && awaitingDays(i)>=SETTINGS.awaitingClientDays) P(8, { tone:'warning', icon:'clock', title:'Awaiting client response · '+plural(awaitingDays(i),'day'), meta:meta.concat([i.staff.join(', ')]), why:'Sent '+v.sent.on+'. Valid until '+v.validUntil+'.', href, btn:{ label:'Open', js:"go('"+href+"')" } });
+    if(s.key==='expired') P(8, { tone:'warning', icon:'alert', title:'Quote expired with no answer', meta, href, btn: can('inquiry.close') ? { label:'Close as lost', js:"openCloseLost('"+i.id+"')" } : null });
+  });
+  JOBS.forEach(j=>{
+    const meta = [j.id, cname(j.customerId)], href = '#/jobs/'+j.id, iss = openIssue(j);
+    j.funds.filter(f=>f.status==='For approval').forEach(f=>P(2, { tone:'warning', icon:'wallet', title:'Fund request '+money(f.amount)+' waiting for approval', meta:[f.id].concat(meta), why:f.purpose+' · needed by '+f.neededBy, href:href+'/money', btn: can('fund.approve') ? { label:'Review', js:"openReviewFund('"+j.id+"','"+f.id+"')" } : null }));
+    if(billingStatus(j).key==='approval') P(2, { tone:'warning', icon:'receipt', title:'SOA v'+latestBill(j).v+' waiting for approval · '+money(latestBill(j).amount), meta, href:href+'/money', btn: can('bill.approve') ? { label:'Review', js:"openReviewBill('"+j.id+"')" } : null });
+    if(j.status==='For closing') P(4, { tone:'brand', icon:'flag', title:'Job submitted for closing', meta:meta.concat([j.submitted.by]), href, btn: can('job.complete') ? { label:'Confirm', js:"openConfirmComplete('"+j.id+"')" } : null });
+    if(iss && j.status!=='Completed') P(1, { tone:'danger', icon:'lock', title:'On hold: '+iss.reason, meta:meta.concat([iss.by]), whyTone:'danger', href, btn:{ label:'Open', js:"go('"+href+"/issues')" } });
+    jobClocks(j).filter(c=>c.state==='running' && c.left<=1).forEach(c=>P(5, { tone:c.left<=0?'danger':'warning', icon:'clock', title:c.label+': '+clockText(c), meta, why:'Fees ('+c.risk+') after '+c.lastFree+'.', whyTone:c.left<=0?'danger':'warning', href, btn:{ label:'Open', js:"go('"+href+"')" } }));
+    if(billingStatus(j).key==='overdue') P(6, { tone:'danger', icon:'alert', title:'Billing overdue: '+money(latestBill(j).amount-paidTotal(j))+' unpaid', meta, why:'Due '+latestBill(j).dueDate+'.', whyTone:'danger', href:href+'/money', btn:{ label:'Open', js:"go('"+href+"/money')" } });
+    j.funds.filter(f=>f.status==='Released' && daysBetween(f.release.on, todayDMY())>SETTINGS.unliquidatedDays).forEach(f=>P(7, { tone:'warning', icon:'receipt', title:'Cash advance not liquidated · '+plural(daysBetween(f.release.on, todayDMY()),'day'), meta:[f.id].concat(meta), why:money(f.amount)+' released '+f.release.on+' to '+f.by+'.', href:href+'/money', btn:{ label:'Open', js:"go('"+href+"/money')" } }));
+  });
+  return q.sort((a,b)=>a.p-b.p || byTone(a,b));
 }
-function renderManagerHome(){
-  const all = JOBS, active = all.filter(j=>j.statusIndex<8);
-  const q = managerQueue();
-  const f = STATE.queueFilter;
-  const shown = f==='all' ? q : q.filter(x=>x.cat===f);
-  const cnt = k => q.filter(x=>x.cat===k).length;
-  const blocked = active.filter(j=>jobHealth(j).tone==='danger').length;
-  const attention = active.filter(j=>jobHealth(j).tone==='warning').length;
-  const clocks = active.filter(j=>{ const c = deadlineInfo(j); return c && c.days!=null && c.days<=2; }).length;
-  const withFinance = active.filter(j=>j.statusIndex===7);
-  const short = active.filter(j=>fundingGap(j)).length;
-  const decisions = q.filter(x=>x.tone==='danger' || x.cat==='decisions').length;
-  const chip = (k,label)=>'<button class="ds-chip" aria-pressed="'+(f===k)+'" onclick="STATE.queueFilter=\''+k+'\'; render()">'+label+'<span class="ds-chip__count">'+(k==='all'?q.length:cnt(k))+'</span></button>';
-  return '<div class="ds-page-head"><div class="ds-hello"><h1>'+esc(greeting())+'</h1><p>'+todayLong()+'. <strong>'+plural(q.length,'item')+'</strong> need'+(q.length===1?'s':'')+' a manager, <strong>'+decisions+'</strong> of them urgent.</p></div>'+
-      '<div class="ds-page-head__actions"><button class="ds-btn ds-btn--secondary" onclick="go(\'#/reports\')">'+icon('chart')+'Reports</button></div></div>'+
-    '<div class="ds-stack">'+
-    '<div class="ds-kpis">'+
-      kpi('box','Active shipments', active.length, 'every stage before Closed', null, jobsFilterJs('all'), 'kpi-active')+
-      kpi('lock','Blocked', blocked, 'cannot move: exception or hold', blocked?'danger':null, jobsFilterJs('blocked'), 'kpi-blocked')+
-      kpi('alert','Needs attention', attention, 'overdue, missing, short, fees', attention?'warning':null, jobsFilterJs('attention'), 'kpi-attention')+
-      kpi('clock','Fees at risk', clocks, '2 free days or fewer', clocks?'warning':null, jobsFilterJs('clock'), 'kpi-clock')+
-      kpi('wallet','Short on funds', short, 'bills due, client money short', short?'warning':null, jobsFilterJs('funds'), 'kpi-funds')+
-      kpi('receipt','With Finance', withFinance.length, moneyShort(sumOf(withFinance,j=>jobCostMargin(j).billed))+' to bill', 'success', jobsFilterJs('all',7), 'kpi-finance')+
+
+/* ---------- Dashboard ---------- */
+const RANGES = { 'This month':1, 'Last 3 months':3, 'Last 6 months':6, 'All time':null };
+function inRange(dmy){
+  const m = RANGES[STATE.dashRange]; if(!m) return true;
+  const d = parseDMY(dmy); if(!d) return false;
+  return d >= new Date(TODAY.getFullYear(), TODAY.getMonth()-m+1, 1);
+}
+function scopeMatch(x){ return !STATE.dashScope || scopeKey(x)===STATE.dashScope; }
+function dashInq(){ return INQUIRIES.filter(i=>inRange(i.createdOn) && (!STATE.dashService||i.services.includes(STATE.dashService)) && scopeMatch(i) && (!STATE.dashCustomer||i.customerId===STATE.dashCustomer) && (!STATE.dashStaff||i.staff.includes(STATE.dashStaff))); }
+function dashJobs(){ return JOBS.filter(j=>inRange(j.createdOn) && (!STATE.dashService||j.services.includes(STATE.dashService)) && scopeMatch(j) && (!STATE.dashCustomer||j.customerId===STATE.dashCustomer) && (!STATE.dashStaff||j.ops.includes(STATE.dashStaff)||j.sales.includes(STATE.dashStaff))); }
+function avg(list){ return list.length ? list.reduce((a,b)=>a+b,0)/list.length : null; }
+function fmtAvg(n, unit, dp){ return n==null ? '—' : n.toFixed(dp==null?1:dp)+' '+unit; }
+function barRows(rows, opts){
+  opts = opts||{};
+  const max = Math.max(1, ...rows.map(r=>r.value));
+  if(!rows.length || rows.every(r=>!r.value)) return '<p class="ds-muted ds-small">'+esc(opts.empty||'No data in this range yet.')+'</p>';
+  return '<div class="ds-bars">'+rows.map(r=>'<div class="ds-bar-row'+(opts.wide?' ds-bar-row--wide':'')+'" data-tip="'+esc(r.tip||r.label+': '+r.valueText)+'"><span class="ds-bar-row__name">'+(r.icon?icon(r.icon)+' ':'')+esc(r.label)+'</span><span class="ds-bar-track"><span class="ds-bar-fill'+(r.tone?' ds-bar-fill--'+r.tone:'')+'" style="width:'+Math.round(r.value/max*100)+'%"></span></span><span class="ds-bar-row__value">'+esc(r.valueText)+'</span></div>').join('')+'</div>';
+}
+function panel(title, ic, inner, note, hint){ return '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h2>'+(ic?icon(ic):'')+esc(title)+'</h2>'+(hint?'<span class="ds-panel__hint">'+esc(hint)+'</span>':'')+'</div><div class="ds-panel__body">'+inner+(note?'<p class="ds-chart-note">'+icon('info')+'<span>'+esc(note)+'</span></p>':'')+'</div></section>'; }
+function lastMonths(n){ const out = []; for(let k=n-1;k>=0;k--){ const d = new Date(TODAY.getFullYear(), TODAY.getMonth()-k, 1); out.push({ y:d.getFullYear(), m:d.getMonth(), label:MONTH_NAMES[d.getMonth()].slice(0,3)+' '+d.getFullYear() }); } return out; }
+function monthOf(dmy){ const d = parseDMY(dmy); return d ? d.getFullYear()*12+d.getMonth() : null; }
+function monthlyRows(list, dateFn, valFn, fmt){
+  return lastMonths(6).map(mo=>{ const v = sumOf(list.filter(x=>monthOf(dateFn(x))===mo.y*12+mo.m), x=>valFn?valFn(x):1); return { label:mo.label, value:v, valueText: fmt?fmt(v):String(v) }; });
+}
+function countBy(list, keyFn, labels){ const m = {}; list.forEach(x=>[].concat(keyFn(x)).forEach(k=>{ if(k) m[k] = (m[k]||0)+1; })); return (labels||Object.keys(m)).map(k=>({ label:k, value:m[k]||0, valueText:String(m[k]||0) })); }
+function isWon(i){ return i.closed==='won' || !!i.jobId; }
+function firstSent(i){ const v = i.versions.find(x=>x.sent); return v ? v.sent.on : null; }
+
+function salesTab(){
+  const inq = dashInq(), won = inq.filter(isWon), lost = inq.filter(i=>i.closed==='lost'), decided = won.length + lost.length;
+  const quoted = inq.filter(i=>i.versions.some(v=>v.sent));
+  const pipe = inq.filter(i=>['approval','ready','awaiting','accepted'].includes(inqStatus(i).key));
+  const pipeVal = sumOf(pipe, i=>toPHP(latestV(i)));
+  const qt = avg(inq.filter(firstSent).map(i=>daysBetween(i.createdOn, firstSent(i))));
+  const appr = avg([].concat(...inq.map(i=>i.versions.filter(v=>v.review && v.review.at && v.at).map(v=>(v.review.at - v.at)/3.6e6))));
+  const vpw = avg(won.map(i=>i.versions.length));
+  const funnel = barRows([['Inquiries', inq.length],['Quoted', quoted.length],['Accepted', won.length]].map(([l,n])=>({ label:l, value:n, valueText:String(n)+(l!=='Inquiries'&&inq.length?' ('+Math.round(n/inq.length*100)+'%)':'') })), { empty:'No inquiries in this range.' });
+  const returns = [].concat(...inq.map(i=>i.versions.filter(v=>v.review && v.review.decision==='Returned').map(v=>v.review.reasonType)));
+  const custRows = CUSTOMERS.map(c=>{ const ci = inq.filter(i=>i.customerId===c.id); return { c, n:ci.length, w:ci.filter(isWon).length, billed:sumOf(JOBS.filter(j=>j.customerId===c.id), billedAmount) }; }).filter(r=>r.n).sort((a,b)=>b.billed-a.billed || b.n-a.n).slice(0,8);
+  return '<div class="ds-stack"><div class="ds-kpis">'+
+      kpi('quote','Inquiries received', inq.length, 'in the selected range', null, "STATE.inqFilter='all'; go('#/inquiries')")+
+      kpi('arrow-right','Quotes sent', quoted.length, 'at least one version sent', null, "STATE.inqFilter='all'; go('#/inquiries')")+
+      kpi('check','Win rate', decided ? Math.round(won.length/decided*100)+'%' : '—', won.length+' won · '+lost.length+' lost', null, "STATE.inqFilter='accepted'; go('#/inquiries')")+
+      kpi('wallet','Pipeline value', moneyShort(pipeVal), plural(pipe.length,'quote')+' not yet decided', null, "STATE.inqFilter='open'; go('#/inquiries')")+
     '</div>'+
-    '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h2>'+icon('ship')+'Where every shipment is</h2><span class="ds-panel__hint">click a stage to open its jobs</span></div><div class="ds-panel__body">'+pipelineHtml(all)+'</div></section>'+
-    '<div class="ds-split">'+
-      '<section class="ds-panel ds-panel--elevated" id="needs-you"><div class="ds-panel__head"><h2>'+icon('flag')+'Needs you</h2><span class="ds-panel__hint">most urgent first · each row has the button that resolves it</span></div>'+
-        '<div class="ds-panel__body" style="padding-bottom:var(--t1m-space-2)"><div class="ds-chips ds-chips--scroll">'+chip('all','All')+chip('decisions','Decisions')+chip('money','Money')+chip('deadlines','Deadlines')+'</div></div>'+
-        queueHtml(shown, 'Nothing here. Every job in this group is moving on its own.')+'</section>'+
-      '<div class="ds-stack">'+feeClocksPanel(active)+workloadPanel(active)+'</div>'+
+    '<div class="ds-grid-2">'+
+      panel('Conversion funnel','chart', funnel, 'How many requests turn into quotes, and quotes into wins.')+
+      panel('Speed and effort','clock','<div class="ds-stats">'+stat('Quote turnaround', fmtAvg(qt,'days'), false, 'inquiry → first quote sent')+stat('Approval turnaround', appr==null?'—':appr<1?'< 1 hour':fmtAvg(appr,'hours'), false, 'submitted → approved')+stat('Versions per win', fmtAvg(vpw,'',1), false, 'how much negotiation')+'</div>')+
+    '</div>'+
+    '<div class="ds-grid-2">'+
+      panel('Inquiries by month','calendar', barRows(monthlyRows(inq, i=>i.createdOn)), null, 'last 6 months')+
+      panel('Why we lose deals','x', barRows(countBy(lost, i=>i.lostReason.type, CLIENT_REASONS), { empty:'No lost inquiries in this range.' }), 'From the reason picked when an inquiry is closed as lost.')+
+    '</div>'+
+    '<div class="ds-grid-2">'+
+      panel('By service','box', barRows(countBy(inq, i=>i.services.map(s=>SERVICES[s].short), SERVICE_ORDER.map(s=>SERVICES[s].short))))+
+      panel('By scope','pin', barRows(countBy(inq, scopeKey, ['Domestic','International Import','International Export'])))+
+    '</div>'+
+    '<div class="ds-grid-2">'+
+      panel('Why managers returned quotes','refresh', barRows(countBy(returns.map(r=>({r})), x=>x.r, MANAGER_RETURN_REASONS), { empty:'No quotes were returned in this range.' }))+
+      '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h2>'+icon('building')+'Top customers</h2></div>'+(custRows.length ? '<div class="ds-table-wrap"><table class="ds-table ds-table--compact ds-table--stack"><thead><tr><th>Customer</th><th class="ds-num">Inquiries</th><th class="ds-num">Won</th><th class="ds-num">Billed</th></tr></thead><tbody>'+
+        custRows.map(r=>'<tr data-href onclick="go(\'#/customers/'+r.c.id+'\')"><td data-label="Customer">'+esc(r.c.name)+'</td><td data-label="Inquiries" class="ds-num">'+r.n+'</td><td data-label="Won" class="ds-num">'+r.w+'</td><td data-label="Billed" class="ds-num">'+money(r.billed)+'</td></tr>').join('')+'</tbody></table></div>' : '<div class="ds-panel__body ds-muted ds-small">No customers with inquiries in this range.</div>')+'</section>'+
     '</div></div>';
 }
-function renderDispatcherHome(){
-  const tasks = myTaskList();
-  const q = dispatcherQueue();
-  const sales = salesQueue();
-  const mine = myJobs();
-  const overdue = tasks.filter(x=>x.st==='Overdue').length, todo = tasks.filter(x=>x.st==='To do').length;
-  const docs = q.filter(x=>x.cat==='docs').length, moves = q.filter(x=>x.cat==='moves' && x.tone==='brand').length;
-  return '<div class="ds-page-head"><div class="ds-hello"><h1>'+esc(greeting())+'</h1><p>'+todayLong()+'. You have <strong>'+plural(overdue+todo,'task')+'</strong> to do and <strong>'+plural(q.length,'follow-up')+'</strong> on your customers’ shipments.</p></div>'+
-    '<div class="ds-page-head__actions"><button class="ds-btn ds-btn--primary" onclick="openNewInquiry()">'+icon('plus')+'New inquiry</button></div></div>'+
-    '<div class="ds-stack">'+
-    '<div class="ds-kpis">'+
-      kpi('alert','Overdue tasks', overdue, 'past their due date', overdue?'danger':null, "document.getElementById('my-tasks').scrollIntoView({behavior:'smooth'})")+
-      kpi('clock','To do now', todo, 'the job has reached your step', null, "document.getElementById('my-tasks').scrollIntoView({behavior:'smooth'})")+
-      kpi('file','Documents to chase', docs, 'review, upload or replace', docs?'warning':null, "document.getElementById('follow-ups').scrollIntoView({behavior:'smooth'})")+
-      kpi('arrow-right','Ready to move on', moves, 'gate met, one click away', moves?'success':null, "document.getElementById('follow-ups').scrollIntoView({behavior:'smooth'})")+
+function opsTab(){
+  const jobs = dashJobs(), active = jobs.filter(j=>j.status!=='Completed'), held = active.filter(j=>openIssue(j)), done = jobs.filter(j=>j.status==='Completed');
+  const stageRows = SERVICE_ORDER.map(s=>({ label:SERVICES[s].short, value:active.filter(j=>j.status==='Active' && currentMs(j) && currentMs(j).svc===s).length })).concat([{ label:'For closing', value:active.filter(j=>j.status==='For closing').length }]).map(r=>Object.assign(r,{ valueText:String(r.value) }));
+  const lanes = jobs.map(laneOf).filter(Boolean);
+  const laneRows = LANES.map(l=>{ const n = lanes.filter(x=>x===l).length; return { label:l, value:n, valueText: lanes.length ? Math.round(n/lanes.length*100)+'% ('+n+')' : '0', tone:LANE_TONE[l] }; });
+  const release = avg(jobs.map(j=>{ const rel = j.ms.find(m=>m.name==='BOC released' && m.done), arr = msByFlag(j,'arrival'); const start = arr && arr.done ? arr.date : (j.free && j.free.arrival); return rel && start ? daysBetween(start, rel.date) : null; }).filter(x=>x!=null));
+  const cycle = avg(done.map(j=>daysBetween(j.createdOn, j.completed.on)));
+  const stopped = [].concat(...jobs.map(j=>jobClocks(j).filter(c=>c.type==='port' && c.state==='stopped')));
+  const within = stopped.filter(c=>!c.over).length, over = sumOf(stopped, c=>c.over);
+  return '<div class="ds-stack"><div class="ds-kpis">'+
+      kpi('box','Active jobs', active.length, 'not yet completed', null, "STATE.jobFilter='active'; go('#/jobs')")+
+      kpi('lock','On hold', held.length, 'open issue', held.length?'danger':null, "STATE.jobFilter='hold'; go('#/jobs')")+
+      kpi('shield','Customs release time', fmtAvg(release,'days'), 'arrived → BOC released', null, "go('#/jobs')")+
+      kpi('check','Job cycle time', fmtAvg(cycle,'days'), 'created → completed', null, "STATE.jobFilter='completed'; go('#/jobs')")+
     '</div>'+
-    '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h2>'+icon('ship')+'Your customers’ shipments</h2><span class="ds-panel__hint">'+plural(mine.length,'job')+' · click a stage</span></div><div class="ds-panel__body">'+pipelineHtml(mine)+'</div></section>'+
-    '<div class="ds-split"><div id="my-tasks"><div class="ds-section-head"><h2>'+icon('tasks')+'Your tasks</h2><span class="ds-panel__hint">tasks you own, most urgent first</span></div>'+taskSections(tasks)+'</div>'+
-    '<div class="ds-stack">'+
-      '<section class="ds-panel ds-panel--elevated" id="follow-ups"><div class="ds-panel__head"><h2>'+icon('flag')+'Shipment follow-ups</h2></div>'+queueHtml(q, 'No documents to chase and nothing waiting on you.')+'</section>'+
-      '<section class="ds-panel ds-panel--elevated" id="sales-follow-ups"><div class="ds-panel__head"><h2>'+icon('quote')+'Sales follow-ups</h2><a class="ds-link ds-small" href="#/inquiries">All inquiries'+icon('arrow-right')+'</a></div>'+queueHtml(sales, 'No inquiries waiting on you.')+'</section>'+
-    '</div></div></div>';
-}
-function renderCrewHome(){
-  const deliveries = crewDeliveries();
-  const tasks = myTaskList().filter(x=>x.t.via!=='delivery');
-  const returns = tasks.filter(x=>x.t.detention && x.st!=='Upcoming');
-  const others = tasks.filter(x=>!returns.includes(x));
-  const dCards = deliveries.map((j,i)=>{
-    const c = custById(j.customerId);
-    const clk = deadlineInfo(j);
-    return '<article class="ds-workcard" style="--i:'+i+'"><div><div class="ds-workcard__title">'+esc(j.consignee)+'</div>'+
-      '<div class="ds-workcard__meta">'+jobLink(j.id)+'<span>'+esc(j.destination)+'</span><span class="ds-mono">'+esc(j.containerNo)+'</span></div>'+
-      '<div class="ds-alert ds-alert--info" style="margin-top:var(--t1m-space-3)">'+icon('info')+'<div><strong>Delivery instructions</strong>'+esc(c.instructions)+'</div></div>'+
-      (clk?'<div class="ds-muted ds-xs" style="margin-top:var(--t1m-space-2)">'+icon('clock')+' '+esc(clk.label+': '+clockText(clk))+', return the empty container by '+shortDate(clk.deadline)+'.</div>':'')+'</div>'+
-      '<div class="ds-workcard__actions"><button class="ds-btn ds-btn--'+(deliveries.length===1?'primary':'secondary')+' ds-btn--touch" onclick="openConfirmDelivery(\''+j.id+'\')">'+icon('truck')+'Confirm delivery</button></div></article>';
-  }).join('');
-  let i = deliveries.length;
-  return '<div class="ds-page-head"><div class="ds-hello"><h1>'+esc(greeting())+'</h1><p>'+todayLong()+'. <strong>'+plural(deliveries.length,'delivery','deliveries')+'</strong> to confirm'+(returns.length?' and <strong>'+plural(returns.length,'empty container')+'</strong> to return':'')+'.</p></div></div>'+
-    '<div class="ds-stack">'+
-    '<section><div class="ds-section-head"><h2>'+icon('truck')+'Deliveries to confirm</h2><span class="ds-panel__hint">receiver name + proof of delivery</span></div>'+
-      (dCards ? '<div class="ds-cards">'+dCards+'</div>' : '<div class="ds-panel ds-panel--elevated">'+emptyState('check','No deliveries waiting','A job appears here when it goes out for delivery.')+'</div>')+'</section>'+
-    (returns.length ? '<section><div class="ds-section-head"><h2>'+icon('refresh')+'Empty containers to return</h2><span class="ds-panel__hint">detention fees start after the free days</span></div><div class="ds-cards">'+returns.map(x=>taskCard(x,i++)).join('')+'</div></section>' : '')+
-    '<section><div class="ds-section-head"><h2>'+icon('tasks')+'Your other tasks</h2></div>'+taskSections(others)+'</section>'+
-    '</div>';
-}
-function renderFinanceHome(){
-  const ready = JOBS.filter(j=>j.statusIndex===7);
-  const settled = JOBS.filter(j=>j.statusIndex>=6);
-  const refunds = settled.filter(j=>jobFunds(j).settlement>0), toBill = settled.filter(j=>jobFunds(j).settlement<0);
-  const short = JOBS.filter(j=>fundingGap(j));
-  const value = sumOf(ready, j=>jobCostMargin(j).billed);
-  const rows = settled.map(j=>{
-    const f = jobFunds(j), s = f.settlement;
-    const pending = j.charges.some(isUnresolved);
-    const outcome = s>0 ? pill('Refund '+money(s),'info','arrow-out') : s<0 ? pill('Bill client '+money(-s),'warning','receipt') : pill('Fully settled','success','check');
-    return '<tr data-href onclick="go(\'#/jobs/'+j.id+'/money\')"><td data-label="Job"><span class="ds-cell-name"><span class="ds-mono ds-cell-primary">'+j.id+'</span><span class="ds-cell-sub">'+esc(custById(j.customerId).name)+'</span></span></td>'+
-      '<td data-label="Stage">'+stagePill(j)+'</td><td data-label="Billed" class="ds-num">'+money(jobCostMargin(j).billed)+'</td><td data-label="Outcome">'+outcome+(pending?' '+pill('Provisional','neutral','clock','ds-pill--sm'):'')+'</td>'+
-      '<td data-label="" class="ds-num">'+(j.statusIndex>=7?'<a class="ds-btn ds-btn--secondary ds-btn--sm" href="#/jobs/'+j.id+'/billing-summary" onclick="event.stopPropagation()">'+icon('file')+'Billing Summary</a>':'<span class="ds-muted ds-xs">Not handed over yet</span>')+'</td></tr>';
-  }).join('');
-  const q = ready.map(j=>({ tone:'brand', icon:'receipt', job:j, title:'Ready for Finance · '+money(jobCostMargin(j).billed), why:(()=>{ const s = jobFunds(j).settlement; return (s>0?'Refund due to client: '+money(s):s<0?'Balance to bill client: '+money(-s):'Fully settled')+' · waiting '+plural(j.billingReadyDays||0,'day'); })(), btn:{ label:'Billing Summary', js:"go('#/jobs/"+j.id+"/billing-summary')" } }));
-  return '<div class="ds-page-head"><div class="ds-hello"><h1>'+esc(greeting())+'</h1><p>'+todayLong()+'. <strong>'+plural(ready.length,'job')+'</strong> handed to Finance, worth <strong>'+money(value)+'</strong>.</p></div><span class="ds-readonly">'+icon('eye')+'Read only</span></div>'+
-    '<div class="ds-stack">'+
-    '<div class="ds-kpis">'+
-      kpi('receipt','Waiting on Finance', ready.length, moneyShort(value)+' billed to clients', null, jobsFilterJs('all',7))+
-      kpi('arrow-out','Refunds due', refunds.length, moneyShort(sumOf(refunds,j=>jobFunds(j).settlement))+' back to clients', null, "document.getElementById('settlements').scrollIntoView({behavior:'smooth'})")+
-      kpi('receipt','Balances to bill', toBill.length, moneyShort(-sumOf(toBill,j=>jobFunds(j).settlement))+' still owed', toBill.length?'warning':null, "document.getElementById('settlements').scrollIntoView({behavior:'smooth'})")+
-      kpi('wallet','Short on funds', short.length, 'operations is chasing deposits', short.length?'warning':null, jobsFilterJs('funds'))+
+    '<div class="ds-grid-2">'+
+      panel('Active jobs by stage','flag', barRows(stageRows, { empty:'No active jobs.' }), 'The service track each active job is on now. A long bar is a queue forming.')+
+      panel('Customs lanes','shield', barRows(laneRows, { empty:'No lanes recorded yet.' }), 'Share of jobs per BOC lane. Red means physical inspection and the longest release.')+
     '</div>'+
-    '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h2>'+icon('receipt')+'Handed to Finance</h2><span class="ds-panel__hint">oldest first</span></div>'+queueHtml(q.sort((a,b)=>(b.job.billingReadyDays||0)-(a.job.billingReadyDays||0)), 'Nothing waiting for Finance.')+'</section>'+
-    '<section class="ds-panel ds-panel--elevated" id="settlements"><div class="ds-panel__head"><h2>'+icon('wallet')+'How each delivered job settles</h2><span class="ds-panel__hint">client money in, minus money spent and our fees</span></div>'+
-      '<div class="ds-table-wrap"><table class="ds-table ds-table--stack"><thead><tr><th>Job</th><th>Stage</th><th class="ds-num">Billed to client</th><th>Final balance</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div></section>'+
-    '</div>';
+    '<div class="ds-grid-2">'+
+      panel('Free-time performance','clock', stopped.length ? '<div class="ds-stats">'+stat('Released within free time', Math.round(within/stopped.length*100)+'%', false, within+' of '+stopped.length+' jobs')+stat('Total days over', String(over), over>0, 'storage + demurrage days')+'</div>' : '<p class="ds-muted ds-small">No port clocks have stopped yet.</p>')+
+      panel('Jobs completed by month','calendar', barRows(monthlyRows(done, j=>j.completed.on)), null, 'last 6 months')+
+    '</div>'+
+    (held.length ? panel('On hold now','lock', '<ul class="ds-gate">'+held.map(j=>gateItemHtml({ label:j.id+' · '+cname(j.customerId), sub:openIssue(j).reason, met:false, blocked:true, act:act('Open',"go('#/jobs/"+j.id+"/issues')",'arrow-right') })).join('')+'</ul>') : '')+
+  '</div>';
+}
+function financeTab(){
+  const jobs = dashJobs(), sent = jobs.filter(j=>latestBill(j) && latestBill(j).status==='Sent');
+  const billed = sumOf(jobs, billedAmount), collected = sumOf(jobs, j=>j.billing?sumOf(j.billing.payments, p=>p.amount):0), wht = sumOf(jobs, j=>j.billing?sumOf(j.billing.payments, p=>p.wht||0):0);
+  const outstanding = sumOf(sent, j=>Math.max(0, latestBill(j).amount - paidTotal(j)));
+  const buckets = [['0–30 days',0,30],['31–60 days',31,60],['61–90 days',61,90],['90+ days',91,1e9]];
+  const aging = buckets.map(([l,a,b])=>{ const v = sumOf(sent.filter(j=>{ const d = daysBetween(latestBill(j).sent.on, todayDMY()); return d>=a && d<=b; }), j=>Math.max(0, latestBill(j).amount-paidTotal(j))); return { label:l, value:v, valueText:moneyShort(v), tip:l+': '+money(v) }; });
+  const adv = [].concat(...jobs.map(j=>j.funds.filter(f=>f.status==='Released')));
+  const advRows = [['0–'+SETTINGS.unliquidatedDays+' days',0,SETTINGS.unliquidatedDays],['Over '+SETTINGS.unliquidatedDays+' days',SETTINGS.unliquidatedDays+1,1e9]].map(([l,a,b])=>{ const v = sumOf(adv.filter(f=>{ const d = daysBetween(f.release.on, todayDMY()); return d>=a && d<=b; }), f=>f.amount); return { label:l, value:v, valueText:moneyShort(v), tone: a>0?'warning':null }; });
+  const done = jobs.filter(j=>billedAmount(j));
+  const profitBlock = can('profit.view') ? '<div class="ds-grid-2">'+
+      panel('Job profit by service','chart', barRows(SERVICE_ORDER.map(s=>{ const v = sumOf(done.filter(j=>j.services.includes(s)), j=>jobProfit(j).profit); return { label:SERVICES[s].short, value:Math.max(0,v), valueText:moneyShort(v) }; }), { wide:true, empty:'No billed jobs yet.' }), 'A job with several services counts toward each of them.')+
+      panel('Job profit by month','calendar', barRows(monthlyRows(done, j=>j.completed.on, j=>Math.max(0,jobProfit(j).profit), moneyShort), { wide:true }), null, 'by completion month')+
+    '</div>'+
+    '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h2>'+icon('receipt')+'Quoted vs. billed, and profit per job</h2><span class="ds-panel__hint">Manager only</span></div>'+(done.length ? '<div class="ds-table-wrap"><table class="ds-table ds-table--compact ds-table--stack"><thead><tr><th>Job</th><th class="ds-num">Quoted</th><th class="ds-num">Billed</th><th class="ds-num">Difference</th><th class="ds-num">Profit</th></tr></thead><tbody>'+
+      done.map(j=>{ const i = inqById(j.inquiryId), q = toPHP(acceptedVersion(i)), p = jobProfit(j); return '<tr data-href onclick="go(\'#/jobs/'+j.id+'/money\')"><td data-label="Job"><span class="ds-cell-name"><span class="ds-mono ds-cell-primary">'+j.id+'</span><span class="ds-cell-sub">'+esc(cname(j.customerId))+'</span></span></td><td data-label="Quoted" class="ds-num">'+money(q)+'</td><td data-label="Billed" class="ds-num">'+money(p.billed)+'</td><td data-label="Difference" class="ds-num'+(p.billed-q<0?' ds-overdue':'')+'">'+money(p.billed-q)+'</td><td data-label="Profit" class="ds-num'+(p.profit<0?' ds-overdue':'')+'">'+money(p.profit)+' <span class="ds-muted ds-xs">'+p.pct.toFixed(1)+'%</span></td></tr>'; }).join('')+'</tbody></table></div>' : '<div class="ds-panel__body ds-muted ds-small">No billed jobs yet.</div>')+'</section>' : '';
+  return '<div class="ds-stack"><div class="ds-kpis">'+
+      kpi('receipt','Billed', moneyShort(billed), 'approved Statements of Account', null, "STATE.jobFilter='completed'; go('#/jobs')")+
+      kpi('arrow-in','Collected', moneyShort(collected), 'payments recorded', null, "STATE.jobFilter='completed'; go('#/jobs')")+
+      kpi('alert','Outstanding', moneyShort(outstanding), plural(sent.filter(j=>billingStatus(j).key==='overdue').length,'job')+' overdue', outstanding?'warning':null, "STATE.jobFilter='completed'; go('#/jobs')")+
+      kpi('file','Withholding tax', moneyShort(wht), 'match against BIR 2307 forms', null, "STATE.jobFilter='completed'; go('#/jobs')")+
+    '</div>'+
+    '<div class="ds-grid-2">'+
+      panel('Receivables aging','clock', barRows(aging, { wide:true, empty:'Nothing unpaid.' }), 'Unpaid balances by how long ago the SOA was sent.')+
+      panel('Unliquidated cash advances','wallet', barRows(advRows, { wide:true, empty:'No released funds waiting for liquidation.' }), 'Released fund requests not yet liquidated with receipts.')+
+    '</div>'+profitBlock+'</div>';
+}
+function teamTab(){
+  const staff = USERS.filter(u=>u.active && u.roles.some(r=>['Sales','Operations','Accounting'].includes(r)) && (!STATE.dashStaff || u.name===STATE.dashStaff));
+  const rows = staff.map(u=>({ u,
+    inq: INQUIRIES.filter(i=>i.staff.includes(u.name) && OPEN_INQ.includes(inqStatus(i).key)).length,
+    jobs: JOBS.filter(j=>j.ops.includes(u.name) && j.status!=='Completed').length,
+    fr: sumOf(JOBS, j=>j.funds.filter(f=>f.by===u.name && f.status!=='Verified').length) })).filter(r=>r.inq||r.jobs||r.fr||!STATE.dashStaff);
+  const inq = dashInq(), jobs = dashJobs();
+  const sales = USERS.filter(u=>u.roles.includes('Sales')).map(u=>{ const mine = inq.filter(i=>i.staff.includes(u.name)), w = mine.filter(isWon).length, l = mine.filter(i=>i.closed==='lost').length;
+    return { u, n:mine.length, rate: w+l ? Math.round(w/(w+l)*100)+'%' : '—', billed: sumOf(jobs.filter(j=>j.sales.includes(u.name)), billedAmount) }; }).filter(r=>r.n);
+  const ops = USERS.filter(u=>u.roles.includes('Operations')).map(u=>{ const mine = jobs.filter(j=>j.ops.includes(u.name)); return { u, n:mine.length, cyc: avg(mine.filter(j=>j.completed).map(j=>daysBetween(j.createdOn, j.completed.on))) }; }).filter(r=>r.n);
+  const tbl = (head, body, empty)=>body ? '<div class="ds-table-wrap"><table class="ds-table ds-table--compact ds-table--stack"><thead><tr>'+head+'</tr></thead><tbody>'+body+'</tbody></table></div>' : '<div class="ds-panel__body ds-muted ds-small">'+esc(empty)+'</div>';
+  return '<div class="ds-stack">'+
+    '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h2>'+icon('users')+'Workload per person</h2><span class="ds-panel__hint">open work right now</span></div>'+
+      tbl('<th>Person</th><th>Roles</th><th class="ds-num">Open inquiries</th><th class="ds-num">Open jobs</th><th class="ds-num">Open fund requests</th>',
+        rows.filter(r=>r.inq||r.jobs||r.fr).map(r=>'<tr><td data-label="Person"><span class="ds-row ds-row--tight">'+avatar(r.u.name,true)+esc(r.u.name)+'</span></td><td data-label="Roles">'+esc(rolesText(r.u))+'</td><td data-label="Inquiries" class="ds-num">'+r.inq+'</td><td data-label="Jobs" class="ds-num">'+r.jobs+'</td><td data-label="Fund requests" class="ds-num">'+r.fr+'</td></tr>').join(''), 'Nobody has open work yet.')+'</section>'+
+    '<div class="ds-grid-2">'+
+      '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h2>'+icon('quote')+'Sales per person</h2></div>'+
+        tbl('<th>Person</th><th class="ds-num">Inquiries</th><th class="ds-num">Win rate</th><th class="ds-num">Billed</th>', sales.map(r=>'<tr><td data-label="Person">'+esc(r.u.name)+'</td><td data-label="Inquiries" class="ds-num">'+r.n+'</td><td data-label="Win rate" class="ds-num">'+r.rate+'</td><td data-label="Billed" class="ds-num">'+money(r.billed)+'</td></tr>').join(''), 'No inquiries in this range.')+'</section>'+
+      '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h2>'+icon('box')+'Operations per person</h2></div>'+
+        tbl('<th>Person</th><th class="ds-num">Jobs handled</th><th class="ds-num">Avg cycle time</th>', ops.map(r=>'<tr><td data-label="Person">'+esc(r.u.name)+'</td><td data-label="Jobs" class="ds-num">'+r.n+'</td><td data-label="Cycle time" class="ds-num">'+fmtAvg(r.cyc,'days')+'</td></tr>').join(''), 'No jobs in this range.')+'</section>'+
+    '</div></div>';
+}
+function kpi(ic, label, value, hint, tone, js){
+  return '<button class="ds-kpi'+(tone?' ds-kpi--'+tone:'')+'" onclick="'+js+'"><span class="ds-kpi__icon">'+icon(ic)+'</span><span class="ds-kpi__label">'+esc(label)+'</span><span class="ds-kpi__value">'+value+'</span><span class="ds-kpi__hint">'+esc(hint)+'</span></button>';
+}
+const DASH_TABS = { sales:'Sales & quotations', ops:'Operations', finance:'Finance', team:'Team' };
+function renderDashboard(){
+  const q = needsAttention();
+  const sel = (id, label, key, opts)=>'<div style="min-width:180px">'+selectWrap('<select class="ds-select" id="'+id+'" aria-label="'+label+'" onchange="STATE.'+key+'=this.value; render()">'+(label?'<option value="">'+label+'</option>':'')+options(opts, STATE[key])+'</select>')+'</div>';
+  const staff = USERS.filter(u=>u.roles.some(r=>['Sales','Operations'].includes(r))).map(u=>u.name);
+  const body = { sales:salesTab, ops:opsTab, finance:financeTab, team:teamTab }[STATE.dashTab]();
+  const empty = !INQUIRIES.length && !JOBS.length;
+  return '<div class="ds-page-head"><div class="ds-hello"><h1>'+esc(greeting())+'</h1><p>'+esc(todayLong())+'. <strong>'+plural(q.length,'item')+'</strong> need'+(q.length===1?'s':'')+' attention.</p></div>'+
+      '<div class="ds-page-head__actions no-print">'+
+      (can('inquiry.create')?'<button class="ds-btn ds-btn--primary" onclick="openNewInquiry()">'+icon('plus')+'New inquiry</button>':'')+'</div></div>'+
+    '<div class="ds-stack">'+
+    '<section class="ds-panel ds-panel--elevated" id="needs-attention"><div class="ds-panel__head"><h2>'+icon('flag')+'Needs attention</h2><span class="ds-panel__hint">most urgent first · each row opens the record</span></div>'+
+      queueHtml(q, 'Nothing needs you right now. Approvals, holds, free-time alerts and overdue bills appear here.')+'</section>'+
+    (empty ? '<div class="ds-alert ds-alert--info">'+icon('info')+'<div><strong>No data yet</strong>The figures below fill in as customers, inquiries and jobs are created in this session.</div></div>' : '')+
+    '<section class="ds-panel ds-panel--elevated no-print"><div class="ds-panel__body"><div class="ds-row" style="flex-wrap:wrap">'+icon('filter')+
+      sel('dash-range','', 'dashRange', Object.keys(RANGES))+
+      sel('dash-svc','All services','dashService', SERVICE_ORDER.map(k=>({value:k,label:SERVICES[k].label})))+
+      sel('dash-scope','All scopes','dashScope', ['Domestic','International Import','International Export'])+
+      sel('dash-cust','All customers','dashCustomer', CUSTOMERS.map(c=>({value:c.id,label:c.name})))+
+      sel('dash-staff','All staff','dashStaff', staff)+
+      ((STATE.dashService||STATE.dashScope||STATE.dashCustomer||STATE.dashStaff||STATE.dashRange!=='All time')?'<button class="ds-btn ds-btn--ghost ds-btn--sm" onclick="STATE.dashService=STATE.dashScope=STATE.dashCustomer=STATE.dashStaff=\'\'; STATE.dashRange=\'All time\'; render()">'+icon('x')+'Clear</button>':'')+
+    '</div></div></section>'+
+    '<section class="ds-panel ds-panel--elevated"><div class="ds-tabs no-print" role="tablist">'+Object.entries(DASH_TABS).map(([k,l])=>'<button class="ds-tab" role="tab" aria-selected="'+(STATE.dashTab===k)+'" onclick="STATE.dashTab=\''+k+'\'; render()"><span class="ds-tab__label" data-text="'+l+'">'+l+'</span></button>').join('')+'</div>'+
+      '<div class="ds-panel__body" id="dash-body">'+body+'</div></section></div>';
+}
+/* Excel export: the records behind the current tab, as CSV (opens in Excel). */
+function exportDashCSV(){
+  let head, rows;
+  if(STATE.dashTab==='sales'){ head = ['Inquiry','Created','Customer','Scope','Services','Staff','Latest version','Amount','Currency','Status','Lost reason'];
+    rows = dashInq().map(i=>{ const v = latestV(i); return [i.id, i.createdOn, cname(i.customerId), scopeText(i), servicesText(i.services), i.staff.join('; '), v?'v'+v.v:'', v?v.amount:'', v?v.currency:'', inqStatus(i).label, i.lostReason?i.lostReason.type:'']; }); }
+  else if(STATE.dashTab==='ops'){ head = ['Job','Created','Customer','Scope','Services','Operations','Current step','Health','Lane','Completed'];
+    rows = dashJobs().map(j=>[j.id, j.createdOn, cname(j.customerId), scopeText(j), servicesText(j.services), j.ops.join('; '), stageText(j), jobHealth(j).label, laneOf(j)||'', j.completed?j.completed.on:'']); }
+  else if(STATE.dashTab==='finance'){ head = ['Job','Customer','Billing status','Billed','Received','Withholding','Pass-through']+(can('profit.view')?',Own costs,Profit'.split(',').slice(1):[]);
+    rows = dashJobs().map(j=>{ const p = jobProfit(j); return [j.id, cname(j.customerId), billingStatus(j).label, p.billed, j.billing?sumOf(j.billing.payments,x=>x.amount):0, j.billing?sumOf(j.billing.payments,x=>x.wht||0):0, p.reimb].concat(can('profit.view')?[p.own, p.profit]:[]); }); }
+  else { head = ['Person','Roles','Open inquiries','Open jobs','Open fund requests'];
+    rows = USERS.filter(u=>u.active).map(u=>[u.name, rolesText(u), INQUIRIES.filter(i=>i.staff.includes(u.name) && OPEN_INQ.includes(inqStatus(i).key)).length, JOBS.filter(j=>j.ops.includes(u.name) && j.status!=='Completed').length, sumOf(JOBS, j=>j.funds.filter(f=>f.by===u.name && f.status!=='Verified').length)]); }
+  const csv = [head].concat(rows).map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['﻿'+csv], { type:'text/csv' }));
+  a.download = 'top1movers-'+STATE.dashTab+'-'+dmyToISO(todayDMY())+'.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  showToast('Exported '+plural(rows.length,'row')+' ('+DASH_TABS[STATE.dashTab]+').', 'success', 'download');
 }

@@ -1030,3 +1030,40 @@ th[aria-sort="ascending"] .ds-icon { rotate: 180deg; }
 }
 @media (max-width: 960px) { .ds-sidebar__foot { display: none; } }
 .ds-table td.ds-col-main { white-space: normal; min-width: 200px; }
+
+/* ---------- Confirm dialog (small yes/no step on top of a drawer) ---------- */
+.ds-confirm-backdrop { position: fixed; inset: 0; z-index: 95; display: flex; align-items: center; justify-content: center; padding: var(--t1m-space-4); background: var(--t1m-scrim); }
+.ds-confirm { width: min(420px, 100%); background: var(--t1m-surface); border-radius: var(--t1m-radius-lg); box-shadow: var(--t1m-shadow-float); animation: ds-acct-picker-in 160ms var(--t1m-ease); }
+.ds-confirm__body { padding: var(--t1m-space-5); }
+.ds-confirm__body h3 { font-size: var(--t1m-text-lg); }
+.ds-confirm__body p { margin-top: var(--t1m-space-2); font-size: var(--t1m-text-sm); color: var(--t1m-ink-2); }
+.ds-confirm__foot { padding: var(--t1m-space-4) var(--t1m-space-5); border-top: 1px solid var(--t1m-border); display: flex; gap: var(--t1m-space-2); justify-content: flex-end; }
+@media (prefers-reduced-motion: reduce) { .ds-confirm { animation: none; } }
+
+/* ---------- Progress track, left-aligned variant (dot and label start at the left edge of each step) ---------- */
+.ds-track--left .ds-track__step { text-align: left; }
+.ds-track--left .ds-track__step::before { left: calc(-100% + 16px); right: 100%; }
+.ds-track--left .ds-track__step::after { left: 0; }
+.ds-track--phases .ds-track__step { min-width: 150px; }
+
+/* ---------- Facts list, stacked variant (label above the value, everything left-aligned) ---------- */
+.ds-facts--stacked { grid-template-columns: minmax(0, 1fr); gap: 0; }
+.ds-facts--stacked dt { font-size: var(--t1m-text-xs); margin-top: var(--t1m-space-3); }
+.ds-facts--stacked dt:first-child { margin-top: 0; }
+.ds-facts--stacked dd { text-align: left; }
+
+/* ---------- Lane colour on the "Lane assigned" step (Green / Yellow / Red) ---------- */
+.ds-track__step[data-lane="Green"] { color: var(--t1m-success); }
+.ds-track__step[data-lane="Yellow"] { color: var(--t1m-warning); }
+.ds-track__step[data-lane="Red"] { color: var(--t1m-danger); }
+.ds-track__step[data-lane="Green"]::after { background: var(--t1m-success); border-color: var(--t1m-success); }
+.ds-track__step[data-lane="Yellow"]::after { background: var(--t1m-warning); border-color: var(--t1m-warning); }
+.ds-track__step[data-lane="Red"]::after { background: var(--t1m-danger); border-color: var(--t1m-danger); }
+
+/* ---------- Scrollable list with a capped height (long document lists) ---------- */
+.ds-scroll-list { max-height: 360px; overflow-y: auto; }
+
+/* ---------- Clickable phase overview (pick a phase to review its steps) ---------- */
+.ds-track--phases .ds-track__step { cursor: pointer; }
+.ds-track--phases .ds-track__step:hover, .ds-track--phases .ds-track__step:focus-visible { color: var(--t1m-navy-700); outline: none; }
+.ds-track--phases .ds-track__step[data-selected] { color: var(--t1m-navy-700); font-weight: var(--t1m-w-label); text-decoration: underline; text-underline-offset: 4px; }
