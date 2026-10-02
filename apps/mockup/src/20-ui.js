@@ -93,6 +93,15 @@ function formError(form, msg){
 /* ============================== OVERLAYS ============================== */
 /* Drawer: record detail and quick edits slide in from the right (a bottom sheet on phones), so the
    page underneath keeps its place. The footer holds the actions and never scrolls away. */
+/* Adds a red * to the label of every form field that is not marked "optional". */
+function markRequired(root){
+  (root||document).querySelectorAll('form .ds-field > label, form .ds-field > .ds-field__label').forEach(l=>{
+    if(l.querySelector('.ds-req') || l.closest('.ds-check')) return;
+    const o = l.querySelector('.ds-opt'); if(o && /optional/i.test(o.textContent)) return;
+    const star = '<span class="ds-req" aria-hidden="true">*</span>';
+    if(o) o.insertAdjacentHTML('beforebegin', star); else l.insertAdjacentHTML('beforeend', star);
+  });
+}
 function openDrawer(o){
   const el = document.getElementById('drawerRoot');
   el.innerHTML = '<div class="ds-drawer-backdrop" onclick="closeDrawer()"></div>'+
@@ -103,6 +112,7 @@ function openDrawer(o){
       (o.foot?'<div class="ds-drawer__foot">'+o.foot+'</div>':'')+
     '</aside>';
   el.classList.add('open');
+  markRequired(el);
   setTimeout(()=>{ const f = el.querySelector('.ds-drawer__body input:not([type=hidden]):not([type=file]):not([readonly]),.ds-drawer__body textarea, .ds-drawer__body select'); if(f && window.innerWidth>640) f.focus(); }, 50);
 }
 /* Asks before a critical save. Validation runs first; the same call is repeated once the person confirms. */
@@ -118,6 +128,7 @@ function confirmAction(title, text, label, js, danger, extraHtml){
   el.innerHTML = '<div class="ds-confirm" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title"><div class="ds-confirm__body"><h3 id="confirm-title">'+esc(title)+'</h3><p>'+esc(text)+'</p>'+(extraHtml?'<div style="margin-top:var(--t1m-space-4)">'+extraHtml+'</div>':'')+'</div>'+
     '<div class="ds-confirm__foot"><button type="button" class="ds-btn ds-btn--ghost" onclick="closeConfirm()">Cancel</button><button type="button" class="ds-btn ds-btn--'+(danger?'danger':'primary')+'" id="confirm-yes" onclick="'+(extraHtml?'':'closeConfirm(); ')+js+'">'+esc(label)+'</button></div></div>';
   document.body.appendChild(el);
+  markRequired(el);
 }
 function closeConfirm(){ const el = document.getElementById('confirmRoot'); if(el) el.remove(); }
 function closeDrawer(){ const el=document.getElementById('drawerRoot'); el.classList.remove('open'); el.innerHTML=''; for(const k in UPLOADS) delete UPLOADS[k]; }
@@ -236,5 +247,6 @@ function render(){
   if(focusId){ const el = document.getElementById(focusId); if(el && el.focus){ el.focus({preventScroll:true}); if(selStart!=null && el.setSelectionRange) try{ el.setSelectionRange(selStart, selStart); }catch(e){} } }
   window.scrollTo(0, sameRoute ? scrollY : 0);
   document.querySelectorAll('.ds-track [data-state="current"], .ds-track [data-state="blocked"]').forEach(cur=>{ const tr = cur.parentElement; tr.scrollLeft = cur.offsetLeft - tr.clientWidth/2 + cur.clientWidth/2; });
+  markRequired(root);
   STATE.justNext = null;
 }

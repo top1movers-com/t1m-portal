@@ -8,7 +8,7 @@ function gateItemHtml(it){
   const ic = it.met ? 'check' : it.blocked ? 'lock' : 'circle';
   return '<li class="ds-gate__item"'+(it.met?' data-met':'')+(it.blocked?' data-blocked':'')+(it.hint?' title="'+esc(it.hint)+'"':'')+'>'+icon(ic)+
     '<div class="ds-gate__label">'+esc(it.label)+(it.sub?'<small'+(it.overdue?' class="ds-overdue"':'')+'>'+esc(it.sub)+'</small>':'')+'</div>'+
-    (it.act?'<button class="ds-btn ds-btn--secondary ds-btn--sm" onclick="'+it.act.js+'">'+(it.act.icon?icon(it.act.icon):'')+esc(it.act.label)+'</button>':'<span></span>')+'</li>';
+    ((it.badge||it.act)?'<span class="ds-row ds-row--tight">'+(it.badge?pill(it.badge.text, it.badge.tone, it.badge.icon, 'ds-pill--sm'):'')+(it.act?'<button class="ds-btn ds-btn--secondary ds-btn--sm" onclick="'+it.act.js+'">'+(it.act.icon?icon(it.act.icon):'')+esc(it.act.label)+'</button>':'')+'</span>':'<span></span>')+'</li>';
 }
 const HISTORY_ICON = { 'Inquiry created':'plus', 'Inquiry updated':'users', 'Quote submitted':'upload', 'Quote approved':'check', 'Quote returned':'refresh', 'Quote sent':'arrow-right', 'Quote expired':'clock',
   'Client accepted':'check', 'Client rejected':'x', 'Client renegotiating':'refresh', 'Inquiry closed (won)':'check', 'Inquiry closed (lost)':'x', 'Converted to job':'box', 'Job created':'box',
@@ -59,7 +59,6 @@ function openConvert(inqId){
   const f = (k,val)=>'<dt>'+esc(k)+'</dt><dd>'+esc(val)+'</dd>';
   openDrawer({ title:'Convert to job', sub:'From <span class="ds-mono">'+i.id+'</span> · accepted v'+v.v,
     body:'<form class="ds-stack--sm" id="convert-form" novalidate onsubmit="event.preventDefault(); convertToJob(\''+inqId+'\', this)">'+
-      '<div class="ds-alert ds-alert--success">'+icon('check')+'<div><strong>Nothing to retype</strong>These carry over as they are.</div></div>'+
       '<dl class="ds-facts">'+f('Customer',c.name)+f('Scope',scopeText(i))+f('Request',reqWhat(i))+(routeText(reqFrom(i.request), reqTo(i.request))?f('Route',routeText(reqFrom(i.request), reqTo(i.request))):'')+(needsTruckLegs(i.services, i.scope)?f('Trucking covers', (i.truckLegs||['pickup','delivery']).map(l=>l==='pickup'?'Pickup':'Delivery').join(' + ')):'')+(i.request.deliveryInstructions?f('Delivery instructions',i.request.deliveryInstructions):'')+f('Accepted quote','v'+v.v+' · '+amountText(v))+f('Sales (viewers)',i.staff.join(', '))+'</dl>'+
       '<div class="ds-label" style="margin-top:var(--t1m-space-2)">Assign Operations per service</div>'+
       SERVICE_ORDER.filter(k=>i.services.includes(k)).map(k=>'<div class="ds-field"><span class="ds-field__label">'+esc(SERVICES[k].label)+' <span class="ds-opt">one or more</span></span>'+multiDropdown('cv-ops-'+k,'ops_'+k, ops, [], 'Select operations staff', 'bottom')+errorSlot('ops_'+k)+'</div>').join('')+
@@ -131,7 +130,7 @@ function jobNext(j){
   const id = j.id, mgrs = usersWithRole('Manager').map(u=>u.name);
   if(j.status==='Completed'){
     const bs = billingStatus(j), fin = financiallyClosed(j);
-    return { tone:'done', icon:'check', eyebrow: fin ? 'Financially closed' : 'Completed', title: fin ? 'Paid in full and every fund request verified' : 'Job completed · with Accounting',
+    return { tone:'done', icon:'check', eyebrow: fin ? 'Financially closed' : 'Completed', title: fin ? 'Paid in full and every fund request verified' : 'Job completed',
       text:'Confirmed by '+j.completed.by+' on '+j.completed.on+'.'+(canView('bill.view') ? ' Billing: '+bs.label+'.' : ''), items:[],
       primary: canView('bill.view') ? act('Open billing',"goTab('"+id+"','money')",'receipt') : null };
   }
@@ -158,11 +157,11 @@ function jobNext(j){
     const needs = stepDocs(j, m, 'needs'), missing = missingNeeds(j, m), makes = stepDocs(j, m, 'produces');
     const docItems = needs.map(d=>({ label:'Needed first: '+d.name, sub: d.status==='Received' ? 'Received · '+d.file : 'Required before “'+m.name+'” can be ticked', met:d.status==='Received', act: d.status!=='Received' && mine ? act('Upload',"openUploadDoc('"+id+"','"+d.id+"')",'upload') : null }));
     const fg = fundGate(j, m);
-    const fgAct = fg ? (fg.fund && fg.fund.status==='Returned' ? act('Edit & resubmit',"openFundRequest('"+id+"','"+fg.fund.id+"')",'refresh') : fg.none ? act('Request funds',"openFundRequest('"+id+"',null,'Duties & taxes')",'wallet') : act('Open money',"goTab('"+id+"','money')",'wallet')) : null;
-    if(fg) docItems.unshift({ label:fg.label, sub:fg.sub, met:false, act: mine ? fgAct : null });
+    const fgAct = fg ? (fg.fund && fg.fund.status==='Returned' ? act('Edit & resubmit',"openFundRequest('"+id+"','"+fg.fund.id+"')",'refresh') : fg.none ? act('Request funds',"openFundRequest('"+id+"',null,'"+fg.purpose+"')",'wallet') : act('Open money',"goTab('"+id+"','money')",'wallet')) : null;
+    if(fg) docItems.unshift({ label:fg.label, sub:fg.sub, badge:fg.badge, met:false, act: mine ? fgAct : null });
     const firstMissing = missing[0];
     return { tone: mine?'ready':'waiting', icon:SERVICES[m.svc].icon, eyebrow:'Phase '+(pk+1)+' of '+phases.length+' · '+m.phase+' · step '+(track.indexOf(m)+1)+' of '+track.length, title:'Next: '+m.name,
-      text:(STEP_HINT[m.name]||'')+(m.proof?' Needs a file attached.':'')+(missing.length?' First, upload: '+missing.map(d=>d.name).join(', ')+'.':'')+(fg?' First: '+fg.sub.toLowerCase()+'.':''),
+      text:(STEP_HINT[m.name]||'')+(m.proof?' Needs a file attached.':'')+(missing.length?' First, upload: '+missing.map(d=>d.name).join(', ')+'.':'')+(fg?' Funds for the '+fg.what+' must be released first.':''),
       items:docItems.concat(items), gateTitle:m.phase,
       primary: !mine ? null : firstMissing ? act('Upload '+firstMissing.name,"openUploadDoc('"+id+"','"+firstMissing.id+"')",'upload') : fg ? fgAct : act('Mark “'+m.name+'” done',"openMilestone('"+id+"',"+k+")",'check'),
       who: mine ? null : 'Waiting on '+opsFor(j, m.svc).join(', ')+' ('+SERVICES[m.svc].label+').' };
@@ -194,7 +193,7 @@ function jobSupportDocsPanel(j){
   const v = i.versions.find(x=>x.v===j.quoteV);
   const docs = [].concat(i.request.attachment ? [{ name:i.request.attachment, meta:'Supporting document' }] : [], v ? [{ name:v.file, meta:'Accepted quotation v'+v.v }] : [], j.ms.filter(m=>m.file).map(m=>({ name:m.file, meta:m.name+' · attachment' })));
   if(!docs.length) return '';
-  return '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h3>'+icon('file')+'Supporting documents</h3></div><div class="ds-panel__body ds-stack--sm ds-scroll-list">'+docs.map(d=>fileRow(d.name, d.meta)).join('')+'</div></section>';
+  return '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h3>'+icon('file')+'Supporting documents</h3></div><div class="ds-panel__body ds-panel__body--flush ds-scroll-list">'+docs.map(d=>fileRow(d.name, d.meta)).join('')+'</div></section>';
 }
 function factsPanel(j){
   const c = custById(j.customerId), i = inqById(j.inquiryId), v = i ? i.versions.find(x=>x.v===j.quoteV) : null;
@@ -204,6 +203,7 @@ function factsPanel(j){
     f('Inquiry', canView('inquiry.view', i)?'<a class="ds-link ds-mono" href="#/inquiries/'+j.inquiryId+'">'+esc(j.inquiryId)+'</a>':'<span class="ds-mono">'+esc(j.inquiryId)+'</span>')+
     (v && (canView('bill.view') || hasRole('Sales')) ? f('Accepted quote', 'v'+v.v+' · '+amountText(v)) : '')+
     f('Request', esc(j.commodity+(j.cargoType?' · '+j.cargoType:'')))+
+    ((j.ms.find(x=>x.shippingLine)||{}).shippingLine?f('Shipping line', esc(j.ms.find(x=>x.shippingLine).shippingLine)):'')+
     (j.deliveryInstructions?f('Delivery instructions', esc(j.deliveryInstructions)):'')+
     f('Operations', j.opsByService ? SERVICE_ORDER.filter(k=>j.opsByService[k]).map(k=>'<div>'+esc(SERVICES[k].label)+': '+esc(j.opsByService[k].join(', '))+'</div>').join('') : esc(j.ops.join(', ')))+
     (j.refs.bl?f('BL / AWB', '<span class="ds-mono">'+esc(j.refs.bl)+'</span>'):'')+
@@ -211,7 +211,7 @@ function factsPanel(j){
     f('Tracking code', '<span class="ds-mono">'+esc(j.trackingCode)+'</span> <a class="ds-link ds-xs" href="#/track/'+esc(j.trackingCode)+'" title="The page the client sees">'+icon('eye')+'Client view</a>')+
   '</dl><p class="ds-muted ds-xs" style="margin-top:var(--t1m-space-2)">Give the client the tracking code. Job numbers alone do not open the tracking page.</p></div></section>';
 }
-const TAB_LABELS = { milestones:'Milestones', documents:'Documents', issues:'Issues', money:'Money', history:'History' };
+const TAB_LABELS = { milestones:'Milestones', documents:'Documents', issues:'Issues', money:ACCOUNTING_BASIC?'Funds':'Money', history:'History' };
 function jobTabs(j){ const t = ['milestones','documents','issues']; if(canView('money.view', j) || canView('bill.view')) t.push('money'); t.push('history'); return t; }
 function tabCount(j, t){
   if(t==='documents'){ const n = pendingDocs(j).length; return n ? '<span class="ds-tab__count ds-tab__count--warning">'+n+'</span>' : ''; }
@@ -252,7 +252,7 @@ function jobMilestonesTab(j){
     const st = m.done ? pill('Done','success','check','ds-pill--sm') : idx===k ? pill(openIssue(j)?'On hold':'Next', openIssue(j)?'danger':'info', openIssue(j)?'lock':'arrow-right','ds-pill--sm') : pill('Later','neutral','circle','ds-pill--sm');
     return '<tr><td data-label="Phase">'+esc(m.phase)+'</td><td data-label="Milestone" style="white-space:normal"><span class="ds-strong">'+esc(m.name)+'</span><div class="ds-muted ds-xs">'+esc((STEP_HINT[m.name]||'')+(m.proof?' Needs proof.':''))+'</div></td>'+
       '<td data-label="Status">'+st+'</td><td data-label="Date">'+(m.done?esc(m.date):'—')+'</td><td data-label="By">'+(m.done?esc(m.by):'—')+'</td>'+
-      '<td data-label="Remark" style="white-space:normal">'+esc([m.laneValue?'Lane '+m.laneValue:'', m.remark||''].filter(Boolean).join(' · '))+(m.file?' <span class="ds-mono ds-xs">'+esc(m.file)+'</span>':'')+'</td>'+
+      '<td data-label="Remark" style="white-space:normal">'+esc([m.laneValue?'Lane '+m.laneValue:'', m.truck?m.truck.driver+' · '+m.truck.plate+' · '+m.truck.type:'', m.shippingLine?'Shipping line: '+m.shippingLine:'', m.remark||''].filter(Boolean).join(' · '))+(m.file?' <span class="ds-mono ds-xs">'+esc(m.file)+'</span>':'')+'</td>'+
       '</tr>';
   }).join('');
   return '<p class="ds-muted ds-small" style="margin-bottom:var(--t1m-space-3)">Milestones are done in order from the Next step panel above. No approval per milestone.</p>'+
@@ -272,9 +272,11 @@ function openMilestone(jobId, k){
     body:'<form class="ds-stack--sm" id="ms-form" novalidate onsubmit="event.preventDefault(); saveMilestone(\''+jobId+'\','+k+', this)">'+
       (STEP_HINT[m.name]?'<p class="ds-small ds-muted">'+esc(STEP_HINT[m.name])+'</p>':'')+
       dateField('ms-date','date','Date', todayDMY())+
+      (/^Booked/.test(m.name) ? '<div class="ds-field"><label for="ms-line">Shipping line</label><input class="ds-input" id="ms-line" name="shippingLine" placeholder="Name of the shipping line" autocomplete="off">'+errorSlot('shippingLine')+'</div>' : '')+
+      (m.name==='Truck scheduled' ? '<div class="ds-field"><label for="ms-driver">Driver name</label><input class="ds-input" id="ms-driver" name="driver" placeholder="Full name of the driver">'+errorSlot('driver')+'</div><div class="ds-grid-2" style="gap:var(--t1m-space-3)"><div class="ds-field"><label for="ms-plate">Plate number</label><input class="ds-input ds-mono" id="ms-plate" name="plate" placeholder="e.g. ABC 1234">'+errorSlot('plate')+'</div><div class="ds-field"><label for="ms-ttype">Type of truck</label>'+selectWrap('<select class="ds-select" id="ms-ttype" name="truckType"><option value="">Select type</option>'+options(TRUCK_TYPES)+'</select>')+errorSlot('truckType')+'</div></div>' : '')+
       (m.lane ? '<div class="ds-field"><span class="ds-field__label">Lane assigned by BOC</span><div class="ds-stack--sm">'+LANES.map((l,x)=>'<label class="ds-check" style="align-items:flex-start"><input type="radio" name="lane" value="'+l+'"'+(x===0?' checked':'')+'> <span>'+pill(l, LANE_TONE[l], l==='Green'?'check':'alert','ds-pill--sm')+'<br><span class="ds-muted ds-xs">'+esc(LANE_MEANING[l])+'</span></span></label>').join('')+'</div></div>' : '')+
       makes.map(d=>'<div class="ds-field"><label>'+esc(d.name)+'</label>'+uploadHtml('doc_'+d.id)+errorSlot('file_'+d.id)+'</div>').join('')+
-      (proofDoc ? '' : '<div class="ds-field"><label>'+(m.proof?'Proof':'Other attachment <span class="ds-opt">optional</span>')+'</label>'+uploadHtml('msFile', m.proof ? (m.name==='Duties paid'?'The duty payment receipt':'Proof for this step') : 'Photo or document')+(m.proof?errorSlot('file'):'')+'</div>')+
+      (proofDoc ? '' : '<div class="ds-field"><label>'+(m.proof?'Proof':'Other attachment <span class="ds-opt">optional</span>')+'</label>'+uploadHtml('msFile', m.proof ? (m.name==='Duties paid'?'The duty payment receipt':m.name==='Approved'?'The BOC approval or accreditation certificate':m.name==='Empty container returned'?'The container return or interchange receipt':'Proof for this step') : 'Photo or document')+(m.proof?errorSlot('file'):'')+'</div>')+
       '<div class="ds-field"><label for="ms-remark">Remark <span class="ds-opt">optional</span></label><textarea class="ds-textarea" id="ms-remark" name="remark" style="min-height:64px"></textarea></div></form>',
     foot: drawerFoot('Mark done','ms-form',{icon:'check'}) });
 }
@@ -288,11 +290,15 @@ function saveMilestone(jobId, k, form){
   const proofFile = proofDoc ? UPLOADS['doc_'+proofDoc.id] : UPLOADS.msFile;
   let missingDoc = 0;
   makes.forEach(d=>{ if(fieldError(form,'file_'+d.id, UPLOADS['doc_'+d.id] ? '' : 'Upload the '+d.name+' to continue.')) missingDoc = 1; });
-  if(bad | missingDoc | fieldError(form,'file', m.proof && !proofDoc && !proofFile ? 'This step needs proof attached.' : '')) return;
+  const trk = m.name==='Truck scheduled' ? { driver:String(fd.get('driver')||'').trim(), plate:String(fd.get('plate')||'').trim().toUpperCase(), type:String(fd.get('truckType')||'') } : null;
+  const line = /^Booked/.test(m.name) ? String(fd.get('shippingLine')||'').trim() : null;
+  const lineBad = line!==null ? fieldError(form,'shippingLine', line?'':'Enter the shipping line.') : 0;
+  const truckBad = trk ? (fieldError(form,'driver', trk.driver?'':'Enter the driver’s name.') | fieldError(form,'plate', trk.plate?'':'Enter the plate number.') | fieldError(form,'truckType', trk.type?'':'Pick the type of truck.')) : 0;
+  if(bad | missingDoc | truckBad | lineBad | fieldError(form,'file', m.proof && !proofDoc && !proofFile ? 'This step needs proof attached.' : '')) return;
   if(needConfirm('Mark “'+m.name+'” done?', 'It is recorded in the job history under your name, with the date you picked.', 'Mark done', "saveMilestone('"+jobId+"',"+k+",document.getElementById('"+form.id+"'))")) return;
   makes.forEach(d=>{ const f = UPLOADS['doc_'+d.id]; if(f){ Object.assign(d, { status:'Received', file:f, by:me(), on:date }); logTo(j, 'Document uploaded', d.name+' ('+f+') with “'+m.name+'”.'); } });
-  Object.assign(m, { done:true, date, by:me(), remark:String(fd.get('remark')||'').trim()||null, file:proofFile||UPLOADS.msFile||null, laneValue: m.lane ? String(fd.get('lane')) : null });
-  logTo(j, 'Milestone done', m.phase+' · '+m.name+(m.laneValue?' (lane '+m.laneValue+')':'')+' on '+date+(m.file?' · '+m.file:'')+'.');
+  Object.assign(m, { done:true, date, by:me(), remark:String(fd.get('remark')||'').trim()||null, file:proofFile||UPLOADS.msFile||null, laneValue: m.lane ? String(fd.get('lane')) : null, truck:trk, shippingLine:line||null });
+  logTo(j, 'Milestone done', m.phase+' · '+m.name+(m.laneValue?' (lane '+m.laneValue+')':'')+(m.truck?' · '+m.truck.driver+', '+m.truck.plate+', '+m.truck.type:'')+(m.shippingLine?' · '+m.shippingLine:'')+' on '+date+(m.file?' · '+m.file:'')+'.');
   closeDrawer(); STATE.justNext = j.id; showToast(m.name+' done.', 'success', 'check'); render();
 }
 
@@ -301,7 +307,7 @@ function jobDocumentsTab(j){
   const got = j.docs.filter(d=>d.status==='Received').length, mine = can('job.update', j) && j.status!=='Completed';
   const order = d=>{ const k = j.ms.findIndex(m=>m.name===d.step && m.svc===d.svc); return k<0 ? 999 : k; };
   const rows = j.docs.slice().sort((a,b)=>order(a)-order(b)).map(d=>{
-    const got = d.status==='Received', canAct = got ? (mine && hasRole('Manager')) : (mine && canWork(j, d.svc));
+    const got = d.status==='Received', canAct = got && mine && (hasRole('Manager') || hasRole('Admin'));
     const view = got ? '<a class="ds-btn ds-btn--ghost ds-btn--sm" href="dummy.pdf" target="_blank" rel="noopener">'+icon('eye')+'View</a>' : '';
     const a = '<span class="ds-row ds-row--tight">'+view+(canAct ? '<button class="ds-btn ds-btn--'+(got?'ghost':'secondary')+' ds-btn--sm" onclick="openUploadDoc(\''+j.id+'\',\''+d.id+'\')">'+icon('upload')+(got?'Replace':'Upload')+'</button>' : '')+'</span>';
     return '<div class="ds-doc" id="doc-'+d.id+'"><span class="ds-doc__icon">'+icon('file')+'</span><div><div class="ds-doc__name">'+esc(d.name)+'</div><div class="ds-doc__meta">'+esc((d.step ? (d.kind==='needs' ? 'Needed before “'+d.step+'”' : 'Comes with “'+d.step+'”') : 'Needed before closing')+' · '+(d.status==='Received'?d.file+' · '+d.by+', '+d.on:'Not received yet'))+'</div></div>'+
@@ -315,7 +321,7 @@ function jobDocumentsTab(j){
 function openUploadDoc(jobId, docId){
   const j = jobById(jobId), d = j.docs.find(x=>x.id===docId);
   if(!can('job.update', j)) return denied();
-  if(d.status==='Received' && !hasRole('Manager')) return denied('Only a Manager can replace a received document.');
+  if(d.status==='Received' && !hasRole('Manager') && !hasRole('Admin')) return denied('Only a Manager can replace a received document.');
   if(!canWork(j, d.svc)) return denied('Only the Operations staff assigned to '+SERVICES[d.svc].label+' (or a Manager) can upload this.');
   openDrawer({ title:(d.status==='Received'?'Replace ':'Upload ')+d.name, sub:'<span class="ds-mono">'+j.id+'</span>',
     body:'<form class="ds-stack--sm" id="doc-form" novalidate onsubmit="event.preventDefault(); saveDoc(\''+jobId+'\',\''+docId+'\', this)"><div class="ds-field"><label>File</label>'+uploadHtml('docFile','PDF, image or scan')+errorSlot('file')+'</div></form>',
@@ -445,15 +451,15 @@ function openConfirmComplete(jobId){
   openDrawer({ title:'Confirm job completed', sub:'<span class="ds-mono">'+j.id+'</span> · '+esc(custById(j.customerId).name),
     body:'<div class="ds-stack--sm"><ul class="ds-gate">'+closingGate(j).map(g=>gateItemHtml({ label:g.label, sub:g.sub, met:g.ok })).join('')+'</ul>'+
       (unverified?'<div class="ds-alert ds-alert--info">'+icon('wallet')+'<div><strong>'+plural(unverified,'fund request')+' not verified yet</strong>That does not stop completion. Accounting finishes them before the job is financially closed.</div></div>':'')+
-      '<p class="ds-small">Completing hands the job to Accounting’s “Ready to bill” list.</p></div>',
+      '<p class="ds-small">Completing marks the job as done.</p></div>',
     foot:'<button type="button" class="ds-btn ds-btn--ghost" onclick="closeDrawer()">Cancel</button><button type="button" class="ds-btn ds-btn--primary" id="confirm-complete" onclick="confirmComplete(\''+jobId+'\')">'+icon('check')+'Confirm completed</button>' });
 }
 function confirmComplete(jobId){
   const j = jobById(jobId);
-  if(needConfirm('Confirm job completed?', 'The job is handed to Accounting’s “Ready to bill” list.', 'Confirm completed', "confirmComplete('"+jobId+"')")) return;
+  if(needConfirm('Confirm job completed?', 'The job is marked as completed.', 'Confirm completed', "confirmComplete('"+jobId+"')")) return;
   j.status = 'Completed'; j.completed = { by:me(), on:todayDMY() }; j.billing = j.billing || { versions:[], payments:[] };
-  logTo(j, 'Job completed', 'Confirmed by '+me()+'. Ready to bill.');
-  notify({ roles:['Accounting'] }, 'Job '+j.id+' is completed and ready to bill.', '#/jobs/'+j.id+'/money');
+  logTo(j, 'Job completed', 'Confirmed by '+me()+'.');
+  if(!ACCOUNTING_BASIC) notify({ roles:['Accounting'] }, 'Job '+j.id+' is completed and ready to bill.', '#/jobs/'+j.id+'/money');
   notify({ users:j.ops.concat(j.sales) }, 'Job '+j.id+' was confirmed completed.', '#/jobs/'+j.id);
   closeDrawer(); STATE.justNext = j.id; showToast(j.id+' completed. Accounting can bill it now.', 'success', 'check'); render();
 }

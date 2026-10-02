@@ -56,6 +56,7 @@ function acctWork(){
       if(f.status==='Approved') out.push({ tone:'brand', icon:'arrow-out', title:'Release '+money(f.amount)+' to '+f.payee, meta, href, why:f.purpose+' · needed by '+f.neededBy+' · approved by '+f.review.by, whyTone: daysUntil(f.neededBy)<=0?'warning':null, btn:{ label:'Release', js:"openReleaseFund('"+j.id+"','"+f.id+"')" } });
       if(f.status==='Liquidated') out.push({ tone:'info', icon:'check', title:'Verify liquidation: '+money(f.liq.actual), meta, href, why:'Released '+money(f.amount)+' · '+f.purpose, btn:{ label:'Verify', js:"openVerify('"+j.id+"','"+f.id+"')" } });
     });
+    if(ACCOUNTING_BASIC) return;
     const bs = billingStatus(j).key, meta = [j.id, cname(j.customerId)], href = '#/jobs/'+j.id+'/money';
     if(bs==='tobill') out.push({ tone:'brand', icon:'receipt', title:'Ready to bill', meta, href, why:'Completed '+j.completed.on+' · pass-through on file '+money(reimbursable(j)), btn:{ label:'Upload SOA', js:"openUploadSOA('"+j.id+"')" } });
     if(bs==='returned') out.push({ tone:'warning', icon:'refresh', title:'SOA returned: '+latestBill(j).review.reasonType, meta, href, why:latestBill(j).review.comment, whyTone:'warning', btn:{ label:'Upload revised', js:"openUploadSOA('"+j.id+"')" } });
@@ -68,7 +69,7 @@ function myWorkSections(){
   const s = [];
   if(hasRole('Sales')) s.push({ key:'sales', title:'Inquiries & quotes', icon:'quote', items:salesWork(), empty:'Nothing waiting on you. New inquiries appear here when a manager assigns you.' });
   if(hasRole('Operations')) s.push({ key:'ops', title:'Jobs', icon:'box', items:opsWork(), empty:'No job steps waiting on you.' });
-  if(hasRole('Accounting')) s.push({ key:'acct', title:'Money', icon:'wallet', items:acctWork(), empty:'No funds to release, liquidations to verify or bills to send.' });
+  if(hasRole('Accounting')) s.push({ key:'acct', title:'Money', icon:'wallet', items:acctWork(), empty:'No fund releases to approve or liquidations to review.' });
   return s;
 }
 function myWorkCount(){ return hasMyWork() ? sumOf(myWorkSections(), s=>s.items.length) : 0; }
@@ -144,23 +145,28 @@ function firstSent(i){ const v = i.versions.find(x=>x.sent); return v ? v.sent.o
 function salesTab(){
   const inq = dashInq(), won = inq.filter(isWon), lost = inq.filter(i=>i.closed==='lost'), decided = won.length + lost.length;
   const quoted = inq.filter(i=>i.versions.some(v=>v.sent));
-  const pipe = inq.filter(i=>['approval','ready','awaiting','accepted'].includes(inqStatus(i).key));
-  const pipeVal = sumOf(pipe, i=>toPHP(latestV(i)));
-  const qt = avg(inq.filter(firstSent).map(i=>daysBetween(i.createdOn, firstSent(i))));
-  const appr = avg([].concat(...inq.map(i=>i.versions.filter(v=>v.review && v.review.at && v.at).map(v=>(v.review.at - v.at)/3.6e6))));
-  const vpw = avg(won.map(i=>i.versions.length));
+  const key = i=>inqStatus(i).key;
+  const openInq = inq.filter(i=>!i.closed && !i.jobId);
+  const awaiting = inq.filter(i=>key(i)==='awaiting');
+  const stand = [
+    ['Preparing the quote', inq.filter(i=>['preparing','revise','expired'].includes(key(i))).length],
+    ['Waiting for manager approval', inq.filter(i=>['approval','ready'].includes(key(i))).length],
+    ['Waiting for the client', awaiting.length],
+    ['Accepted, to be closed', inq.filter(i=>key(i)==='accepted').length],
+    ['Won', won.length],
+    ['Lost', lost.length]
+  ].map(([l,n])=>({ label:l, value:n, valueText:String(n) }));
   const funnel = barRows([['Inquiries', inq.length],['Quoted', quoted.length],['Accepted', won.length]].map(([l,n])=>({ label:l, value:n, valueText:String(n)+(l!=='Inquiries'&&inq.length?' ('+Math.round(n/inq.length*100)+'%)':'') })), { empty:'No inquiries in this range.' });
-  const returns = [].concat(...inq.map(i=>i.versions.filter(v=>v.review && v.review.decision==='Returned').map(v=>v.review.reasonType)));
-  const custRows = CUSTOMERS.map(c=>{ const ci = inq.filter(i=>i.customerId===c.id); return { c, n:ci.length, w:ci.filter(isWon).length, billed:sumOf(JOBS.filter(j=>j.customerId===c.id), billedAmount) }; }).filter(r=>r.n).sort((a,b)=>b.billed-a.billed || b.n-a.n).slice(0,8);
+  const custRows = CUSTOMERS.map(c=>{ const ci = inq.filter(i=>i.customerId===c.id); return { c, n:ci.length, w:ci.filter(isWon).length }; }).filter(r=>r.n).sort((a,b)=>b.n-a.n || b.w-a.w).slice(0,8);
   return '<div class="ds-stack"><div class="ds-kpis">'+
-      kpi('quote','Inquiries received', inq.length, 'in the selected range', null, "STATE.inqFilter='all'; go('#/inquiries')")+
-      kpi('arrow-right','Quotes sent', quoted.length, 'at least one version sent', null, "STATE.inqFilter='all'; go('#/inquiries')")+
+      kpi('quote','Inquiries', inq.length, 'received in the selected range', null, "STATE.inqFilter='all'; go('#/inquiries')")+
+      kpi('clock','Open now', openInq.length, 'still being worked on', null, "STATE.inqFilter='open'; go('#/inquiries')")+
+      kpi('arrow-right','Waiting for client', awaiting.length, 'quote sent, no answer yet', awaiting.length?'warning':null, "STATE.inqFilter='awaiting'; go('#/inquiries')")+
       kpi('check','Win rate', decided ? Math.round(won.length/decided*100)+'%' : '—', won.length+' won · '+lost.length+' lost', null, "STATE.inqFilter='accepted'; go('#/inquiries')")+
-      kpi('wallet','Pipeline value', moneyShort(pipeVal), plural(pipe.length,'quote')+' not yet decided', null, "STATE.inqFilter='open'; go('#/inquiries')")+
     '</div>'+
     '<div class="ds-grid-2">'+
+      panel('Where inquiries stand','tasks', barRows(stand, { empty:'No inquiries in this range.' }), 'Every inquiry in the range, by where it is right now.')+
       panel('Conversion funnel','chart', funnel, 'How many requests turn into quotes, and quotes into wins.')+
-      panel('Speed and effort','clock','<div class="ds-stats">'+stat('Quote turnaround', fmtAvg(qt,'days'), false, 'inquiry → first quote sent')+stat('Approval turnaround', appr==null?'—':appr<1?'< 1 hour':fmtAvg(appr,'hours'), false, 'submitted → approved')+stat('Versions per win', fmtAvg(vpw,'',1), false, 'how much negotiation')+'</div>')+
     '</div>'+
     '<div class="ds-grid-2">'+
       panel('Inquiries by month','calendar', barRows(monthlyRows(inq, i=>i.createdOn)), null, 'last 6 months')+
@@ -168,12 +174,8 @@ function salesTab(){
     '</div>'+
     '<div class="ds-grid-2">'+
       panel('By service','box', barRows(countBy(inq, i=>i.services.map(s=>SERVICES[s].short), SERVICE_ORDER.map(s=>SERVICES[s].short))))+
-      panel('By scope','pin', barRows(countBy(inq, scopeKey, ['Domestic','International Import','International Export'])))+
-    '</div>'+
-    '<div class="ds-grid-2">'+
-      panel('Why managers returned quotes','refresh', barRows(countBy(returns.map(r=>({r})), x=>x.r, MANAGER_RETURN_REASONS), { empty:'No quotes were returned in this range.' }))+
-      '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h2>'+icon('building')+'Top customers</h2></div>'+(custRows.length ? '<div class="ds-table-wrap"><table class="ds-table ds-table--compact ds-table--stack"><thead><tr><th>Customer</th><th class="ds-num">Inquiries</th><th class="ds-num">Won</th><th class="ds-num">Billed</th></tr></thead><tbody>'+
-        custRows.map(r=>'<tr data-href onclick="go(\'#/customers/'+r.c.id+'\')"><td data-label="Customer">'+esc(r.c.name)+'</td><td data-label="Inquiries" class="ds-num">'+r.n+'</td><td data-label="Won" class="ds-num">'+r.w+'</td><td data-label="Billed" class="ds-num">'+money(r.billed)+'</td></tr>').join('')+'</tbody></table></div>' : '<div class="ds-panel__body ds-muted ds-small">No customers with inquiries in this range.</div>')+'</section>'+
+      '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h2>'+icon('building')+'Top customers</h2></div>'+(custRows.length ? '<div class="ds-table-wrap"><table class="ds-table ds-table--compact ds-table--stack"><thead><tr><th>Customer</th><th class="ds-num">Inquiries</th><th class="ds-num">Won</th></tr></thead><tbody>'+
+        custRows.map(r=>'<tr data-href onclick="go(\'#/customers/'+r.c.id+'\')"><td data-label="Customer">'+esc(r.c.name)+'</td><td data-label="Inquiries" class="ds-num">'+r.n+'</td><td data-label="Won" class="ds-num">'+r.w+'</td></tr>').join('')+'</tbody></table></div>' : '<div class="ds-panel__body ds-muted">No customers with inquiries in this range.</div>')+'</section>'+
     '</div></div>';
 }
 function opsTab(){
@@ -253,7 +255,7 @@ function teamTab(){
 function kpi(ic, label, value, hint, tone, js){
   return '<button class="ds-kpi'+(tone?' ds-kpi--'+tone:'')+'" onclick="'+js+'"><span class="ds-kpi__icon">'+icon(ic)+'</span><span class="ds-kpi__label">'+esc(label)+'</span><span class="ds-kpi__value">'+value+'</span><span class="ds-kpi__hint">'+esc(hint)+'</span></button>';
 }
-const DASH_TABS = { sales:'Sales & quotations', ops:'Operations', finance:'Finance', team:'Team' };
+const DASH_TABS = Object.assign({ sales:'Sales & quotations', ops:'Operations' }, FINANCE_SOA_ONLY ? {} : { finance:'Finance' }, { team:'Team' });
 function renderDashboard(){
   const q = needsAttention();
   const sel = (id, label, key, opts)=>'<div style="min-width:180px">'+selectWrap('<select class="ds-select" id="'+id+'" aria-label="'+label+'" onchange="STATE.'+key+'=this.value; render()">'+(label?'<option value="">'+label+'</option>':'')+options(opts, STATE[key])+'</select>')+'</div>';
@@ -265,7 +267,7 @@ function renderDashboard(){
       (can('inquiry.create')?'<button class="ds-btn ds-btn--primary" onclick="openNewInquiry()">'+icon('plus')+'New inquiry</button>':'')+'</div></div>'+
     '<div class="ds-stack">'+
     '<section class="ds-panel ds-panel--elevated" id="needs-attention"><div class="ds-panel__head"><h2>'+icon('flag')+'Needs attention</h2><span class="ds-panel__hint">most urgent first · each row opens the record</span></div>'+
-      queueHtml(q, 'Nothing needs you right now. Approvals, holds, free-time alerts and overdue bills appear here.')+'</section>'+
+      queueHtml(q, 'Nothing needs you right now. Approvals, holds and free-time alerts appear here.'+(FINANCE_SOA_ONLY?'':' Overdue bills too.'))+'</section>'+
     (empty ? '<div class="ds-alert ds-alert--info">'+icon('info')+'<div><strong>No data yet</strong>The figures below fill in as customers, inquiries and jobs are created in this session.</div></div>' : '')+
     '<section class="ds-panel ds-panel--elevated no-print"><div class="ds-panel__body"><div class="ds-row" style="flex-wrap:wrap">'+icon('filter')+
       sel('dash-range','', 'dashRange', Object.keys(RANGES))+

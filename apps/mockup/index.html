@@ -217,6 +217,7 @@ a { color: var(--t1m-navy-700); text-underline-offset: 2px; }
 
 /* ---------- Fields ---------- */
 .ds-field { display: grid; gap: 6px; }
+.ds-field[hidden] { display: none; }
 .ds-field label, .ds-field__label { font-family: var(--t1m-font-chrome); font-size: var(--t1m-text-sm); font-weight: var(--t1m-w-control); color: var(--t1m-ink); }
 .ds-opt { font-weight: 400; color: var(--t1m-ink-3); margin-left: 4px; }
 .ds-input, .ds-select, .ds-textarea {
@@ -764,8 +765,9 @@ th[aria-sort="ascending"] .ds-icon { rotate: 180deg; }
    ===================================================================================== */
 
 /* ---------- Layout utilities ---------- */
-.ds-stack > * + * { margin-top: var(--t1m-space-6); }
-.ds-stack--sm > * + * { margin-top: var(--t1m-space-3); }
+/* doubled class so a later `margin: 0` on a child (facts lists, panels, fields) cannot cancel the gap */
+.ds-stack.ds-stack > * + * { margin-top: var(--t1m-space-6); }
+.ds-stack--sm.ds-stack--sm > * + * { margin-top: var(--t1m-space-3); }
 .ds-row { display: flex; align-items: center; gap: var(--t1m-space-3); flex-wrap: wrap; }
 .ds-row--between { display: flex; align-items: center; justify-content: space-between; gap: var(--t1m-space-3); flex-wrap: wrap; }
 .ds-row--tight { gap: var(--t1m-space-2); }
@@ -1228,6 +1230,56 @@ th[aria-sort="ascending"] .ds-icon { rotate: 180deg; }
 .ds-track--phases .ds-track__step:hover, .ds-track--phases .ds-track__step:focus-visible { color: var(--t1m-navy-700); outline: none; }
 .ds-track--phases .ds-track__step[data-selected] { color: var(--t1m-navy-700); font-weight: var(--t1m-w-label); text-decoration: underline; text-underline-offset: 4px; }
 
+/* Panel body with no padding of its own, for rows that already pad themselves (document rows, tables) */
+.ds-panel__body--flush { padding: 0; }
+
+/* Several lines inside one fact value (for example Operations per service) */
+.ds-facts dd > div + div { margin-top: var(--t1m-space-1); }
+
+/* ---------- Required marker: a red asterisk after the label of every required field ---------- */
+.ds-req { color: var(--t1m-danger); margin-left: 3px; font-weight: var(--t1m-w-label); }
+
+/* ---------- Sign-in entrance animation ---------- */
+.ds-login__brandpane { position: relative; overflow: hidden; }
+.ds-login__brandpane::before, .ds-login__brandpane::after { content: ""; position: absolute; border-radius: var(--t1m-radius-full); pointer-events: none; filter: blur(70px); opacity: 0.55; }
+.ds-login__brandpane::before { width: 420px; height: 420px; top: -140px; right: -120px; background: var(--t1m-navy-600); animation: ds-login-drift-a 14s ease-in-out infinite alternate; }
+.ds-login__brandpane::after { width: 360px; height: 360px; bottom: -140px; left: -100px; background: var(--t1m-navy-700); animation: ds-login-drift-b 18s ease-in-out infinite alternate; }
+.ds-login__brandpane > * { position: relative; z-index: 1; }
+.ds-login__brandpane img { animation: ds-login-drop 700ms var(--t1m-ease) both; }
+.ds-login__tagline { animation: ds-login-rise 800ms var(--t1m-ease) 150ms both; }
+.ds-login__flow span { animation: ds-login-pop 500ms var(--t1m-ease) both; }
+.ds-login__flow span:nth-of-type(1) { animation-delay: 550ms; }
+.ds-login__flow span:nth-of-type(2) { animation-delay: 700ms; }
+.ds-login__flow span:nth-of-type(3) { animation-delay: 850ms; }
+.ds-login__flow .ds-icon { animation: ds-login-fade 500ms var(--t1m-ease) 650ms both; }
+.ds-login__card { animation: ds-login-rise 800ms var(--t1m-ease) 300ms both; }
+.ds-login__card .ds-msbtn { transition: transform var(--t1m-dur-base) var(--t1m-ease), box-shadow var(--t1m-dur-base) var(--t1m-ease); }
+.ds-login__card .ds-msbtn:hover { transform: translateY(-2px); box-shadow: var(--t1m-shadow-float); }
+@keyframes ds-login-drop { from { opacity: 0; translate: 0 -16px; } to { opacity: 1; translate: 0 0; } }
+@keyframes ds-login-rise { from { opacity: 0; translate: 0 18px; } to { opacity: 1; translate: 0 0; } }
+@keyframes ds-login-pop { from { opacity: 0; scale: 0.85; } to { opacity: 1; scale: 1; } }
+@keyframes ds-login-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ds-login-drift-a { from { translate: 0 0; } to { translate: -60px 50px; } }
+@keyframes ds-login-drift-b { from { translate: 0 0; } to { translate: 70px -40px; } }
+@media (prefers-reduced-motion: reduce) {
+  .ds-login__brandpane::before, .ds-login__brandpane::after, .ds-login__brandpane img, .ds-login__tagline, .ds-login__flow span, .ds-login__flow .ds-icon, .ds-login__card { animation: none; }
+  .ds-login__card .ds-msbtn { transition: none; }
+}
+
+/* ---------- Sign-in brand pane decoration: dot grid, speed lines, watermark, subtitle ---------- */
+.ds-login__brandpane { background-image: radial-gradient(color-mix(in srgb, var(--t1m-ink-inverse) 14%, transparent) 1px, transparent 1px); background-size: 26px 26px; }
+.ds-login__sub { color: var(--t1m-ink-inverse-2); font-size: var(--t1m-text-lg); max-width: 32ch; margin-top: calc(var(--t1m-space-4) * -1); animation: ds-login-rise 800ms var(--t1m-ease) 300ms both; }
+.ds-login__lines { display: flex; gap: var(--t1m-space-3); }
+.ds-login__lines i { display: block; height: 6px; border-radius: var(--t1m-radius-full); background: var(--t1m-ink-inverse); transform: skewX(-30deg); transform-origin: left; animation: ds-login-line 900ms var(--t1m-ease) both; }
+.ds-login__lines i:nth-child(1) { width: 88px; animation-delay: 500ms; opacity: 0.9; }
+.ds-login__lines i:nth-child(2) { width: 56px; animation-delay: 650ms; opacity: 0.55; }
+.ds-login__lines i:nth-child(3) { width: 28px; animation-delay: 800ms; opacity: 0.3; }
+.ds-login__mark { position: absolute; right: var(--t1m-space-6); bottom: calc(var(--t1m-space-6) * -0.5); z-index: 0; font: 800 clamp(120px, 18vw, 240px)/1 var(--t1m-font-display); letter-spacing: -0.04em; color: transparent; -webkit-text-stroke: 2px color-mix(in srgb, var(--t1m-ink-inverse) 14%, transparent); user-select: none; animation: ds-login-fade 1.4s var(--t1m-ease) 600ms both; }
+.ds-login__foot { position: absolute; left: var(--t1m-space-12); bottom: var(--t1m-space-8); color: var(--t1m-ink-inverse-2); font-size: var(--t1m-text-xs); letter-spacing: 0.04em; animation: ds-login-fade 900ms var(--t1m-ease) 900ms both; }
+@keyframes ds-login-line { from { opacity: 0; scale: 0 1; } to { scale: 1 1; } }
+@media (max-width: 640px) { .ds-login__mark, .ds-login__foot { display: none; } }
+@media (prefers-reduced-motion: reduce) { .ds-login__sub, .ds-login__lines i, .ds-login__mark, .ds-login__foot { animation: none; } }
+
 </style>
 </head>
 <body>
@@ -1292,6 +1344,12 @@ const LOGO_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAACgAAAAGnCAYAAAB7
    Only the demo USERS are seeded. Customers, inquiries, jobs and money start EMPTY and live in
    memory for this browser session: everything created while testing disappears on refresh.
    Requirements: docs/requirements/01–05. */
+/* Finance scope: Accounting's part ends when the SOA is sent. No Finance dashboard, no payment tracking.
+   Set to false to bring all of that back. Ledger: docs/requirements/finance-scope-removal-ledger.md */
+const FINANCE_SOA_ONLY = true;
+/* Accounting is limited to: take receipts or quotations, approve fund release, review liquidations. No billing, SOA, payments or profit in this portal (integrated later).
+   Set to false to bring billing back. Ledger: docs/requirements/finance-scope-removal-ledger.md */
+const ACCOUNTING_BASIC = true;
 const TODAY = (()=>{ const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); })();
 
 /* Dates are stored as "05 Oct 2026" strings, the way staff write them. */
@@ -1336,6 +1394,7 @@ function serviceBlockReason(key, scope, direction){
   if(direction==='Export' && key==='accreditation') return 'Importers only';
   return '';
 }
+const TRUCK_TYPES = ['Wing van','Closed van','Refrigerated van','4-wheeler','6-wheeler','10-wheeler','Flatbed','Boom truck','Tractor head with trailer'];
 const CARGO_TYPES = ['FCL','LCL','RoRo','Air','Bulk','Breakbulk','Land (truck)'];
 const CARGO_TYPE_SHORT = { 'FCL':'Full container load', 'LCL':'Shared container', 'RoRo':'Drive-on vehicles', 'Air':'By plane', 'Bulk':'Loose goods in the hold', 'Breakbulk':'Oversized, piece by piece', 'Land (truck)':'Road only' };
 const CARGO_TYPE_INFO = {
@@ -1365,8 +1424,8 @@ const STEP_HINT = {
   'Requirements complete':'Every document the agency asks for is in hand.',
   'Filed with BOC':'Application submitted to the Bureau of Customs.',
   'Under evaluation':'BOC is reviewing the application.',
-  'Approved':'Accreditation granted. The client can now import.',
-  'Booked with shipping line':'Space confirmed with the carrier (ship, plane or truck line).',
+  'Approved':'Accreditation granted. Attach the approval from the BOC. The client can now import.',
+  'Booked with shipping line':'Space confirmed with the carrier. Record the shipping line.',
   'Departed origin port':'The vessel or flight has left the origin port.',
   'Arrived at port':'The cargo is at the Philippine port. Port free time starts.',
   'Cargo arrived at port':'The cargo (shipped by someone else) is at the port. Port free time starts.',
@@ -1377,15 +1436,14 @@ const STEP_HINT = {
   'BOC released':'Customs released the cargo.',
   'Port charges paid':'Arrastre, wharfage and any storage paid to the port.',
   'Gate pass':'The cargo is cleared to leave the port. Port free time stops.',
-  'Truck scheduled':'Truck, driver and date booked.',
+  'Truck scheduled':'Truck, driver and date booked. Record the driver and the truck details.',
   'Picked up at port':'The truck collected the cargo at the port.',
   'Picked up at shipper':'The truck collected the cargo from the shipper.',
   'Picked up':'The truck has the cargo.',
-  'Delivered':'The cargo reached the delivery address.',
-  'Delivered to warehouse':'The cargo reached the Top1Movers warehouse.',
+  'Delivered':'The cargo reached the delivery address. Attach the signed proof of delivery.',
+  'Delivered to warehouse':'The cargo reached the Top1Movers warehouse. Attach the signed proof of delivery.',
   'Delivered to origin port':'The cargo is at the port of departure.',
-  'POD signed':'The receiver signed the proof of delivery. Attach it.',
-  'Empty container returned':'The empty container is back with the shipping line. Container free time stops.',
+  'Empty container returned':'The empty container is back with the shipping line. Attach the interchange or return receipt. Container free time stops.',
   'Received at warehouse':'The cargo is checked in at the warehouse.',
   'Stored':'Put away; storage billing runs from here.',
   'Release requested':'The client asked for the goods to go out.',
@@ -1416,14 +1474,14 @@ const STEP_HINT = {
 function buildPlan(services, scope, direction, cargoType, truckLegs){
   const has = s=>services.includes(s), fcl = cargoType==='FCL', out = [];
   const add = (svc, phase, names)=>names.forEach(n=>{ if(!n) return; const [name, flags] = Array.isArray(n) ? n : [n, {}]; out.push(Object.assign({ svc, phase, name }, flags)); });
-  const simpleTrip = ['Truck scheduled','Picked up','Delivered',['POD signed',{proof:true}]];
+  const simpleTrip = ['Truck scheduled','Picked up',['Delivered',{proof:true}]];
   const warehousing = ()=>{ if(has('warehousing')) add('warehousing','Warehousing',['Received at warehouse','Stored','Release requested','Dispatched']); };
   if(scope==='International' && direction==='Import'){
-    if(has('accreditation')) add('accreditation','Importer accreditation',['Requirements complete','Filed with BOC','Under evaluation','Approved']);
+    if(has('accreditation')) add('accreditation','Importer accreditation',['Requirements complete','Filed with BOC','Under evaluation',['Approved',{proof:true}]]);
     if(has('freight')) add('freight','Shipping to the Philippines',['Booked with shipping line','Departed origin port',['Arrived at port',{arrival:true}],['D/O released',{doRelease:true}]]);
     if(has('customs')) add('customs','Customs clearance',[!has('freight') && ['Cargo arrived at port',{arrival:true}],'Entry lodged',['Lane assigned',{lane:true}],['Duties paid',{proof:true}],'BOC released','Port charges paid',['Gate pass',{cargoOut:true}]]);
     if(has('trucking')){
-      if(has('freight') || has('customs')) add('trucking', has('warehousing') ? 'Trucking to the warehouse' : 'Delivery to the consignee',['Truck scheduled','Picked up at port', has('warehousing') ? 'Delivered to warehouse' : 'Delivered',['POD signed',{proof:true}], fcl && ['Empty container returned',{emptyReturned:true}]]);
+      if(has('freight') || has('customs')) add('trucking', has('warehousing') ? 'Trucking to the warehouse' : 'Delivery to the consignee',['Truck scheduled','Picked up at port', [has('warehousing') ? 'Delivered to warehouse' : 'Delivered',{proof:true}], fcl && ['Empty container returned',{emptyReturned:true,proof:true}]]);
       else add('trucking','Trucking',simpleTrip);
     }
     warehousing();
@@ -1444,7 +1502,7 @@ function buildPlan(services, scope, direction, cargoType, truckLegs){
       add('freight','Booking',['Booked']);
       if(has('trucking') && legs.includes('pickup')) add('trucking','Pickup from the shipper',['Truck scheduled','Picked up at shipper','Delivered to origin port']);
       add('freight','Sea / land freight',['Loaded at origin port','Departed','Arrived at destination port', has('trucking') && legs.includes('delivery') ? 'Released at destination port' : 'Released to consignee']);
-      if(has('trucking') && legs.includes('delivery')) add('trucking','Delivery to the consignee',['Truck scheduled','Picked up at port','Delivered',['POD signed',{proof:true}]]);
+      if(has('trucking') && legs.includes('delivery')) add('trucking','Delivery to the consignee',['Truck scheduled','Picked up at port',['Delivered',{proof:true}]]);
     } else if(has('trucking')) add('trucking','Trucking',simpleTrip);
     warehousing();
     if(has('lto')) add('lto','LTO registration',['Requirements complete','Filed at LTO','Fees paid','OR/CR released','Handed to client']);
@@ -1483,7 +1541,7 @@ const DOC_RULES = {
   'Bill of Lading':[['BL released to client','produces']],
   'Domestic Bill of Lading':[['Loaded at origin port','produces']],
   'Export Declaration':[['Export declaration lodged','produces']],
-  'Delivery Receipt / POD':[['POD signed','produces']],
+  'Delivery Receipt / POD':[['Delivered','produces'],['Delivered to warehouse','produces']],
   'Warehouse Receipt':[['Received at warehouse','produces']],
   'Release Order':[['Release requested','produces']],
   'SEC / DTI Registration':[['Requirements complete','needs']],
@@ -1520,7 +1578,7 @@ const ROLE_BLURB = {
   Manager:'Creates customers and inquiries, assigns staff, approves quotes, money and billing.',
   Sales:'Uploads quotations, sends them and records the client’s answer.',
   Operations:'Runs jobs: milestones, documents, issues, fund requests and liquidation.',
-  Accounting:'Releases funds, verifies liquidation, bills the client and records payments.'
+  Accounting: ACCOUNTING_BASIC ? 'Takes receipts and quotations, approves fund release and reviews liquidations.' : FINANCE_SOA_ONLY ? 'Releases funds, verifies liquidation, uploads the SOA and sends it to the client.' : 'Releases funds, verifies liquidation, bills the client and records payments.'
 };
 const PERM_GROUPS = [
   { group:'Administration', items:[
@@ -1547,20 +1605,21 @@ const PERM_GROUPS = [
   { group:'Money', items:[
     ['fund.request','Create fund request', { Manager:'Y', Operations:'A' }],
     ['fund.approve','Approve / return fund request', { Manager:'Y' }],
-    ['fund.release','Release funds', { Accounting:'Y' }],
+    ['fund.release', ACCOUNTING_BASIC ? 'Approve fund release' : 'Release funds', { Accounting:'Y' }],
     ['fund.liquidate','Liquidate (upload receipts)', { Manager:'Y', Operations:'A' }],
-    ['fund.verify','Verify liquidation', { Accounting:'Y' }],
+    ['fund.verify', ACCOUNTING_BASIC ? 'Review liquidation' : 'Verify liquidation', { Accounting:'Y' }],
     ['money.view','See fund requests, costs, vendor bills', { Manager:'Y', Operations:'A', Accounting:'Y' }],
     ['bill.submit','Upload SOA + submit for approval', { Accounting:'Y' }],
     ['bill.approve','Approve / return billing', { Manager:'Y' }],
-    ['bill.send','Send billing, record payments', { Accounting:'Y' }],
+    ['bill.send', FINANCE_SOA_ONLY ? 'Send the SOA to the client' : 'Send billing, record payments', { Accounting:'Y' }],
     ['bill.view','See billing and payments', { Manager:'Y', Accounting:'Y' }],
-    ['vendor.record','Record vendor bills', { Accounting:'Y' }],
+    ['vendor.record', ACCOUNTING_BASIC ? 'Record receipts and quotations' : 'Record vendor bills', { Accounting:'Y' }],
     ['profit.view','View job profit', { Manager:'Y' }] ]},
   { group:'Reports', items:[
-    ['dash.view','View dashboards / analytics / job profit', { Admin:'Y', Manager:'Y' }],
+    ['dash.view', ACCOUNTING_BASIC ? 'View dashboards / analytics' : 'View dashboards / analytics / job profit', { Admin:'Y', Manager:'Y' }],
     ['mywork.view','“My Work” home page (to-do lists)', { Sales:'Y', Operations:'Y', Accounting:'Y' }] ]}
 ];
+if(ACCOUNTING_BASIC) PERM_GROUPS.forEach(g=>{ g.items = g.items.filter(r=>!/^(bill|profit)\./.test(r[0])); });
 /* The live matrix. DEFAULT keeps the original level so a re-ticked box restores it. */
 const PERM = {}, PERM_DEFAULT = {}, PERM_LABEL = {};
 PERM_GROUPS.forEach(g=>g.items.forEach(([key,label,lv])=>{ PERM_LABEL[key] = label; PERM_DEFAULT[key] = {}; PERM[key] = {}; ROLES.forEach(r=>{ PERM_DEFAULT[key][r] = lv[r]||''; PERM[key][r] = lv[r]||''; }); }));
@@ -1627,6 +1686,8 @@ function levelsFor(action){ return myRoles().map(r=>(PERM[action]||{})[r]||'').f
 function isMine(rec){ const n = me(); return !!rec && [rec.staff, rec.ops, rec.sales].some(l=>(l||[]).includes(n)); }
 /* Can I DO this action (on this record)? */
 function can(action, rec){
+  if(ACCOUNTING_BASIC && /^(bill|profit)\./.test(action)) return false;
+  if(hasRole('Admin')) return true;
   const lv = levelsFor(action);
   if(lv.includes('Y')) return true;
   if(lv.includes('A')) return rec ? isMine(rec) : true;
@@ -1634,6 +1695,8 @@ function can(action, rec){
 }
 /* Can I SEE what this action covers (on this record)? */
 function canView(action, rec){
+  if(ACCOUNTING_BASIC && /^(bill|profit)\./.test(action)) return false;
+  if(hasRole('Admin')) return true;
   const lv = levelsFor(action);
   if(lv.includes('Y') || lv.includes('V')) return true;
   if(rec && (lv.includes('A') || lv.includes('VA')) && isMine(rec)) return true;
@@ -1725,16 +1788,20 @@ function linkDocs(ms, docs){
 function stepDocs(j, m, kind){ return j.docs.filter(d=>d.step===m.name && d.svc===m.svc && (!kind || d.kind===kind)); }
 /* Task-based access: Operations only work the services they were assigned on the job. Managers can work any. */
 function opsFor(j, svc){ return (j.opsByService && j.opsByService[svc]) || j.ops; }
-function canWork(j, svc){ return can('job.update', j) && (hasRole('Manager') || !svc || opsFor(j, svc).includes(me())); }
-/* "Duties paid" can only be ticked once a "Duties & taxes" fund request has been approved and released. */
+function canWork(j, svc){ return can('job.update', j) && (hasRole('Manager') || hasRole('Admin') || !svc || opsFor(j, svc).includes(me())); }
+/* Some steps can only be ticked once the matching fund request has been approved and released. */
+const FUND_STEPS = { 'Duties paid':{ purpose:'Duties & taxes', what:'duties' }, 'Port charges paid':{ purpose:'Port charges (arrastre, wharfage, storage)', what:'port charges' },
+  'D/O released':{ purpose:'Shipping line local charges', what:'shipping line charges' },
+  'Fees paid':{ purpose:'LTO fees', what:'LTO fees' } };
 function fundGate(j, m){
-  if(m.name!=='Duties paid') return null;
-  const fs = (j.funds||[]).filter(f=>f.purpose==='Duties & taxes');
+  const rule = FUND_STEPS[m.name]; if(!rule) return null;
+  const fs = (j.funds||[]).filter(f=>f.purpose===rule.purpose);
   if(fs.some(f=>['Released','Liquidated','Verified'].includes(f.status))) return null;
   const open = fs.find(f=>['For approval','Approved','Returned'].includes(f.status)) || null;
   const ref = open ? open.id+' · '+money(open.amount)+' · ' : '';
-  const sub = !fs.length ? 'Request a “Duties & taxes” fund request first' : !open ? 'Request funds for the duties' : ref+(open.status==='For approval' ? 'Waiting for the manager to approve it' : open.status==='Approved' ? 'Approved. Waiting for Accounting to release it' : 'Returned by the manager. Edit and resubmit');
-  return { label:'Funds for duties released', sub, fund:open, none:!open };
+  const sub = !fs.length ? 'Request a “'+rule.purpose.split(' (')[0]+'” fund request first' : !open ? 'Request funds for the '+rule.what : ref+(open.status==='For approval' ? 'Waiting for the manager to approve it' : open.status==='Approved' ? 'Approved. Waiting for Accounting to release it' : 'Returned by the manager. Edit and resubmit');
+  const badge = !open ? null : open.status==='For approval' ? { text:'Submitted · awaiting approval', tone:'info', icon:'clock' } : open.status==='Approved' ? { text:'Approved · awaiting release', tone:'success', icon:'check' } : { text:'Returned', tone:'warning', icon:'refresh' };
+  return { label:'Funds for '+rule.what+' released', sub, fund:open, none:!open, badge, purpose:rule.purpose, what:rule.what, step:m.name };
 }
 function missingNeeds(j, m){ return stepDocs(j, m, 'needs').filter(d=>d.status!=='Received'); }
 function nextMsIndex(j){ return j.ms.findIndex(m=>!m.done); }
@@ -1818,19 +1885,21 @@ function latestBill(j){ return j.billing && j.billing.versions.length ? j.billin
 function billedAmount(j){ const b = latestBill(j); return b && ['Approved','Sent'].includes(b.status) ? b.amount : 0; }
 function paidTotal(j){ return j.billing ? sumOf(j.billing.payments, p=>p.amount+(p.wht||0)) : 0; }
 function billingStatus(j){
+  if(ACCOUNTING_BASIC) return { key:'none', label:'', tone:'neutral', icon:'circle' };
   if(j.status!=='Completed') return { key:'notyet', label:'Not billable yet', tone:'neutral', icon:'circle' };
   const b = latestBill(j);
   if(!b) return { key:'tobill', label:'Ready to bill', tone:'brand', icon:'receipt' };
   if(b.status==='For approval') return { key:'approval', label:'For approval', tone:'warning', icon:'clock' };
   if(b.status==='Returned') return { key:'returned', label:'Returned · revise', tone:'warning', icon:'refresh' };
   if(b.status==='Approved') return { key:'ready', label:'Approved · ready to send', tone:'brand', icon:'arrow-right' };
+  if(FINANCE_SOA_ONLY) return { key:'sent', label:'SOA sent', tone:'success', icon:'check' };
   const paid = paidTotal(j), overdue = daysUntil(b.dueDate)<0;
   if(paid>=b.amount-0.005) return { key:'paid', label:'Paid', tone:'success', icon:'check' };
   if(overdue) return { key:'overdue', label: paid ? 'Partially paid · overdue' : 'Overdue', tone:'danger', icon:'alert' };
   if(paid) return { key:'partial', label:'Partially paid', tone:'info', icon:'wallet' };
   return { key:'sent', label:'Sent · awaiting payment', tone:'info', icon:'clock' };
 }
-function financiallyClosed(j){ return billingStatus(j).key==='paid' && j.funds.every(f=>f.status==='Verified'); }
+function financiallyClosed(j){ return !FINANCE_SOA_ONLY && billingStatus(j).key==='paid' && j.funds.every(f=>f.status==='Verified'); }
 function jobProfit(j){
   const billed = billedAmount(j), reimb = reimbursable(j), own = ownCosts(j);
   const service = billed - reimb, profit = service - own;
@@ -1933,6 +2002,15 @@ function formError(form, msg){
 /* ============================== OVERLAYS ============================== */
 /* Drawer: record detail and quick edits slide in from the right (a bottom sheet on phones), so the
    page underneath keeps its place. The footer holds the actions and never scrolls away. */
+/* Adds a red * to the label of every form field that is not marked "optional". */
+function markRequired(root){
+  (root||document).querySelectorAll('form .ds-field > label, form .ds-field > .ds-field__label').forEach(l=>{
+    if(l.querySelector('.ds-req') || l.closest('.ds-check')) return;
+    const o = l.querySelector('.ds-opt'); if(o && /optional/i.test(o.textContent)) return;
+    const star = '<span class="ds-req" aria-hidden="true">*</span>';
+    if(o) o.insertAdjacentHTML('beforebegin', star); else l.insertAdjacentHTML('beforeend', star);
+  });
+}
 function openDrawer(o){
   const el = document.getElementById('drawerRoot');
   el.innerHTML = '<div class="ds-drawer-backdrop" onclick="closeDrawer()"></div>'+
@@ -1943,6 +2021,7 @@ function openDrawer(o){
       (o.foot?'<div class="ds-drawer__foot">'+o.foot+'</div>':'')+
     '</aside>';
   el.classList.add('open');
+  markRequired(el);
   setTimeout(()=>{ const f = el.querySelector('.ds-drawer__body input:not([type=hidden]):not([type=file]):not([readonly]),.ds-drawer__body textarea, .ds-drawer__body select'); if(f && window.innerWidth>640) f.focus(); }, 50);
 }
 /* Asks before a critical save. Validation runs first; the same call is repeated once the person confirms. */
@@ -1958,6 +2037,7 @@ function confirmAction(title, text, label, js, danger, extraHtml){
   el.innerHTML = '<div class="ds-confirm" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title"><div class="ds-confirm__body"><h3 id="confirm-title">'+esc(title)+'</h3><p>'+esc(text)+'</p>'+(extraHtml?'<div style="margin-top:var(--t1m-space-4)">'+extraHtml+'</div>':'')+'</div>'+
     '<div class="ds-confirm__foot"><button type="button" class="ds-btn ds-btn--ghost" onclick="closeConfirm()">Cancel</button><button type="button" class="ds-btn ds-btn--'+(danger?'danger':'primary')+'" id="confirm-yes" onclick="'+(extraHtml?'':'closeConfirm(); ')+js+'">'+esc(label)+'</button></div></div>';
   document.body.appendChild(el);
+  markRequired(el);
 }
 function closeConfirm(){ const el = document.getElementById('confirmRoot'); if(el) el.remove(); }
 function closeDrawer(){ const el=document.getElementById('drawerRoot'); el.classList.remove('open'); el.innerHTML=''; for(const k in UPLOADS) delete UPLOADS[k]; }
@@ -2076,6 +2156,7 @@ function render(){
   if(focusId){ const el = document.getElementById(focusId); if(el && el.focus){ el.focus({preventScroll:true}); if(selStart!=null && el.setSelectionRange) try{ el.setSelectionRange(selStart, selStart); }catch(e){} } }
   window.scrollTo(0, sameRoute ? scrollY : 0);
   document.querySelectorAll('.ds-track [data-state="current"], .ds-track [data-state="blocked"]').forEach(cur=>{ const tr = cur.parentElement; tr.scrollLeft = cur.offsetLeft - tr.clientWidth/2 + cur.clientWidth/2; });
+  markRequired(root);
   STATE.justNext = null;
 }
 
@@ -2086,24 +2167,19 @@ function render(){
    there are no passwords in the portal (Microsoft handles them). */
 function msLogo(){ return '<div class="ds-msbtn__logo"><span></span><span></span><span></span><span></span></div>'; }
 function renderLogin(){
-  const features = [
-    ['flag','Always a next step','Every inquiry and job shows what must happen next, and who has to do it.'],
-    ['shield','Approvals you can see','Quotes, fund requests and billing go through the manager, with every version and reason kept.'],
-    ['clock','Free time counted for you','Port and container free days count down on every import, so fees are never a surprise.']
-  ].map(([ic,t,s])=>'<div class="ds-login__feature">'+icon(ic)+'<div><strong>'+t+'</strong><span>'+s+'</span></div></div>').join('');
-  const flow = ['Inquiry','Quotation','Job','Billing','Paid'].map(s=>'<span>'+s+'</span>').join(icon('arrow-right'));
   return '<div class="ds-login">'+
     '<div class="ds-login__brandpane">'+
       '<img src="'+LOGO_SRC+'" alt="Top1Movers">'+
-      '<h1 class="ds-login__tagline">Every inquiry, job and peso in one record, from first message to paid.</h1>'+
-      '<div class="ds-login__flow" aria-label="The workflow">'+flow+'</div>'+
-      '<div class="ds-login__features">'+features+'</div>'+
+      '<h1 class="ds-login__tagline">T1M Portal</h1>'+
+      '<p class="ds-login__sub">Inquiries, jobs and deliveries, all in one place.</p>'+
+      '<div class="ds-login__lines" aria-hidden="true"><i></i><i></i><i></i></div>'+
+      '<div class="ds-login__mark" aria-hidden="true">T1M</div>'+
+      '<small class="ds-login__foot">Top1Movers Worldwide Inc.</small>'+
     '</div>'+
     '<div class="ds-login__formpane"><div class="ds-login__card ds-stack--sm">'+
       '<div><h2>Sign in</h2><p class="ds-muted">Top1Movers Operations Portal</p></div>'+
-      '<div class="ds-alert ds-alert--info">'+icon('info')+'<div><strong>Mockup · session data only</strong>Sign-in is simulated. Customers, inquiries and jobs start empty and are kept until you refresh the page.</div></div>'+
       '<button type="button" class="ds-msbtn" id="ms-signin" onclick="openAcctPicker()">'+msLogo()+'Sign in with Microsoft</button>'+
-      '<p class="ds-muted ds-xs" style="text-align:center">Use your Top1Movers work account. No separate password.</p>'+
+      '<p class="ds-muted ds-xs" style="text-align:center">Use your Top1Movers work account.</p>'+
     '</div></div>'+
   '</div>';
 }
@@ -2299,6 +2375,7 @@ function acctWork(){
       if(f.status==='Approved') out.push({ tone:'brand', icon:'arrow-out', title:'Release '+money(f.amount)+' to '+f.payee, meta, href, why:f.purpose+' · needed by '+f.neededBy+' · approved by '+f.review.by, whyTone: daysUntil(f.neededBy)<=0?'warning':null, btn:{ label:'Release', js:"openReleaseFund('"+j.id+"','"+f.id+"')" } });
       if(f.status==='Liquidated') out.push({ tone:'info', icon:'check', title:'Verify liquidation: '+money(f.liq.actual), meta, href, why:'Released '+money(f.amount)+' · '+f.purpose, btn:{ label:'Verify', js:"openVerify('"+j.id+"','"+f.id+"')" } });
     });
+    if(ACCOUNTING_BASIC) return;
     const bs = billingStatus(j).key, meta = [j.id, cname(j.customerId)], href = '#/jobs/'+j.id+'/money';
     if(bs==='tobill') out.push({ tone:'brand', icon:'receipt', title:'Ready to bill', meta, href, why:'Completed '+j.completed.on+' · pass-through on file '+money(reimbursable(j)), btn:{ label:'Upload SOA', js:"openUploadSOA('"+j.id+"')" } });
     if(bs==='returned') out.push({ tone:'warning', icon:'refresh', title:'SOA returned: '+latestBill(j).review.reasonType, meta, href, why:latestBill(j).review.comment, whyTone:'warning', btn:{ label:'Upload revised', js:"openUploadSOA('"+j.id+"')" } });
@@ -2311,7 +2388,7 @@ function myWorkSections(){
   const s = [];
   if(hasRole('Sales')) s.push({ key:'sales', title:'Inquiries & quotes', icon:'quote', items:salesWork(), empty:'Nothing waiting on you. New inquiries appear here when a manager assigns you.' });
   if(hasRole('Operations')) s.push({ key:'ops', title:'Jobs', icon:'box', items:opsWork(), empty:'No job steps waiting on you.' });
-  if(hasRole('Accounting')) s.push({ key:'acct', title:'Money', icon:'wallet', items:acctWork(), empty:'No funds to release, liquidations to verify or bills to send.' });
+  if(hasRole('Accounting')) s.push({ key:'acct', title:'Money', icon:'wallet', items:acctWork(), empty:'No fund releases to approve or liquidations to review.' });
   return s;
 }
 function myWorkCount(){ return hasMyWork() ? sumOf(myWorkSections(), s=>s.items.length) : 0; }
@@ -2387,23 +2464,28 @@ function firstSent(i){ const v = i.versions.find(x=>x.sent); return v ? v.sent.o
 function salesTab(){
   const inq = dashInq(), won = inq.filter(isWon), lost = inq.filter(i=>i.closed==='lost'), decided = won.length + lost.length;
   const quoted = inq.filter(i=>i.versions.some(v=>v.sent));
-  const pipe = inq.filter(i=>['approval','ready','awaiting','accepted'].includes(inqStatus(i).key));
-  const pipeVal = sumOf(pipe, i=>toPHP(latestV(i)));
-  const qt = avg(inq.filter(firstSent).map(i=>daysBetween(i.createdOn, firstSent(i))));
-  const appr = avg([].concat(...inq.map(i=>i.versions.filter(v=>v.review && v.review.at && v.at).map(v=>(v.review.at - v.at)/3.6e6))));
-  const vpw = avg(won.map(i=>i.versions.length));
+  const key = i=>inqStatus(i).key;
+  const openInq = inq.filter(i=>!i.closed && !i.jobId);
+  const awaiting = inq.filter(i=>key(i)==='awaiting');
+  const stand = [
+    ['Preparing the quote', inq.filter(i=>['preparing','revise','expired'].includes(key(i))).length],
+    ['Waiting for manager approval', inq.filter(i=>['approval','ready'].includes(key(i))).length],
+    ['Waiting for the client', awaiting.length],
+    ['Accepted, to be closed', inq.filter(i=>key(i)==='accepted').length],
+    ['Won', won.length],
+    ['Lost', lost.length]
+  ].map(([l,n])=>({ label:l, value:n, valueText:String(n) }));
   const funnel = barRows([['Inquiries', inq.length],['Quoted', quoted.length],['Accepted', won.length]].map(([l,n])=>({ label:l, value:n, valueText:String(n)+(l!=='Inquiries'&&inq.length?' ('+Math.round(n/inq.length*100)+'%)':'') })), { empty:'No inquiries in this range.' });
-  const returns = [].concat(...inq.map(i=>i.versions.filter(v=>v.review && v.review.decision==='Returned').map(v=>v.review.reasonType)));
-  const custRows = CUSTOMERS.map(c=>{ const ci = inq.filter(i=>i.customerId===c.id); return { c, n:ci.length, w:ci.filter(isWon).length, billed:sumOf(JOBS.filter(j=>j.customerId===c.id), billedAmount) }; }).filter(r=>r.n).sort((a,b)=>b.billed-a.billed || b.n-a.n).slice(0,8);
+  const custRows = CUSTOMERS.map(c=>{ const ci = inq.filter(i=>i.customerId===c.id); return { c, n:ci.length, w:ci.filter(isWon).length }; }).filter(r=>r.n).sort((a,b)=>b.n-a.n || b.w-a.w).slice(0,8);
   return '<div class="ds-stack"><div class="ds-kpis">'+
-      kpi('quote','Inquiries received', inq.length, 'in the selected range', null, "STATE.inqFilter='all'; go('#/inquiries')")+
-      kpi('arrow-right','Quotes sent', quoted.length, 'at least one version sent', null, "STATE.inqFilter='all'; go('#/inquiries')")+
+      kpi('quote','Inquiries', inq.length, 'received in the selected range', null, "STATE.inqFilter='all'; go('#/inquiries')")+
+      kpi('clock','Open now', openInq.length, 'still being worked on', null, "STATE.inqFilter='open'; go('#/inquiries')")+
+      kpi('arrow-right','Waiting for client', awaiting.length, 'quote sent, no answer yet', awaiting.length?'warning':null, "STATE.inqFilter='awaiting'; go('#/inquiries')")+
       kpi('check','Win rate', decided ? Math.round(won.length/decided*100)+'%' : '—', won.length+' won · '+lost.length+' lost', null, "STATE.inqFilter='accepted'; go('#/inquiries')")+
-      kpi('wallet','Pipeline value', moneyShort(pipeVal), plural(pipe.length,'quote')+' not yet decided', null, "STATE.inqFilter='open'; go('#/inquiries')")+
     '</div>'+
     '<div class="ds-grid-2">'+
+      panel('Where inquiries stand','tasks', barRows(stand, { empty:'No inquiries in this range.' }), 'Every inquiry in the range, by where it is right now.')+
       panel('Conversion funnel','chart', funnel, 'How many requests turn into quotes, and quotes into wins.')+
-      panel('Speed and effort','clock','<div class="ds-stats">'+stat('Quote turnaround', fmtAvg(qt,'days'), false, 'inquiry → first quote sent')+stat('Approval turnaround', appr==null?'—':appr<1?'< 1 hour':fmtAvg(appr,'hours'), false, 'submitted → approved')+stat('Versions per win', fmtAvg(vpw,'',1), false, 'how much negotiation')+'</div>')+
     '</div>'+
     '<div class="ds-grid-2">'+
       panel('Inquiries by month','calendar', barRows(monthlyRows(inq, i=>i.createdOn)), null, 'last 6 months')+
@@ -2411,12 +2493,8 @@ function salesTab(){
     '</div>'+
     '<div class="ds-grid-2">'+
       panel('By service','box', barRows(countBy(inq, i=>i.services.map(s=>SERVICES[s].short), SERVICE_ORDER.map(s=>SERVICES[s].short))))+
-      panel('By scope','pin', barRows(countBy(inq, scopeKey, ['Domestic','International Import','International Export'])))+
-    '</div>'+
-    '<div class="ds-grid-2">'+
-      panel('Why managers returned quotes','refresh', barRows(countBy(returns.map(r=>({r})), x=>x.r, MANAGER_RETURN_REASONS), { empty:'No quotes were returned in this range.' }))+
-      '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h2>'+icon('building')+'Top customers</h2></div>'+(custRows.length ? '<div class="ds-table-wrap"><table class="ds-table ds-table--compact ds-table--stack"><thead><tr><th>Customer</th><th class="ds-num">Inquiries</th><th class="ds-num">Won</th><th class="ds-num">Billed</th></tr></thead><tbody>'+
-        custRows.map(r=>'<tr data-href onclick="go(\'#/customers/'+r.c.id+'\')"><td data-label="Customer">'+esc(r.c.name)+'</td><td data-label="Inquiries" class="ds-num">'+r.n+'</td><td data-label="Won" class="ds-num">'+r.w+'</td><td data-label="Billed" class="ds-num">'+money(r.billed)+'</td></tr>').join('')+'</tbody></table></div>' : '<div class="ds-panel__body ds-muted ds-small">No customers with inquiries in this range.</div>')+'</section>'+
+      '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h2>'+icon('building')+'Top customers</h2></div>'+(custRows.length ? '<div class="ds-table-wrap"><table class="ds-table ds-table--compact ds-table--stack"><thead><tr><th>Customer</th><th class="ds-num">Inquiries</th><th class="ds-num">Won</th></tr></thead><tbody>'+
+        custRows.map(r=>'<tr data-href onclick="go(\'#/customers/'+r.c.id+'\')"><td data-label="Customer">'+esc(r.c.name)+'</td><td data-label="Inquiries" class="ds-num">'+r.n+'</td><td data-label="Won" class="ds-num">'+r.w+'</td></tr>').join('')+'</tbody></table></div>' : '<div class="ds-panel__body ds-muted">No customers with inquiries in this range.</div>')+'</section>'+
     '</div></div>';
 }
 function opsTab(){
@@ -2496,7 +2574,7 @@ function teamTab(){
 function kpi(ic, label, value, hint, tone, js){
   return '<button class="ds-kpi'+(tone?' ds-kpi--'+tone:'')+'" onclick="'+js+'"><span class="ds-kpi__icon">'+icon(ic)+'</span><span class="ds-kpi__label">'+esc(label)+'</span><span class="ds-kpi__value">'+value+'</span><span class="ds-kpi__hint">'+esc(hint)+'</span></button>';
 }
-const DASH_TABS = { sales:'Sales & quotations', ops:'Operations', finance:'Finance', team:'Team' };
+const DASH_TABS = Object.assign({ sales:'Sales & quotations', ops:'Operations' }, FINANCE_SOA_ONLY ? {} : { finance:'Finance' }, { team:'Team' });
 function renderDashboard(){
   const q = needsAttention();
   const sel = (id, label, key, opts)=>'<div style="min-width:180px">'+selectWrap('<select class="ds-select" id="'+id+'" aria-label="'+label+'" onchange="STATE.'+key+'=this.value; render()">'+(label?'<option value="">'+label+'</option>':'')+options(opts, STATE[key])+'</select>')+'</div>';
@@ -2508,7 +2586,7 @@ function renderDashboard(){
       (can('inquiry.create')?'<button class="ds-btn ds-btn--primary" onclick="openNewInquiry()">'+icon('plus')+'New inquiry</button>':'')+'</div></div>'+
     '<div class="ds-stack">'+
     '<section class="ds-panel ds-panel--elevated" id="needs-attention"><div class="ds-panel__head"><h2>'+icon('flag')+'Needs attention</h2><span class="ds-panel__hint">most urgent first · each row opens the record</span></div>'+
-      queueHtml(q, 'Nothing needs you right now. Approvals, holds, free-time alerts and overdue bills appear here.')+'</section>'+
+      queueHtml(q, 'Nothing needs you right now. Approvals, holds and free-time alerts appear here.'+(FINANCE_SOA_ONLY?'':' Overdue bills too.'))+'</section>'+
     (empty ? '<div class="ds-alert ds-alert--info">'+icon('info')+'<div><strong>No data yet</strong>The figures below fill in as customers, inquiries and jobs are created in this session.</div></div>' : '')+
     '<section class="ds-panel ds-panel--elevated no-print"><div class="ds-panel__body"><div class="ds-row" style="flex-wrap:wrap">'+icon('filter')+
       sel('dash-range','', 'dashRange', Object.keys(RANGES))+
@@ -2551,7 +2629,7 @@ function gateItemHtml(it){
   const ic = it.met ? 'check' : it.blocked ? 'lock' : 'circle';
   return '<li class="ds-gate__item"'+(it.met?' data-met':'')+(it.blocked?' data-blocked':'')+(it.hint?' title="'+esc(it.hint)+'"':'')+'>'+icon(ic)+
     '<div class="ds-gate__label">'+esc(it.label)+(it.sub?'<small'+(it.overdue?' class="ds-overdue"':'')+'>'+esc(it.sub)+'</small>':'')+'</div>'+
-    (it.act?'<button class="ds-btn ds-btn--secondary ds-btn--sm" onclick="'+it.act.js+'">'+(it.act.icon?icon(it.act.icon):'')+esc(it.act.label)+'</button>':'<span></span>')+'</li>';
+    ((it.badge||it.act)?'<span class="ds-row ds-row--tight">'+(it.badge?pill(it.badge.text, it.badge.tone, it.badge.icon, 'ds-pill--sm'):'')+(it.act?'<button class="ds-btn ds-btn--secondary ds-btn--sm" onclick="'+it.act.js+'">'+(it.act.icon?icon(it.act.icon):'')+esc(it.act.label)+'</button>':'')+'</span>':'<span></span>')+'</li>';
 }
 const HISTORY_ICON = { 'Inquiry created':'plus', 'Inquiry updated':'users', 'Quote submitted':'upload', 'Quote approved':'check', 'Quote returned':'refresh', 'Quote sent':'arrow-right', 'Quote expired':'clock',
   'Client accepted':'check', 'Client rejected':'x', 'Client renegotiating':'refresh', 'Inquiry closed (won)':'check', 'Inquiry closed (lost)':'x', 'Converted to job':'box', 'Job created':'box',
@@ -2602,7 +2680,6 @@ function openConvert(inqId){
   const f = (k,val)=>'<dt>'+esc(k)+'</dt><dd>'+esc(val)+'</dd>';
   openDrawer({ title:'Convert to job', sub:'From <span class="ds-mono">'+i.id+'</span> · accepted v'+v.v,
     body:'<form class="ds-stack--sm" id="convert-form" novalidate onsubmit="event.preventDefault(); convertToJob(\''+inqId+'\', this)">'+
-      '<div class="ds-alert ds-alert--success">'+icon('check')+'<div><strong>Nothing to retype</strong>These carry over as they are.</div></div>'+
       '<dl class="ds-facts">'+f('Customer',c.name)+f('Scope',scopeText(i))+f('Request',reqWhat(i))+(routeText(reqFrom(i.request), reqTo(i.request))?f('Route',routeText(reqFrom(i.request), reqTo(i.request))):'')+(needsTruckLegs(i.services, i.scope)?f('Trucking covers', (i.truckLegs||['pickup','delivery']).map(l=>l==='pickup'?'Pickup':'Delivery').join(' + ')):'')+(i.request.deliveryInstructions?f('Delivery instructions',i.request.deliveryInstructions):'')+f('Accepted quote','v'+v.v+' · '+amountText(v))+f('Sales (viewers)',i.staff.join(', '))+'</dl>'+
       '<div class="ds-label" style="margin-top:var(--t1m-space-2)">Assign Operations per service</div>'+
       SERVICE_ORDER.filter(k=>i.services.includes(k)).map(k=>'<div class="ds-field"><span class="ds-field__label">'+esc(SERVICES[k].label)+' <span class="ds-opt">one or more</span></span>'+multiDropdown('cv-ops-'+k,'ops_'+k, ops, [], 'Select operations staff', 'bottom')+errorSlot('ops_'+k)+'</div>').join('')+
@@ -2674,7 +2751,7 @@ function jobNext(j){
   const id = j.id, mgrs = usersWithRole('Manager').map(u=>u.name);
   if(j.status==='Completed'){
     const bs = billingStatus(j), fin = financiallyClosed(j);
-    return { tone:'done', icon:'check', eyebrow: fin ? 'Financially closed' : 'Completed', title: fin ? 'Paid in full and every fund request verified' : 'Job completed · with Accounting',
+    return { tone:'done', icon:'check', eyebrow: fin ? 'Financially closed' : 'Completed', title: fin ? 'Paid in full and every fund request verified' : 'Job completed',
       text:'Confirmed by '+j.completed.by+' on '+j.completed.on+'.'+(canView('bill.view') ? ' Billing: '+bs.label+'.' : ''), items:[],
       primary: canView('bill.view') ? act('Open billing',"goTab('"+id+"','money')",'receipt') : null };
   }
@@ -2701,11 +2778,11 @@ function jobNext(j){
     const needs = stepDocs(j, m, 'needs'), missing = missingNeeds(j, m), makes = stepDocs(j, m, 'produces');
     const docItems = needs.map(d=>({ label:'Needed first: '+d.name, sub: d.status==='Received' ? 'Received · '+d.file : 'Required before “'+m.name+'” can be ticked', met:d.status==='Received', act: d.status!=='Received' && mine ? act('Upload',"openUploadDoc('"+id+"','"+d.id+"')",'upload') : null }));
     const fg = fundGate(j, m);
-    const fgAct = fg ? (fg.fund && fg.fund.status==='Returned' ? act('Edit & resubmit',"openFundRequest('"+id+"','"+fg.fund.id+"')",'refresh') : fg.none ? act('Request funds',"openFundRequest('"+id+"',null,'Duties & taxes')",'wallet') : act('Open money',"goTab('"+id+"','money')",'wallet')) : null;
-    if(fg) docItems.unshift({ label:fg.label, sub:fg.sub, met:false, act: mine ? fgAct : null });
+    const fgAct = fg ? (fg.fund && fg.fund.status==='Returned' ? act('Edit & resubmit',"openFundRequest('"+id+"','"+fg.fund.id+"')",'refresh') : fg.none ? act('Request funds',"openFundRequest('"+id+"',null,'"+fg.purpose+"')",'wallet') : act('Open money',"goTab('"+id+"','money')",'wallet')) : null;
+    if(fg) docItems.unshift({ label:fg.label, sub:fg.sub, badge:fg.badge, met:false, act: mine ? fgAct : null });
     const firstMissing = missing[0];
     return { tone: mine?'ready':'waiting', icon:SERVICES[m.svc].icon, eyebrow:'Phase '+(pk+1)+' of '+phases.length+' · '+m.phase+' · step '+(track.indexOf(m)+1)+' of '+track.length, title:'Next: '+m.name,
-      text:(STEP_HINT[m.name]||'')+(m.proof?' Needs a file attached.':'')+(missing.length?' First, upload: '+missing.map(d=>d.name).join(', ')+'.':'')+(fg?' First: '+fg.sub.toLowerCase()+'.':''),
+      text:(STEP_HINT[m.name]||'')+(m.proof?' Needs a file attached.':'')+(missing.length?' First, upload: '+missing.map(d=>d.name).join(', ')+'.':'')+(fg?' Funds for the '+fg.what+' must be released first.':''),
       items:docItems.concat(items), gateTitle:m.phase,
       primary: !mine ? null : firstMissing ? act('Upload '+firstMissing.name,"openUploadDoc('"+id+"','"+firstMissing.id+"')",'upload') : fg ? fgAct : act('Mark “'+m.name+'” done',"openMilestone('"+id+"',"+k+")",'check'),
       who: mine ? null : 'Waiting on '+opsFor(j, m.svc).join(', ')+' ('+SERVICES[m.svc].label+').' };
@@ -2737,7 +2814,7 @@ function jobSupportDocsPanel(j){
   const v = i.versions.find(x=>x.v===j.quoteV);
   const docs = [].concat(i.request.attachment ? [{ name:i.request.attachment, meta:'Supporting document' }] : [], v ? [{ name:v.file, meta:'Accepted quotation v'+v.v }] : [], j.ms.filter(m=>m.file).map(m=>({ name:m.file, meta:m.name+' · attachment' })));
   if(!docs.length) return '';
-  return '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h3>'+icon('file')+'Supporting documents</h3></div><div class="ds-panel__body ds-stack--sm ds-scroll-list">'+docs.map(d=>fileRow(d.name, d.meta)).join('')+'</div></section>';
+  return '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h3>'+icon('file')+'Supporting documents</h3></div><div class="ds-panel__body ds-panel__body--flush ds-scroll-list">'+docs.map(d=>fileRow(d.name, d.meta)).join('')+'</div></section>';
 }
 function factsPanel(j){
   const c = custById(j.customerId), i = inqById(j.inquiryId), v = i ? i.versions.find(x=>x.v===j.quoteV) : null;
@@ -2747,6 +2824,7 @@ function factsPanel(j){
     f('Inquiry', canView('inquiry.view', i)?'<a class="ds-link ds-mono" href="#/inquiries/'+j.inquiryId+'">'+esc(j.inquiryId)+'</a>':'<span class="ds-mono">'+esc(j.inquiryId)+'</span>')+
     (v && (canView('bill.view') || hasRole('Sales')) ? f('Accepted quote', 'v'+v.v+' · '+amountText(v)) : '')+
     f('Request', esc(j.commodity+(j.cargoType?' · '+j.cargoType:'')))+
+    ((j.ms.find(x=>x.shippingLine)||{}).shippingLine?f('Shipping line', esc(j.ms.find(x=>x.shippingLine).shippingLine)):'')+
     (j.deliveryInstructions?f('Delivery instructions', esc(j.deliveryInstructions)):'')+
     f('Operations', j.opsByService ? SERVICE_ORDER.filter(k=>j.opsByService[k]).map(k=>'<div>'+esc(SERVICES[k].label)+': '+esc(j.opsByService[k].join(', '))+'</div>').join('') : esc(j.ops.join(', ')))+
     (j.refs.bl?f('BL / AWB', '<span class="ds-mono">'+esc(j.refs.bl)+'</span>'):'')+
@@ -2754,7 +2832,7 @@ function factsPanel(j){
     f('Tracking code', '<span class="ds-mono">'+esc(j.trackingCode)+'</span> <a class="ds-link ds-xs" href="#/track/'+esc(j.trackingCode)+'" title="The page the client sees">'+icon('eye')+'Client view</a>')+
   '</dl><p class="ds-muted ds-xs" style="margin-top:var(--t1m-space-2)">Give the client the tracking code. Job numbers alone do not open the tracking page.</p></div></section>';
 }
-const TAB_LABELS = { milestones:'Milestones', documents:'Documents', issues:'Issues', money:'Money', history:'History' };
+const TAB_LABELS = { milestones:'Milestones', documents:'Documents', issues:'Issues', money:ACCOUNTING_BASIC?'Funds':'Money', history:'History' };
 function jobTabs(j){ const t = ['milestones','documents','issues']; if(canView('money.view', j) || canView('bill.view')) t.push('money'); t.push('history'); return t; }
 function tabCount(j, t){
   if(t==='documents'){ const n = pendingDocs(j).length; return n ? '<span class="ds-tab__count ds-tab__count--warning">'+n+'</span>' : ''; }
@@ -2795,7 +2873,7 @@ function jobMilestonesTab(j){
     const st = m.done ? pill('Done','success','check','ds-pill--sm') : idx===k ? pill(openIssue(j)?'On hold':'Next', openIssue(j)?'danger':'info', openIssue(j)?'lock':'arrow-right','ds-pill--sm') : pill('Later','neutral','circle','ds-pill--sm');
     return '<tr><td data-label="Phase">'+esc(m.phase)+'</td><td data-label="Milestone" style="white-space:normal"><span class="ds-strong">'+esc(m.name)+'</span><div class="ds-muted ds-xs">'+esc((STEP_HINT[m.name]||'')+(m.proof?' Needs proof.':''))+'</div></td>'+
       '<td data-label="Status">'+st+'</td><td data-label="Date">'+(m.done?esc(m.date):'—')+'</td><td data-label="By">'+(m.done?esc(m.by):'—')+'</td>'+
-      '<td data-label="Remark" style="white-space:normal">'+esc([m.laneValue?'Lane '+m.laneValue:'', m.remark||''].filter(Boolean).join(' · '))+(m.file?' <span class="ds-mono ds-xs">'+esc(m.file)+'</span>':'')+'</td>'+
+      '<td data-label="Remark" style="white-space:normal">'+esc([m.laneValue?'Lane '+m.laneValue:'', m.truck?m.truck.driver+' · '+m.truck.plate+' · '+m.truck.type:'', m.shippingLine?'Shipping line: '+m.shippingLine:'', m.remark||''].filter(Boolean).join(' · '))+(m.file?' <span class="ds-mono ds-xs">'+esc(m.file)+'</span>':'')+'</td>'+
       '</tr>';
   }).join('');
   return '<p class="ds-muted ds-small" style="margin-bottom:var(--t1m-space-3)">Milestones are done in order from the Next step panel above. No approval per milestone.</p>'+
@@ -2815,9 +2893,11 @@ function openMilestone(jobId, k){
     body:'<form class="ds-stack--sm" id="ms-form" novalidate onsubmit="event.preventDefault(); saveMilestone(\''+jobId+'\','+k+', this)">'+
       (STEP_HINT[m.name]?'<p class="ds-small ds-muted">'+esc(STEP_HINT[m.name])+'</p>':'')+
       dateField('ms-date','date','Date', todayDMY())+
+      (/^Booked/.test(m.name) ? '<div class="ds-field"><label for="ms-line">Shipping line</label><input class="ds-input" id="ms-line" name="shippingLine" placeholder="Name of the shipping line" autocomplete="off">'+errorSlot('shippingLine')+'</div>' : '')+
+      (m.name==='Truck scheduled' ? '<div class="ds-field"><label for="ms-driver">Driver name</label><input class="ds-input" id="ms-driver" name="driver" placeholder="Full name of the driver">'+errorSlot('driver')+'</div><div class="ds-grid-2" style="gap:var(--t1m-space-3)"><div class="ds-field"><label for="ms-plate">Plate number</label><input class="ds-input ds-mono" id="ms-plate" name="plate" placeholder="e.g. ABC 1234">'+errorSlot('plate')+'</div><div class="ds-field"><label for="ms-ttype">Type of truck</label>'+selectWrap('<select class="ds-select" id="ms-ttype" name="truckType"><option value="">Select type</option>'+options(TRUCK_TYPES)+'</select>')+errorSlot('truckType')+'</div></div>' : '')+
       (m.lane ? '<div class="ds-field"><span class="ds-field__label">Lane assigned by BOC</span><div class="ds-stack--sm">'+LANES.map((l,x)=>'<label class="ds-check" style="align-items:flex-start"><input type="radio" name="lane" value="'+l+'"'+(x===0?' checked':'')+'> <span>'+pill(l, LANE_TONE[l], l==='Green'?'check':'alert','ds-pill--sm')+'<br><span class="ds-muted ds-xs">'+esc(LANE_MEANING[l])+'</span></span></label>').join('')+'</div></div>' : '')+
       makes.map(d=>'<div class="ds-field"><label>'+esc(d.name)+'</label>'+uploadHtml('doc_'+d.id)+errorSlot('file_'+d.id)+'</div>').join('')+
-      (proofDoc ? '' : '<div class="ds-field"><label>'+(m.proof?'Proof':'Other attachment <span class="ds-opt">optional</span>')+'</label>'+uploadHtml('msFile', m.proof ? (m.name==='Duties paid'?'The duty payment receipt':'Proof for this step') : 'Photo or document')+(m.proof?errorSlot('file'):'')+'</div>')+
+      (proofDoc ? '' : '<div class="ds-field"><label>'+(m.proof?'Proof':'Other attachment <span class="ds-opt">optional</span>')+'</label>'+uploadHtml('msFile', m.proof ? (m.name==='Duties paid'?'The duty payment receipt':m.name==='Approved'?'The BOC approval or accreditation certificate':m.name==='Empty container returned'?'The container return or interchange receipt':'Proof for this step') : 'Photo or document')+(m.proof?errorSlot('file'):'')+'</div>')+
       '<div class="ds-field"><label for="ms-remark">Remark <span class="ds-opt">optional</span></label><textarea class="ds-textarea" id="ms-remark" name="remark" style="min-height:64px"></textarea></div></form>',
     foot: drawerFoot('Mark done','ms-form',{icon:'check'}) });
 }
@@ -2831,11 +2911,15 @@ function saveMilestone(jobId, k, form){
   const proofFile = proofDoc ? UPLOADS['doc_'+proofDoc.id] : UPLOADS.msFile;
   let missingDoc = 0;
   makes.forEach(d=>{ if(fieldError(form,'file_'+d.id, UPLOADS['doc_'+d.id] ? '' : 'Upload the '+d.name+' to continue.')) missingDoc = 1; });
-  if(bad | missingDoc | fieldError(form,'file', m.proof && !proofDoc && !proofFile ? 'This step needs proof attached.' : '')) return;
+  const trk = m.name==='Truck scheduled' ? { driver:String(fd.get('driver')||'').trim(), plate:String(fd.get('plate')||'').trim().toUpperCase(), type:String(fd.get('truckType')||'') } : null;
+  const line = /^Booked/.test(m.name) ? String(fd.get('shippingLine')||'').trim() : null;
+  const lineBad = line!==null ? fieldError(form,'shippingLine', line?'':'Enter the shipping line.') : 0;
+  const truckBad = trk ? (fieldError(form,'driver', trk.driver?'':'Enter the driver’s name.') | fieldError(form,'plate', trk.plate?'':'Enter the plate number.') | fieldError(form,'truckType', trk.type?'':'Pick the type of truck.')) : 0;
+  if(bad | missingDoc | truckBad | lineBad | fieldError(form,'file', m.proof && !proofDoc && !proofFile ? 'This step needs proof attached.' : '')) return;
   if(needConfirm('Mark “'+m.name+'” done?', 'It is recorded in the job history under your name, with the date you picked.', 'Mark done', "saveMilestone('"+jobId+"',"+k+",document.getElementById('"+form.id+"'))")) return;
   makes.forEach(d=>{ const f = UPLOADS['doc_'+d.id]; if(f){ Object.assign(d, { status:'Received', file:f, by:me(), on:date }); logTo(j, 'Document uploaded', d.name+' ('+f+') with “'+m.name+'”.'); } });
-  Object.assign(m, { done:true, date, by:me(), remark:String(fd.get('remark')||'').trim()||null, file:proofFile||UPLOADS.msFile||null, laneValue: m.lane ? String(fd.get('lane')) : null });
-  logTo(j, 'Milestone done', m.phase+' · '+m.name+(m.laneValue?' (lane '+m.laneValue+')':'')+' on '+date+(m.file?' · '+m.file:'')+'.');
+  Object.assign(m, { done:true, date, by:me(), remark:String(fd.get('remark')||'').trim()||null, file:proofFile||UPLOADS.msFile||null, laneValue: m.lane ? String(fd.get('lane')) : null, truck:trk, shippingLine:line||null });
+  logTo(j, 'Milestone done', m.phase+' · '+m.name+(m.laneValue?' (lane '+m.laneValue+')':'')+(m.truck?' · '+m.truck.driver+', '+m.truck.plate+', '+m.truck.type:'')+(m.shippingLine?' · '+m.shippingLine:'')+' on '+date+(m.file?' · '+m.file:'')+'.');
   closeDrawer(); STATE.justNext = j.id; showToast(m.name+' done.', 'success', 'check'); render();
 }
 
@@ -2844,7 +2928,7 @@ function jobDocumentsTab(j){
   const got = j.docs.filter(d=>d.status==='Received').length, mine = can('job.update', j) && j.status!=='Completed';
   const order = d=>{ const k = j.ms.findIndex(m=>m.name===d.step && m.svc===d.svc); return k<0 ? 999 : k; };
   const rows = j.docs.slice().sort((a,b)=>order(a)-order(b)).map(d=>{
-    const got = d.status==='Received', canAct = got ? (mine && hasRole('Manager')) : (mine && canWork(j, d.svc));
+    const got = d.status==='Received', canAct = got && mine && (hasRole('Manager') || hasRole('Admin'));
     const view = got ? '<a class="ds-btn ds-btn--ghost ds-btn--sm" href="dummy.pdf" target="_blank" rel="noopener">'+icon('eye')+'View</a>' : '';
     const a = '<span class="ds-row ds-row--tight">'+view+(canAct ? '<button class="ds-btn ds-btn--'+(got?'ghost':'secondary')+' ds-btn--sm" onclick="openUploadDoc(\''+j.id+'\',\''+d.id+'\')">'+icon('upload')+(got?'Replace':'Upload')+'</button>' : '')+'</span>';
     return '<div class="ds-doc" id="doc-'+d.id+'"><span class="ds-doc__icon">'+icon('file')+'</span><div><div class="ds-doc__name">'+esc(d.name)+'</div><div class="ds-doc__meta">'+esc((d.step ? (d.kind==='needs' ? 'Needed before “'+d.step+'”' : 'Comes with “'+d.step+'”') : 'Needed before closing')+' · '+(d.status==='Received'?d.file+' · '+d.by+', '+d.on:'Not received yet'))+'</div></div>'+
@@ -2858,7 +2942,7 @@ function jobDocumentsTab(j){
 function openUploadDoc(jobId, docId){
   const j = jobById(jobId), d = j.docs.find(x=>x.id===docId);
   if(!can('job.update', j)) return denied();
-  if(d.status==='Received' && !hasRole('Manager')) return denied('Only a Manager can replace a received document.');
+  if(d.status==='Received' && !hasRole('Manager') && !hasRole('Admin')) return denied('Only a Manager can replace a received document.');
   if(!canWork(j, d.svc)) return denied('Only the Operations staff assigned to '+SERVICES[d.svc].label+' (or a Manager) can upload this.');
   openDrawer({ title:(d.status==='Received'?'Replace ':'Upload ')+d.name, sub:'<span class="ds-mono">'+j.id+'</span>',
     body:'<form class="ds-stack--sm" id="doc-form" novalidate onsubmit="event.preventDefault(); saveDoc(\''+jobId+'\',\''+docId+'\', this)"><div class="ds-field"><label>File</label>'+uploadHtml('docFile','PDF, image or scan')+errorSlot('file')+'</div></form>',
@@ -2988,15 +3072,15 @@ function openConfirmComplete(jobId){
   openDrawer({ title:'Confirm job completed', sub:'<span class="ds-mono">'+j.id+'</span> · '+esc(custById(j.customerId).name),
     body:'<div class="ds-stack--sm"><ul class="ds-gate">'+closingGate(j).map(g=>gateItemHtml({ label:g.label, sub:g.sub, met:g.ok })).join('')+'</ul>'+
       (unverified?'<div class="ds-alert ds-alert--info">'+icon('wallet')+'<div><strong>'+plural(unverified,'fund request')+' not verified yet</strong>That does not stop completion. Accounting finishes them before the job is financially closed.</div></div>':'')+
-      '<p class="ds-small">Completing hands the job to Accounting’s “Ready to bill” list.</p></div>',
+      '<p class="ds-small">Completing marks the job as done.</p></div>',
     foot:'<button type="button" class="ds-btn ds-btn--ghost" onclick="closeDrawer()">Cancel</button><button type="button" class="ds-btn ds-btn--primary" id="confirm-complete" onclick="confirmComplete(\''+jobId+'\')">'+icon('check')+'Confirm completed</button>' });
 }
 function confirmComplete(jobId){
   const j = jobById(jobId);
-  if(needConfirm('Confirm job completed?', 'The job is handed to Accounting’s “Ready to bill” list.', 'Confirm completed', "confirmComplete('"+jobId+"')")) return;
+  if(needConfirm('Confirm job completed?', 'The job is marked as completed.', 'Confirm completed', "confirmComplete('"+jobId+"')")) return;
   j.status = 'Completed'; j.completed = { by:me(), on:todayDMY() }; j.billing = j.billing || { versions:[], payments:[] };
-  logTo(j, 'Job completed', 'Confirmed by '+me()+'. Ready to bill.');
-  notify({ roles:['Accounting'] }, 'Job '+j.id+' is completed and ready to bill.', '#/jobs/'+j.id+'/money');
+  logTo(j, 'Job completed', 'Confirmed by '+me()+'.');
+  if(!ACCOUNTING_BASIC) notify({ roles:['Accounting'] }, 'Job '+j.id+' is completed and ready to bill.', '#/jobs/'+j.id+'/money');
   notify({ users:j.ops.concat(j.sales) }, 'Job '+j.id+' was confirmed completed.', '#/jobs/'+j.id);
   closeDrawer(); STATE.justNext = j.id; showToast(j.id+' completed. Accounting can bill it now.', 'success', 'check'); render();
 }
@@ -3030,8 +3114,8 @@ function fundActions(j, f){
   const out = [];
   if(f.status==='For approval' && can('fund.approve')) out.push(act('Review',"openReviewFund('"+j.id+"','"+f.id+"')",'eye'));
   if(f.status==='Returned' && can('fund.request', j)) out.push(act('Edit & resubmit',"openFundRequest('"+j.id+"','"+f.id+"')",'refresh'));
-  if(f.status==='Approved' && can('fund.release')) out.push(act('Release',"openReleaseFund('"+j.id+"','"+f.id+"')",'arrow-out'));
-  if(f.status==='Released' && can('fund.liquidate', j)) out.push(act('Liquidate',"openLiquidate('"+j.id+"','"+f.id+"')",'receipt'));
+  if(f.status==='Approved' && can('fund.release')) out.push(act(ACCOUNTING_BASIC?'Approve release':'Release',"openReleaseFund('"+j.id+"','"+f.id+"')",'arrow-out'));
+  if(f.status==='Released' && f.by===me() && can('fund.liquidate', j)) out.push(act('Liquidate',"openLiquidate('"+j.id+"','"+f.id+"')",'receipt'));
   if(f.status==='Liquidated' && can('fund.verify')) out.push(act('Verify',"openVerify('"+j.id+"','"+f.id+"')",'check'));
   return out;
 }
@@ -3040,7 +3124,7 @@ function billActions(j){
   if(['tobill','returned'].includes(bs) && can('bill.submit')) out.push(act(bs==='tobill'?'Upload SOA':'Upload revised SOA',"openUploadSOA('"+j.id+"')",'upload'));
   if(bs==='approval' && can('bill.approve')) out.push(act('Review SOA',"openReviewBill('"+j.id+"')",'eye'));
   if(bs==='ready' && can('bill.send')) out.push(act('Mark as sent',"openSendBill('"+j.id+"')",'arrow-right'));
-  if(['sent','partial','overdue'].includes(bs) && can('bill.send')) out.push(act('Record payment',"openPayment('"+j.id+"')",'arrow-in'));
+  if(!FINANCE_SOA_ONLY && ['sent','partial','overdue'].includes(bs) && can('bill.send')) out.push(act('Record payment',"openPayment('"+j.id+"')",'arrow-in'));
   return out;
 }
 function moneyWaitingCount(j){ return sumOf(j.funds, f=>fundActions(j,f).length?1:0) + (billActions(j).filter(a=>a.label!=='Record payment').length?1:0); }
@@ -3052,7 +3136,7 @@ function jobMoneyTab(j){
     const rows = j.funds.slice().reverse().map(f=>{
       const detail = [f.release?'Released '+f.release.on+' · '+f.release.mode+(f.release.ref?' '+f.release.ref:''):'', f.liq?'Spent '+money(f.liq.actual)+(f.liq.actual!==f.amount?' ('+(f.amount>f.liq.actual?'excess '+money(f.amount-f.liq.actual)+' to return':'shortfall '+money(f.liq.actual-f.amount)+' to reimburse')+')':'')+' · '+f.liq.receipts:'', f.review&&f.review.decision==='Returned'?'Returned: '+f.review.comment:''].filter(Boolean).join(' · ');
       return '<tr><td data-label="Request"><span class="ds-cell-name"><span class="ds-mono ds-cell-primary">'+f.id+'</span><span class="ds-cell-sub">'+esc(f.by+' · '+f.on)+'</span></span></td>'+
-        '<td data-label="Purpose" style="white-space:normal"><span class="ds-strong">'+esc(f.purpose)+'</span>'+(f.purpose==='Duties & taxes'?'<div class="ds-muted ds-xs">Required for the “Duties paid” step</div>':'')+'<div class="ds-muted ds-xs">Pay to '+esc(f.payee)+' · needed by '+esc(f.neededBy)+' · '+esc(f.source)+'</div>'+(detail?'<div class="ds-muted ds-xs">'+esc(detail)+'</div>':'')+'</td>'+
+        '<td data-label="Purpose" style="white-space:normal"><span class="ds-strong">'+esc(f.purpose)+'</span>'+(Object.keys(FUND_STEPS).find(k=>FUND_STEPS[k].purpose===f.purpose)?'<div class="ds-muted ds-xs">Required for the “'+Object.keys(FUND_STEPS).find(k=>FUND_STEPS[k].purpose===f.purpose)+'” step</div>':'')+'<div class="ds-muted ds-xs">Pay to '+esc(f.payee)+' · needed by '+esc(f.neededBy)+' · '+esc(f.source)+'</div>'+(detail?'<div class="ds-muted ds-xs">'+esc(detail)+'</div>':'')+'</td>'+
         '<td data-label="Amount" class="ds-num">'+money(f.amount)+'</td><td data-label="Status">'+pill(f.status, FR_TONE[f.status], FR_ICON[f.status], 'ds-pill--sm')+'</td>'+
         '<td class="ds-num">'+fundActions(j,f).map(a=>btn(a)).join(' ')+'</td></tr>';
     }).join('');
@@ -3060,10 +3144,10 @@ function jobMoneyTab(j){
       '<p class="ds-muted ds-small" style="margin-bottom:var(--t1m-space-3)">Cash needed during the job. Manager approves, Accounting releases, Operations liquidates with receipts, Accounting verifies.</p>'+
       (rows ? '<div class="ds-table-wrap" style="margin:0 calc(var(--t1m-space-4) * -1)"><table class="ds-table ds-table--stack"><thead><tr><th>Request</th><th>Purpose</th><th class="ds-num">Amount</th><th>Status</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>' : '<p class="ds-muted">No fund requests yet.</p>')+'</section>');
     const vb = j.vendorBills.map(b=>'<tr><td data-label="Vendor"><span class="ds-strong">'+esc(b.vendor)+'</span><div class="ds-muted ds-xs">'+esc(b.desc)+'</div></td><td data-label="Date">'+esc(b.date)+'</td><td data-label="File"><span class="ds-mono ds-xs">'+esc(b.file)+'</span></td><td data-label="Amount" class="ds-num">'+money(b.amount)+'</td></tr>').join('');
-    parts.push('<section id="vendor-bills"><div class="ds-section-head"><h2>'+icon('receipt')+'Vendor bills</h2>'+(can('vendor.record') ? '<button class="ds-btn ds-btn--secondary ds-btn--sm" onclick="openVendorBill(\''+j.id+'\')">'+icon('plus')+'Record vendor bill</button>' : '')+'</div>'+
-      '<p class="ds-muted ds-small" style="margin-bottom:var(--t1m-space-3)">What shipping lines, truckers and others bill Top1Movers for this job (our own costs). Payment of these is tracked in your accounting tool.</p>'+
+    parts.push('<section id="vendor-bills"><div class="ds-section-head"><h2>'+icon('receipt')+(ACCOUNTING_BASIC?'Receipts &amp; quotations':'Vendor bills')+'</h2>'+(can('vendor.record') ? '<button class="ds-btn ds-btn--secondary ds-btn--sm" onclick="openVendorBill(\''+j.id+'\')">'+icon('plus')+(ACCOUNTING_BASIC?'Add receipt or quotation':'Record vendor bill')+'</button>' : '')+'</div>'+
+      '<p class="ds-muted ds-small" style="margin-bottom:var(--t1m-space-3)">'+(ACCOUNTING_BASIC?'Receipts and quotations from shipping lines, truckers and others for this job.':'What shipping lines, truckers and others bill Top1Movers for this job (our own costs). Payment of these is tracked in your accounting tool.')+'</p>'+
       (vb ? '<div class="ds-table-wrap" style="margin:0 calc(var(--t1m-space-4) * -1)"><table class="ds-table ds-table--stack"><thead><tr><th>Vendor</th><th>Date</th><th>File</th><th class="ds-num">Amount</th></tr></thead><tbody>'+vb+
-        '<tr><td colspan="3" style="text-align:right;font-weight:600">Total own costs</td><td class="ds-num" style="font-weight:600">'+money(ownCosts(j))+'</td></tr></tbody></table></div>' : '<p class="ds-muted">No vendor bills recorded.</p>')+'</section>');
+        (ACCOUNTING_BASIC?'':'<tr><td colspan="3" style="text-align:right;font-weight:600">Total own costs</td><td class="ds-num" style="font-weight:600">'+money(ownCosts(j))+'</td></tr>')+'</tbody></table></div>' : '<p class="ds-muted">'+(ACCOUNTING_BASIC?'No receipts or quotations yet.':'No vendor bills recorded.')+'</p>')+'</section>');
   }
   if(canView('bill.view')) parts.push(billingSection(j));
   if(can('profit.view') && j.status==='Completed'){
@@ -3129,30 +3213,33 @@ function decideFund(jobId, fid, decision, form){
   }
   closeDrawer(); showToast(f.id+' '+decision.toLowerCase()+'.', decision==='Approved'?'success':'warning', decision==='Approved'?'check':'refresh'); render();
 }
+function toggleRelRef(sel){ document.getElementById('rel-ref-wrap').hidden = sel.value==='Cash'; }
 function openReleaseFund(jobId, fid){
   const j = jobById(jobId), f = j.funds.find(x=>x.id===fid);
   if(!can('fund.release')) return denied('Only Accounting releases funds.');
   const same = f.review && f.review.by===me();
-  openDrawer({ title:'Release '+f.id, sub:'<span class="ds-mono">'+j.id+'</span> · approved by '+esc(f.review.by),
+  openDrawer({ title:(ACCOUNTING_BASIC?'Approve release of ':'Release ')+f.id, sub:'<span class="ds-mono">'+j.id+'</span> · approved by '+esc(f.review.by),
     body:'<form class="ds-stack--sm" id="rel-form" novalidate onsubmit="event.preventDefault(); saveRelease(\''+jobId+'\',\''+fid+'\', this)">'+fundSummary(f)+
       (same?'<div class="ds-alert ds-alert--info">'+icon('user')+'<div><strong>You also approved this</strong>Allowed because you hold both roles. Both actions are logged under your name.</div></div>':'')+
-      '<div class="ds-grid-2" style="gap:var(--t1m-space-3)"><div class="ds-field"><label for="rel-mode">Mode</label>'+selectWrap('<select class="ds-select" id="rel-mode" name="mode">'+options(PAY_MODES, 'Bank transfer')+'</select>')+'</div>'+
-        '<div class="ds-field"><label for="rel-ref">Reference <span class="ds-opt">optional</span></label><input class="ds-input" id="rel-ref" name="ref" placeholder="Check or transfer no."></div></div>'+
+      '<div class="ds-grid-2" style="gap:var(--t1m-space-3)"><div class="ds-field"><label for="rel-mode">Mode</label>'+selectWrap('<select class="ds-select" id="rel-mode" name="mode" onchange="toggleRelRef(this)">'+options(PAY_MODES, 'Bank transfer')+'</select>')+'</div>'+
+        '<div class="ds-field" id="rel-ref-wrap"><label for="rel-ref">Reference no.</label><input class="ds-input" id="rel-ref" name="ref" placeholder="Check or transfer no.">'+errorSlot('ref')+'</div></div>'+
       dateField('rel-on','on','Released on', todayDMY())+
       '<div class="ds-field"><label>Proof <span class="ds-opt">optional</span></label>'+uploadHtml('releaseProof','Voucher, check copy or transfer slip')+'</div></form>',
-    foot: drawerFoot('Release funds','rel-form',{icon:'arrow-out'}) });
+    foot: drawerFoot(ACCOUNTING_BASIC?'Approve release':'Release funds','rel-form',{icon:'arrow-out'}) });
 }
 function saveRelease(jobId, fid, form){
   const j = jobById(jobId), f = j.funds.find(x=>x.id===fid), fd = new FormData(form), on = isoToDMY(fd.get('on'));
-  if(fieldError(form,'on', on?'':'Pick the date.')) return;
-  if(needConfirm('Release funds?', money(f.amount)+' is recorded as released. Operations can then pay and liquidate.', 'Release funds', "saveRelease('"+jobId+"','"+fid+"',document.getElementById('"+form.id+"'))")) return;
-  f.status = 'Released'; f.release = { by:me(), on, mode:String(fd.get('mode')), ref:String(fd.get('ref')||'').trim(), proof:UPLOADS.releaseProof||null };
+  const cash = String(fd.get('mode'))==='Cash';
+  if(fieldError(form,'on', on?'':'Pick the date.') | fieldError(form,'ref', cash || String(fd.get('ref')||'').trim() ? '' : 'Enter the reference number.')) return;
+  if(needConfirm(ACCOUNTING_BASIC?'Approve fund release?':'Release funds?', money(f.amount)+' is approved for release. Operations can then pay and liquidate.', ACCOUNTING_BASIC?'Approve release':'Release funds', "saveRelease('"+jobId+"','"+fid+"',document.getElementById('"+form.id+"'))")) return;
+  f.status = 'Released'; f.release = { by:me(), on, mode:String(fd.get('mode')), ref:String(fd.get('mode'))==='Cash' ? '' : String(fd.get('ref')||'').trim(), proof:UPLOADS.releaseProof||null };
   logTo(j, 'Funds released', f.id+' '+money(f.amount)+' by '+f.release.mode.toLowerCase()+(f.release.ref?' ('+f.release.ref+')':'')+'.');
   notify({ users:[f.by].concat(j.ops) }, f.id+' ('+money(f.amount)+') released on '+j.id+'. Liquidate it with receipts after paying.', '#/jobs/'+j.id+'/money');
   closeDrawer(); showToast('Released. Operations liquidates after paying.', 'success', 'arrow-out'); render();
 }
 function openLiquidate(jobId, fid){
   const j = jobById(jobId), f = j.funds.find(x=>x.id===fid);
+  if(f.by!==me()) return denied('Only '+f.by+', who requested these funds, can liquidate them.');
   if(!can('fund.liquidate', j)) return denied();
   openDrawer({ title:'Liquidate '+f.id, sub:'<span class="ds-mono">'+j.id+'</span> · '+money(f.amount)+' released '+esc(f.release.on),
     body:'<form class="ds-stack--sm" id="liq-form" novalidate onsubmit="event.preventDefault(); saveLiquidate(\''+jobId+'\',\''+fid+'\', this)">'+
@@ -3164,6 +3251,7 @@ function openLiquidate(jobId, fid){
 }
 function saveLiquidate(jobId, fid, form){
   const j = jobById(jobId), f = j.funds.find(x=>x.id===fid), fd = new FormData(form), actual = Number(fd.get('actual'));
+  if(f.by!==me()) return denied('Only '+f.by+', who requested these funds, can liquidate them.');
   if(fieldError(form,'actual', actual>0?'':'Enter what was actually spent.') | fieldError(form,'receipts', UPLOADS.liqReceipts?'':'Attach the receipts.')) return;
   if(needConfirm('Submit liquidation?', 'You are reporting '+money(actual)+' spent, with receipts. Accounting will verify it.', 'Submit liquidation', "saveLiquidate('"+jobId+"','"+fid+"',document.getElementById('"+form.id+"'))")) return;
   f.status = 'Liquidated'; f.liq = { by:me(), on:todayDMY(), actual, receipts:UPLOADS.liqReceipts, note:String(fd.get('note')||'').trim()||null };
@@ -3175,7 +3263,7 @@ function saveLiquidate(jobId, fid, form){
 function openVerify(jobId, fid){
   const j = jobById(jobId), f = j.funds.find(x=>x.id===fid), diff = f.amount - f.liq.actual;
   if(!can('fund.verify')) return denied('Only Accounting verifies liquidations.');
-  openDrawer({ title:'Verify liquidation '+f.id, sub:'<span class="ds-mono">'+j.id+'</span>',
+  openDrawer({ title:(ACCOUNTING_BASIC?'Review liquidation ':'Verify liquidation ')+f.id, sub:'<span class="ds-mono">'+j.id+'</span>',
     body:'<div class="ds-stack--sm"><div class="ds-stats">'+stat('Released', money(f.amount))+stat('Spent', money(f.liq.actual))+stat(diff>=0?'Excess to return':'Shortfall to reimburse', money(Math.abs(diff)), diff<0)+'</div>'+
       '<div class="ds-panel">'+fileRow(f.liq.receipts, 'Receipts from '+f.liq.by+', '+f.liq.on)+'</div>'+(f.liq.note?'<p class="ds-small">'+esc(f.liq.note)+'</p>':'')+
       (diff!==0?'<div class="ds-alert ds-alert--info">'+icon('wallet')+'<div><strong>Settle the difference</strong>'+(diff>0?'Confirm the excess of '+money(diff)+' was returned.':'Reimburse the shortfall of '+money(-diff)+' to '+esc(f.liq.by)+'.')+'</div></div>':'')+
@@ -3194,7 +3282,7 @@ function saveVerify(jobId, fid){
 function openVendorBill(jobId){
   const j = jobById(jobId);
   if(!can('vendor.record')) return denied('Accounting records vendor bills.');
-  openDrawer({ title:'Record vendor bill', sub:'<span class="ds-mono">'+j.id+'</span> · our own cost on this job',
+  openDrawer({ title:ACCOUNTING_BASIC?'Add receipt or quotation':'Record vendor bill', sub:'<span class="ds-mono">'+j.id+'</span> · our own cost on this job',
     body:'<form class="ds-stack--sm" id="vb-form" novalidate onsubmit="event.preventDefault(); saveVendorBill(\''+jobId+'\', this)">'+
       '<div class="ds-field"><label for="vb-vendor">Vendor</label><input class="ds-input" id="vb-vendor" name="vendor" placeholder="e.g. shipping line, trucker">'+errorSlot('vendor')+'</div>'+
       '<div class="ds-field"><label for="vb-desc">For</label><input class="ds-input" id="vb-desc" name="desc" placeholder="e.g. Ocean freight, delivery trip">'+errorSlot('desc')+'</div>'+
@@ -3230,8 +3318,8 @@ function billingSection(j){
     '<div class="ds-stack--sm">'+
       '<div class="ds-panel"><div class="ds-panel__head"><h3>Reimbursable costs summary</h3><span class="ds-panel__hint">copy these into your SOA</span></div><div class="ds-panel__body">'+reimbSummaryHtml(j)+'</div></div>'+
       (versions ? '<div class="ds-table-wrap" style="margin:0 calc(var(--t1m-space-4) * -1)"><table class="ds-table ds-table--stack" id="billing-versions"><thead><tr><th>Ver.</th><th>Uploaded</th><th>File</th><th class="ds-num">Amount</th><th>Due</th><th>Status</th><th>Note</th></tr></thead><tbody>'+versions+'</tbody></table></div>' : '<p class="ds-muted">No Statement of Account uploaded yet.</p>')+
-      (b && b.status==='Sent' ? '<div class="ds-stats">'+stat('Billed', money(b.amount))+stat('Received + withheld', money(paid))+stat('Balance', money(Math.max(0,due)), daysUntil(b.dueDate)<0 && due>0.005, 'due '+esc(b.dueDate))+'</div>' : '')+
-      (pays ? '<div class="ds-table-wrap" style="margin:0 calc(var(--t1m-space-4) * -1)"><table class="ds-table ds-table--stack" id="payments"><thead><tr><th>Date</th><th>Mode</th><th>Proof</th><th class="ds-num">Received</th><th class="ds-num">Withholding tax</th></tr></thead><tbody>'+pays+'</tbody></table></div>' : '')+
+      (!FINANCE_SOA_ONLY && b && b.status==='Sent' ? '<div class="ds-stats">'+stat('Billed', money(b.amount))+stat('Received + withheld', money(paid))+stat('Balance', money(Math.max(0,due)), daysUntil(b.dueDate)<0 && due>0.005, 'due '+esc(b.dueDate))+'</div>' : '')+
+      (!FINANCE_SOA_ONLY && pays ? '<div class="ds-table-wrap" style="margin:0 calc(var(--t1m-space-4) * -1)"><table class="ds-table ds-table--stack" id="payments"><thead><tr><th>Date</th><th>Mode</th><th>Proof</th><th class="ds-num">Received</th><th class="ds-num">Withholding tax</th></tr></thead><tbody>'+pays+'</tbody></table></div>' : '')+
       (acts.length ? '<div class="ds-row">'+acts.map(a=>btn(a)).join('')+'</div>' : '')+
       (financiallyClosed(j) ? '<div class="ds-alert ds-alert--success">'+icon('check')+'<div><strong>Financially closed</strong>Paid in full and every fund request verified.</div></div>' : '')+
     '</div></section>';
@@ -3496,7 +3584,7 @@ function renderInquiry(id){
           ['Notes',r.notes]].filter(x=>x[1]||x[0]==='Customer').map(x=>x[0]==='Customer' ? f('Customer', canView('customer.edit')?'<a class="ds-link" href="#/customers/'+c.id+'">'+esc(c.name)+'</a>':esc(c.name)) : f(x[0], esc(x[1]))).join('')+
         f('Created', esc(i.createdOn+' by '+i.createdBy))+'</dl></div></section>'+
       '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h3>'+icon('users')+'Assigned staff</h3></div><div class="ds-panel__body ds-stack--sm">'+i.staff.map(s=>'<div class="ds-row ds-row--tight">'+avatar(s,true)+esc(s)+'<span class="ds-muted ds-xs">'+esc(rolesText(userByName(s)))+'</span></div>').join('')+'</div></section>'+
-      '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h3>'+icon('file')+'Supporting documents</h3></div><div class="ds-panel__body ds-stack--sm ds-scroll-list">'+(docs.length ? docs.map(d=>fileRow(d.name, d.meta)).join('') : '<p class="ds-muted ds-small">No documents yet.</p>')+'</div></section>'+
+      '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h3>'+icon('file')+'Supporting documents</h3></div><div class="ds-panel__body ds-panel__body--flush ds-scroll-list">'+(docs.length ? docs.map(d=>fileRow(d.name, d.meta)).join('') : '<p class="ds-muted ds-small">No documents yet.</p>')+'</div></section>'+
     '</div></div>'+
     '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h2>'+icon('clock')+'Activity</h2></div><div class="ds-panel__body">'+historyList(i.log.slice().reverse())+'</div></section></div>';
 }
@@ -3528,7 +3616,7 @@ function refreshPlan(){
 }
 function requestFieldsHtml(r){
   r = r || {};
-  const wrap = (key, html)=>'<div data-req="'+key+'" style="display:none">'+html+'</div>';
+  const wrap = (key, html)=>'<div data-req="'+key+'" class="ds-stack--sm" style="display:none">'+html+'</div>';
   const inp = (id, name, label, ph)=>'<div class="ds-field"><label for="'+id+'">'+label+'</label><input class="ds-input" id="'+id+'" name="'+name+'" value="'+esc(r[name]||'')+'" placeholder="'+esc(ph)+'">'+errorSlot(name)+'</div>';
   const two = (x, y)=>'<div class="ds-grid-2" style="gap:var(--t1m-space-3)">'+x+y+'</div>';
   return wrap('route', two(inp('inq-origin','origin','From','e.g. Yokohama, JP'), inp('inq-dest','destination','To','e.g. Quezon City, PH')))+
@@ -3785,7 +3873,7 @@ function renderQuotePage(id){
     : '<div class="ds-alert ds-alert--warning">'+icon('alert')+'<div><strong>Please contact your Top1Movers coordinator</strong>This version has expired or was replaced.</div></div>';
   return '<div class="ds-public">'+trackHero('<div class="ds-public__headline"><p class="ds-label">Quotation <span class="ds-mono" style="color:var(--t1m-ink-inverse)">'+esc(quoteNo(i))+'</span></p><h1 class="ds-public__status" id="quote-status">'+esc(headline)+'</h1><div class="ds-public__meta"><span>'+esc(c)+'</span></div></div>','Quotation')+
     '<div class="ds-public__body">'+sim+
-    '<div class="ds-panel"><div class="ds-panel__head"><h2>Quotation v'+v.v+'</h2></div><div class="ds-panel__body ds-stack--sm">'+fileRow(v.file,'Prepared by Top1Movers')+
+    '<div class="ds-panel"><div class="ds-panel__head"><h2>Quotation v'+v.v+'</h2></div><div class="ds-panel__body ds-stack--sm"><div class="ds-panel">'+fileRow(v.file,'Prepared by Top1Movers')+'</div>'+
       '<dl class="ds-facts"><dt>Amount</dt><dd>'+amountText(v)+'</dd><dt>Valid until</dt><dd>'+esc(v.validUntil)+'</dd><dt>Services</dt><dd>'+esc(servicesText(i.services))+'</dd></dl></div></div>'+
     '<div class="ds-panel"><div class="ds-panel__head"><h2>Your answer</h2></div><div class="ds-panel__body ds-stack--sm">'+body+'</div></div></div></div>';
 }

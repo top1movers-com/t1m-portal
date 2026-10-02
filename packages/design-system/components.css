@@ -57,6 +57,7 @@ a { color: var(--t1m-navy-700); text-underline-offset: 2px; }
 
 /* ---------- Fields ---------- */
 .ds-field { display: grid; gap: 6px; }
+.ds-field[hidden] { display: none; }
 .ds-field label, .ds-field__label { font-family: var(--t1m-font-chrome); font-size: var(--t1m-text-sm); font-weight: var(--t1m-w-control); color: var(--t1m-ink); }
 .ds-opt { font-weight: 400; color: var(--t1m-ink-3); margin-left: 4px; }
 .ds-input, .ds-select, .ds-textarea {
@@ -604,8 +605,9 @@ th[aria-sort="ascending"] .ds-icon { rotate: 180deg; }
    ===================================================================================== */
 
 /* ---------- Layout utilities ---------- */
-.ds-stack > * + * { margin-top: var(--t1m-space-6); }
-.ds-stack--sm > * + * { margin-top: var(--t1m-space-3); }
+/* doubled class so a later `margin: 0` on a child (facts lists, panels, fields) cannot cancel the gap */
+.ds-stack.ds-stack > * + * { margin-top: var(--t1m-space-6); }
+.ds-stack--sm.ds-stack--sm > * + * { margin-top: var(--t1m-space-3); }
 .ds-row { display: flex; align-items: center; gap: var(--t1m-space-3); flex-wrap: wrap; }
 .ds-row--between { display: flex; align-items: center; justify-content: space-between; gap: var(--t1m-space-3); flex-wrap: wrap; }
 .ds-row--tight { gap: var(--t1m-space-2); }
@@ -1067,3 +1069,53 @@ th[aria-sort="ascending"] .ds-icon { rotate: 180deg; }
 .ds-track--phases .ds-track__step { cursor: pointer; }
 .ds-track--phases .ds-track__step:hover, .ds-track--phases .ds-track__step:focus-visible { color: var(--t1m-navy-700); outline: none; }
 .ds-track--phases .ds-track__step[data-selected] { color: var(--t1m-navy-700); font-weight: var(--t1m-w-label); text-decoration: underline; text-underline-offset: 4px; }
+
+/* Panel body with no padding of its own, for rows that already pad themselves (document rows, tables) */
+.ds-panel__body--flush { padding: 0; }
+
+/* Several lines inside one fact value (for example Operations per service) */
+.ds-facts dd > div + div { margin-top: var(--t1m-space-1); }
+
+/* ---------- Required marker: a red asterisk after the label of every required field ---------- */
+.ds-req { color: var(--t1m-danger); margin-left: 3px; font-weight: var(--t1m-w-label); }
+
+/* ---------- Sign-in entrance animation ---------- */
+.ds-login__brandpane { position: relative; overflow: hidden; }
+.ds-login__brandpane::before, .ds-login__brandpane::after { content: ""; position: absolute; border-radius: var(--t1m-radius-full); pointer-events: none; filter: blur(70px); opacity: 0.55; }
+.ds-login__brandpane::before { width: 420px; height: 420px; top: -140px; right: -120px; background: var(--t1m-navy-600); animation: ds-login-drift-a 14s ease-in-out infinite alternate; }
+.ds-login__brandpane::after { width: 360px; height: 360px; bottom: -140px; left: -100px; background: var(--t1m-navy-700); animation: ds-login-drift-b 18s ease-in-out infinite alternate; }
+.ds-login__brandpane > * { position: relative; z-index: 1; }
+.ds-login__brandpane img { animation: ds-login-drop 700ms var(--t1m-ease) both; }
+.ds-login__tagline { animation: ds-login-rise 800ms var(--t1m-ease) 150ms both; }
+.ds-login__flow span { animation: ds-login-pop 500ms var(--t1m-ease) both; }
+.ds-login__flow span:nth-of-type(1) { animation-delay: 550ms; }
+.ds-login__flow span:nth-of-type(2) { animation-delay: 700ms; }
+.ds-login__flow span:nth-of-type(3) { animation-delay: 850ms; }
+.ds-login__flow .ds-icon { animation: ds-login-fade 500ms var(--t1m-ease) 650ms both; }
+.ds-login__card { animation: ds-login-rise 800ms var(--t1m-ease) 300ms both; }
+.ds-login__card .ds-msbtn { transition: transform var(--t1m-dur-base) var(--t1m-ease), box-shadow var(--t1m-dur-base) var(--t1m-ease); }
+.ds-login__card .ds-msbtn:hover { transform: translateY(-2px); box-shadow: var(--t1m-shadow-float); }
+@keyframes ds-login-drop { from { opacity: 0; translate: 0 -16px; } to { opacity: 1; translate: 0 0; } }
+@keyframes ds-login-rise { from { opacity: 0; translate: 0 18px; } to { opacity: 1; translate: 0 0; } }
+@keyframes ds-login-pop { from { opacity: 0; scale: 0.85; } to { opacity: 1; scale: 1; } }
+@keyframes ds-login-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ds-login-drift-a { from { translate: 0 0; } to { translate: -60px 50px; } }
+@keyframes ds-login-drift-b { from { translate: 0 0; } to { translate: 70px -40px; } }
+@media (prefers-reduced-motion: reduce) {
+  .ds-login__brandpane::before, .ds-login__brandpane::after, .ds-login__brandpane img, .ds-login__tagline, .ds-login__flow span, .ds-login__flow .ds-icon, .ds-login__card { animation: none; }
+  .ds-login__card .ds-msbtn { transition: none; }
+}
+
+/* ---------- Sign-in brand pane decoration: dot grid, speed lines, watermark, subtitle ---------- */
+.ds-login__brandpane { background-image: radial-gradient(color-mix(in srgb, var(--t1m-ink-inverse) 14%, transparent) 1px, transparent 1px); background-size: 26px 26px; }
+.ds-login__sub { color: var(--t1m-ink-inverse-2); font-size: var(--t1m-text-lg); max-width: 32ch; margin-top: calc(var(--t1m-space-4) * -1); animation: ds-login-rise 800ms var(--t1m-ease) 300ms both; }
+.ds-login__lines { display: flex; gap: var(--t1m-space-3); }
+.ds-login__lines i { display: block; height: 6px; border-radius: var(--t1m-radius-full); background: var(--t1m-ink-inverse); transform: skewX(-30deg); transform-origin: left; animation: ds-login-line 900ms var(--t1m-ease) both; }
+.ds-login__lines i:nth-child(1) { width: 88px; animation-delay: 500ms; opacity: 0.9; }
+.ds-login__lines i:nth-child(2) { width: 56px; animation-delay: 650ms; opacity: 0.55; }
+.ds-login__lines i:nth-child(3) { width: 28px; animation-delay: 800ms; opacity: 0.3; }
+.ds-login__mark { position: absolute; right: var(--t1m-space-6); bottom: calc(var(--t1m-space-6) * -0.5); z-index: 0; font: 800 clamp(120px, 18vw, 240px)/1 var(--t1m-font-display); letter-spacing: -0.04em; color: transparent; -webkit-text-stroke: 2px color-mix(in srgb, var(--t1m-ink-inverse) 14%, transparent); user-select: none; animation: ds-login-fade 1.4s var(--t1m-ease) 600ms both; }
+.ds-login__foot { position: absolute; left: var(--t1m-space-12); bottom: var(--t1m-space-8); color: var(--t1m-ink-inverse-2); font-size: var(--t1m-text-xs); letter-spacing: 0.04em; animation: ds-login-fade 900ms var(--t1m-ease) 900ms both; }
+@keyframes ds-login-line { from { opacity: 0; scale: 0 1; } to { scale: 1 1; } }
+@media (max-width: 640px) { .ds-login__mark, .ds-login__foot { display: none; } }
+@media (prefers-reduced-motion: reduce) { .ds-login__sub, .ds-login__lines i, .ds-login__mark, .ds-login__foot { animation: none; } }

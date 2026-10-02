@@ -12,8 +12,8 @@ function fundActions(j, f){
   const out = [];
   if(f.status==='For approval' && can('fund.approve')) out.push(act('Review',"openReviewFund('"+j.id+"','"+f.id+"')",'eye'));
   if(f.status==='Returned' && can('fund.request', j)) out.push(act('Edit & resubmit',"openFundRequest('"+j.id+"','"+f.id+"')",'refresh'));
-  if(f.status==='Approved' && can('fund.release')) out.push(act('Release',"openReleaseFund('"+j.id+"','"+f.id+"')",'arrow-out'));
-  if(f.status==='Released' && can('fund.liquidate', j)) out.push(act('Liquidate',"openLiquidate('"+j.id+"','"+f.id+"')",'receipt'));
+  if(f.status==='Approved' && can('fund.release')) out.push(act(ACCOUNTING_BASIC?'Approve release':'Release',"openReleaseFund('"+j.id+"','"+f.id+"')",'arrow-out'));
+  if(f.status==='Released' && f.by===me() && can('fund.liquidate', j)) out.push(act('Liquidate',"openLiquidate('"+j.id+"','"+f.id+"')",'receipt'));
   if(f.status==='Liquidated' && can('fund.verify')) out.push(act('Verify',"openVerify('"+j.id+"','"+f.id+"')",'check'));
   return out;
 }
@@ -22,7 +22,7 @@ function billActions(j){
   if(['tobill','returned'].includes(bs) && can('bill.submit')) out.push(act(bs==='tobill'?'Upload SOA':'Upload revised SOA',"openUploadSOA('"+j.id+"')",'upload'));
   if(bs==='approval' && can('bill.approve')) out.push(act('Review SOA',"openReviewBill('"+j.id+"')",'eye'));
   if(bs==='ready' && can('bill.send')) out.push(act('Mark as sent',"openSendBill('"+j.id+"')",'arrow-right'));
-  if(['sent','partial','overdue'].includes(bs) && can('bill.send')) out.push(act('Record payment',"openPayment('"+j.id+"')",'arrow-in'));
+  if(!FINANCE_SOA_ONLY && ['sent','partial','overdue'].includes(bs) && can('bill.send')) out.push(act('Record payment',"openPayment('"+j.id+"')",'arrow-in'));
   return out;
 }
 function moneyWaitingCount(j){ return sumOf(j.funds, f=>fundActions(j,f).length?1:0) + (billActions(j).filter(a=>a.label!=='Record payment').length?1:0); }
@@ -34,7 +34,7 @@ function jobMoneyTab(j){
     const rows = j.funds.slice().reverse().map(f=>{
       const detail = [f.release?'Released '+f.release.on+' · '+f.release.mode+(f.release.ref?' '+f.release.ref:''):'', f.liq?'Spent '+money(f.liq.actual)+(f.liq.actual!==f.amount?' ('+(f.amount>f.liq.actual?'excess '+money(f.amount-f.liq.actual)+' to return':'shortfall '+money(f.liq.actual-f.amount)+' to reimburse')+')':'')+' · '+f.liq.receipts:'', f.review&&f.review.decision==='Returned'?'Returned: '+f.review.comment:''].filter(Boolean).join(' · ');
       return '<tr><td data-label="Request"><span class="ds-cell-name"><span class="ds-mono ds-cell-primary">'+f.id+'</span><span class="ds-cell-sub">'+esc(f.by+' · '+f.on)+'</span></span></td>'+
-        '<td data-label="Purpose" style="white-space:normal"><span class="ds-strong">'+esc(f.purpose)+'</span>'+(f.purpose==='Duties & taxes'?'<div class="ds-muted ds-xs">Required for the “Duties paid” step</div>':'')+'<div class="ds-muted ds-xs">Pay to '+esc(f.payee)+' · needed by '+esc(f.neededBy)+' · '+esc(f.source)+'</div>'+(detail?'<div class="ds-muted ds-xs">'+esc(detail)+'</div>':'')+'</td>'+
+        '<td data-label="Purpose" style="white-space:normal"><span class="ds-strong">'+esc(f.purpose)+'</span>'+(Object.keys(FUND_STEPS).find(k=>FUND_STEPS[k].purpose===f.purpose)?'<div class="ds-muted ds-xs">Required for the “'+Object.keys(FUND_STEPS).find(k=>FUND_STEPS[k].purpose===f.purpose)+'” step</div>':'')+'<div class="ds-muted ds-xs">Pay to '+esc(f.payee)+' · needed by '+esc(f.neededBy)+' · '+esc(f.source)+'</div>'+(detail?'<div class="ds-muted ds-xs">'+esc(detail)+'</div>':'')+'</td>'+
         '<td data-label="Amount" class="ds-num">'+money(f.amount)+'</td><td data-label="Status">'+pill(f.status, FR_TONE[f.status], FR_ICON[f.status], 'ds-pill--sm')+'</td>'+
         '<td class="ds-num">'+fundActions(j,f).map(a=>btn(a)).join(' ')+'</td></tr>';
     }).join('');
@@ -42,10 +42,10 @@ function jobMoneyTab(j){
       '<p class="ds-muted ds-small" style="margin-bottom:var(--t1m-space-3)">Cash needed during the job. Manager approves, Accounting releases, Operations liquidates with receipts, Accounting verifies.</p>'+
       (rows ? '<div class="ds-table-wrap" style="margin:0 calc(var(--t1m-space-4) * -1)"><table class="ds-table ds-table--stack"><thead><tr><th>Request</th><th>Purpose</th><th class="ds-num">Amount</th><th>Status</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>' : '<p class="ds-muted">No fund requests yet.</p>')+'</section>');
     const vb = j.vendorBills.map(b=>'<tr><td data-label="Vendor"><span class="ds-strong">'+esc(b.vendor)+'</span><div class="ds-muted ds-xs">'+esc(b.desc)+'</div></td><td data-label="Date">'+esc(b.date)+'</td><td data-label="File"><span class="ds-mono ds-xs">'+esc(b.file)+'</span></td><td data-label="Amount" class="ds-num">'+money(b.amount)+'</td></tr>').join('');
-    parts.push('<section id="vendor-bills"><div class="ds-section-head"><h2>'+icon('receipt')+'Vendor bills</h2>'+(can('vendor.record') ? '<button class="ds-btn ds-btn--secondary ds-btn--sm" onclick="openVendorBill(\''+j.id+'\')">'+icon('plus')+'Record vendor bill</button>' : '')+'</div>'+
-      '<p class="ds-muted ds-small" style="margin-bottom:var(--t1m-space-3)">What shipping lines, truckers and others bill Top1Movers for this job (our own costs). Payment of these is tracked in your accounting tool.</p>'+
+    parts.push('<section id="vendor-bills"><div class="ds-section-head"><h2>'+icon('receipt')+(ACCOUNTING_BASIC?'Receipts &amp; quotations':'Vendor bills')+'</h2>'+(can('vendor.record') ? '<button class="ds-btn ds-btn--secondary ds-btn--sm" onclick="openVendorBill(\''+j.id+'\')">'+icon('plus')+(ACCOUNTING_BASIC?'Add receipt or quotation':'Record vendor bill')+'</button>' : '')+'</div>'+
+      '<p class="ds-muted ds-small" style="margin-bottom:var(--t1m-space-3)">'+(ACCOUNTING_BASIC?'Receipts and quotations from shipping lines, truckers and others for this job.':'What shipping lines, truckers and others bill Top1Movers for this job (our own costs). Payment of these is tracked in your accounting tool.')+'</p>'+
       (vb ? '<div class="ds-table-wrap" style="margin:0 calc(var(--t1m-space-4) * -1)"><table class="ds-table ds-table--stack"><thead><tr><th>Vendor</th><th>Date</th><th>File</th><th class="ds-num">Amount</th></tr></thead><tbody>'+vb+
-        '<tr><td colspan="3" style="text-align:right;font-weight:600">Total own costs</td><td class="ds-num" style="font-weight:600">'+money(ownCosts(j))+'</td></tr></tbody></table></div>' : '<p class="ds-muted">No vendor bills recorded.</p>')+'</section>');
+        (ACCOUNTING_BASIC?'':'<tr><td colspan="3" style="text-align:right;font-weight:600">Total own costs</td><td class="ds-num" style="font-weight:600">'+money(ownCosts(j))+'</td></tr>')+'</tbody></table></div>' : '<p class="ds-muted">'+(ACCOUNTING_BASIC?'No receipts or quotations yet.':'No vendor bills recorded.')+'</p>')+'</section>');
   }
   if(canView('bill.view')) parts.push(billingSection(j));
   if(can('profit.view') && j.status==='Completed'){
@@ -111,30 +111,33 @@ function decideFund(jobId, fid, decision, form){
   }
   closeDrawer(); showToast(f.id+' '+decision.toLowerCase()+'.', decision==='Approved'?'success':'warning', decision==='Approved'?'check':'refresh'); render();
 }
+function toggleRelRef(sel){ document.getElementById('rel-ref-wrap').hidden = sel.value==='Cash'; }
 function openReleaseFund(jobId, fid){
   const j = jobById(jobId), f = j.funds.find(x=>x.id===fid);
   if(!can('fund.release')) return denied('Only Accounting releases funds.');
   const same = f.review && f.review.by===me();
-  openDrawer({ title:'Release '+f.id, sub:'<span class="ds-mono">'+j.id+'</span> · approved by '+esc(f.review.by),
+  openDrawer({ title:(ACCOUNTING_BASIC?'Approve release of ':'Release ')+f.id, sub:'<span class="ds-mono">'+j.id+'</span> · approved by '+esc(f.review.by),
     body:'<form class="ds-stack--sm" id="rel-form" novalidate onsubmit="event.preventDefault(); saveRelease(\''+jobId+'\',\''+fid+'\', this)">'+fundSummary(f)+
       (same?'<div class="ds-alert ds-alert--info">'+icon('user')+'<div><strong>You also approved this</strong>Allowed because you hold both roles. Both actions are logged under your name.</div></div>':'')+
-      '<div class="ds-grid-2" style="gap:var(--t1m-space-3)"><div class="ds-field"><label for="rel-mode">Mode</label>'+selectWrap('<select class="ds-select" id="rel-mode" name="mode">'+options(PAY_MODES, 'Bank transfer')+'</select>')+'</div>'+
-        '<div class="ds-field"><label for="rel-ref">Reference <span class="ds-opt">optional</span></label><input class="ds-input" id="rel-ref" name="ref" placeholder="Check or transfer no."></div></div>'+
+      '<div class="ds-grid-2" style="gap:var(--t1m-space-3)"><div class="ds-field"><label for="rel-mode">Mode</label>'+selectWrap('<select class="ds-select" id="rel-mode" name="mode" onchange="toggleRelRef(this)">'+options(PAY_MODES, 'Bank transfer')+'</select>')+'</div>'+
+        '<div class="ds-field" id="rel-ref-wrap"><label for="rel-ref">Reference no.</label><input class="ds-input" id="rel-ref" name="ref" placeholder="Check or transfer no.">'+errorSlot('ref')+'</div></div>'+
       dateField('rel-on','on','Released on', todayDMY())+
       '<div class="ds-field"><label>Proof <span class="ds-opt">optional</span></label>'+uploadHtml('releaseProof','Voucher, check copy or transfer slip')+'</div></form>',
-    foot: drawerFoot('Release funds','rel-form',{icon:'arrow-out'}) });
+    foot: drawerFoot(ACCOUNTING_BASIC?'Approve release':'Release funds','rel-form',{icon:'arrow-out'}) });
 }
 function saveRelease(jobId, fid, form){
   const j = jobById(jobId), f = j.funds.find(x=>x.id===fid), fd = new FormData(form), on = isoToDMY(fd.get('on'));
-  if(fieldError(form,'on', on?'':'Pick the date.')) return;
-  if(needConfirm('Release funds?', money(f.amount)+' is recorded as released. Operations can then pay and liquidate.', 'Release funds', "saveRelease('"+jobId+"','"+fid+"',document.getElementById('"+form.id+"'))")) return;
-  f.status = 'Released'; f.release = { by:me(), on, mode:String(fd.get('mode')), ref:String(fd.get('ref')||'').trim(), proof:UPLOADS.releaseProof||null };
+  const cash = String(fd.get('mode'))==='Cash';
+  if(fieldError(form,'on', on?'':'Pick the date.') | fieldError(form,'ref', cash || String(fd.get('ref')||'').trim() ? '' : 'Enter the reference number.')) return;
+  if(needConfirm(ACCOUNTING_BASIC?'Approve fund release?':'Release funds?', money(f.amount)+' is approved for release. Operations can then pay and liquidate.', ACCOUNTING_BASIC?'Approve release':'Release funds', "saveRelease('"+jobId+"','"+fid+"',document.getElementById('"+form.id+"'))")) return;
+  f.status = 'Released'; f.release = { by:me(), on, mode:String(fd.get('mode')), ref:String(fd.get('mode'))==='Cash' ? '' : String(fd.get('ref')||'').trim(), proof:UPLOADS.releaseProof||null };
   logTo(j, 'Funds released', f.id+' '+money(f.amount)+' by '+f.release.mode.toLowerCase()+(f.release.ref?' ('+f.release.ref+')':'')+'.');
   notify({ users:[f.by].concat(j.ops) }, f.id+' ('+money(f.amount)+') released on '+j.id+'. Liquidate it with receipts after paying.', '#/jobs/'+j.id+'/money');
   closeDrawer(); showToast('Released. Operations liquidates after paying.', 'success', 'arrow-out'); render();
 }
 function openLiquidate(jobId, fid){
   const j = jobById(jobId), f = j.funds.find(x=>x.id===fid);
+  if(f.by!==me()) return denied('Only '+f.by+', who requested these funds, can liquidate them.');
   if(!can('fund.liquidate', j)) return denied();
   openDrawer({ title:'Liquidate '+f.id, sub:'<span class="ds-mono">'+j.id+'</span> · '+money(f.amount)+' released '+esc(f.release.on),
     body:'<form class="ds-stack--sm" id="liq-form" novalidate onsubmit="event.preventDefault(); saveLiquidate(\''+jobId+'\',\''+fid+'\', this)">'+
@@ -146,6 +149,7 @@ function openLiquidate(jobId, fid){
 }
 function saveLiquidate(jobId, fid, form){
   const j = jobById(jobId), f = j.funds.find(x=>x.id===fid), fd = new FormData(form), actual = Number(fd.get('actual'));
+  if(f.by!==me()) return denied('Only '+f.by+', who requested these funds, can liquidate them.');
   if(fieldError(form,'actual', actual>0?'':'Enter what was actually spent.') | fieldError(form,'receipts', UPLOADS.liqReceipts?'':'Attach the receipts.')) return;
   if(needConfirm('Submit liquidation?', 'You are reporting '+money(actual)+' spent, with receipts. Accounting will verify it.', 'Submit liquidation', "saveLiquidate('"+jobId+"','"+fid+"',document.getElementById('"+form.id+"'))")) return;
   f.status = 'Liquidated'; f.liq = { by:me(), on:todayDMY(), actual, receipts:UPLOADS.liqReceipts, note:String(fd.get('note')||'').trim()||null };
@@ -157,7 +161,7 @@ function saveLiquidate(jobId, fid, form){
 function openVerify(jobId, fid){
   const j = jobById(jobId), f = j.funds.find(x=>x.id===fid), diff = f.amount - f.liq.actual;
   if(!can('fund.verify')) return denied('Only Accounting verifies liquidations.');
-  openDrawer({ title:'Verify liquidation '+f.id, sub:'<span class="ds-mono">'+j.id+'</span>',
+  openDrawer({ title:(ACCOUNTING_BASIC?'Review liquidation ':'Verify liquidation ')+f.id, sub:'<span class="ds-mono">'+j.id+'</span>',
     body:'<div class="ds-stack--sm"><div class="ds-stats">'+stat('Released', money(f.amount))+stat('Spent', money(f.liq.actual))+stat(diff>=0?'Excess to return':'Shortfall to reimburse', money(Math.abs(diff)), diff<0)+'</div>'+
       '<div class="ds-panel">'+fileRow(f.liq.receipts, 'Receipts from '+f.liq.by+', '+f.liq.on)+'</div>'+(f.liq.note?'<p class="ds-small">'+esc(f.liq.note)+'</p>':'')+
       (diff!==0?'<div class="ds-alert ds-alert--info">'+icon('wallet')+'<div><strong>Settle the difference</strong>'+(diff>0?'Confirm the excess of '+money(diff)+' was returned.':'Reimburse the shortfall of '+money(-diff)+' to '+esc(f.liq.by)+'.')+'</div></div>':'')+
@@ -176,7 +180,7 @@ function saveVerify(jobId, fid){
 function openVendorBill(jobId){
   const j = jobById(jobId);
   if(!can('vendor.record')) return denied('Accounting records vendor bills.');
-  openDrawer({ title:'Record vendor bill', sub:'<span class="ds-mono">'+j.id+'</span> · our own cost on this job',
+  openDrawer({ title:ACCOUNTING_BASIC?'Add receipt or quotation':'Record vendor bill', sub:'<span class="ds-mono">'+j.id+'</span> · our own cost on this job',
     body:'<form class="ds-stack--sm" id="vb-form" novalidate onsubmit="event.preventDefault(); saveVendorBill(\''+jobId+'\', this)">'+
       '<div class="ds-field"><label for="vb-vendor">Vendor</label><input class="ds-input" id="vb-vendor" name="vendor" placeholder="e.g. shipping line, trucker">'+errorSlot('vendor')+'</div>'+
       '<div class="ds-field"><label for="vb-desc">For</label><input class="ds-input" id="vb-desc" name="desc" placeholder="e.g. Ocean freight, delivery trip">'+errorSlot('desc')+'</div>'+
@@ -212,8 +216,8 @@ function billingSection(j){
     '<div class="ds-stack--sm">'+
       '<div class="ds-panel"><div class="ds-panel__head"><h3>Reimbursable costs summary</h3><span class="ds-panel__hint">copy these into your SOA</span></div><div class="ds-panel__body">'+reimbSummaryHtml(j)+'</div></div>'+
       (versions ? '<div class="ds-table-wrap" style="margin:0 calc(var(--t1m-space-4) * -1)"><table class="ds-table ds-table--stack" id="billing-versions"><thead><tr><th>Ver.</th><th>Uploaded</th><th>File</th><th class="ds-num">Amount</th><th>Due</th><th>Status</th><th>Note</th></tr></thead><tbody>'+versions+'</tbody></table></div>' : '<p class="ds-muted">No Statement of Account uploaded yet.</p>')+
-      (b && b.status==='Sent' ? '<div class="ds-stats">'+stat('Billed', money(b.amount))+stat('Received + withheld', money(paid))+stat('Balance', money(Math.max(0,due)), daysUntil(b.dueDate)<0 && due>0.005, 'due '+esc(b.dueDate))+'</div>' : '')+
-      (pays ? '<div class="ds-table-wrap" style="margin:0 calc(var(--t1m-space-4) * -1)"><table class="ds-table ds-table--stack" id="payments"><thead><tr><th>Date</th><th>Mode</th><th>Proof</th><th class="ds-num">Received</th><th class="ds-num">Withholding tax</th></tr></thead><tbody>'+pays+'</tbody></table></div>' : '')+
+      (!FINANCE_SOA_ONLY && b && b.status==='Sent' ? '<div class="ds-stats">'+stat('Billed', money(b.amount))+stat('Received + withheld', money(paid))+stat('Balance', money(Math.max(0,due)), daysUntil(b.dueDate)<0 && due>0.005, 'due '+esc(b.dueDate))+'</div>' : '')+
+      (!FINANCE_SOA_ONLY && pays ? '<div class="ds-table-wrap" style="margin:0 calc(var(--t1m-space-4) * -1)"><table class="ds-table ds-table--stack" id="payments"><thead><tr><th>Date</th><th>Mode</th><th>Proof</th><th class="ds-num">Received</th><th class="ds-num">Withholding tax</th></tr></thead><tbody>'+pays+'</tbody></table></div>' : '')+
       (acts.length ? '<div class="ds-row">'+acts.map(a=>btn(a)).join('')+'</div>' : '')+
       (financiallyClosed(j) ? '<div class="ds-alert ds-alert--success">'+icon('check')+'<div><strong>Financially closed</strong>Paid in full and every fund request verified.</div></div>' : '')+
     '</div></section>';

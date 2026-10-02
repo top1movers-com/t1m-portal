@@ -4,24 +4,19 @@
    there are no passwords in the portal (Microsoft handles them). */
 function msLogo(){ return '<div class="ds-msbtn__logo"><span></span><span></span><span></span><span></span></div>'; }
 function renderLogin(){
-  const features = [
-    ['flag','Always a next step','Every inquiry and job shows what must happen next, and who has to do it.'],
-    ['shield','Approvals you can see','Quotes, fund requests and billing go through the manager, with every version and reason kept.'],
-    ['clock','Free time counted for you','Port and container free days count down on every import, so fees are never a surprise.']
-  ].map(([ic,t,s])=>'<div class="ds-login__feature">'+icon(ic)+'<div><strong>'+t+'</strong><span>'+s+'</span></div></div>').join('');
-  const flow = ['Inquiry','Quotation','Job','Billing','Paid'].map(s=>'<span>'+s+'</span>').join(icon('arrow-right'));
   return '<div class="ds-login">'+
     '<div class="ds-login__brandpane">'+
       '<img src="'+LOGO_SRC+'" alt="Top1Movers">'+
-      '<h1 class="ds-login__tagline">Every inquiry, job and peso in one record, from first message to paid.</h1>'+
-      '<div class="ds-login__flow" aria-label="The workflow">'+flow+'</div>'+
-      '<div class="ds-login__features">'+features+'</div>'+
+      '<h1 class="ds-login__tagline">T1M Portal</h1>'+
+      '<p class="ds-login__sub">Inquiries, jobs and deliveries, all in one place.</p>'+
+      '<div class="ds-login__lines" aria-hidden="true"><i></i><i></i><i></i></div>'+
+      '<div class="ds-login__mark" aria-hidden="true">T1M</div>'+
+      '<small class="ds-login__foot">Top1Movers Worldwide Inc.</small>'+
     '</div>'+
     '<div class="ds-login__formpane"><div class="ds-login__card ds-stack--sm">'+
       '<div><h2>Sign in</h2><p class="ds-muted">Top1Movers Operations Portal</p></div>'+
-      '<div class="ds-alert ds-alert--info">'+icon('info')+'<div><strong>Mockup · session data only</strong>Sign-in is simulated. Customers, inquiries and jobs start empty and are kept until you refresh the page.</div></div>'+
       '<button type="button" class="ds-msbtn" id="ms-signin" onclick="openAcctPicker()">'+msLogo()+'Sign in with Microsoft</button>'+
-      '<p class="ds-muted ds-xs" style="text-align:center">Use your Top1Movers work account. No separate password.</p>'+
+      '<p class="ds-muted ds-xs" style="text-align:center">Use your Top1Movers work account.</p>'+
     '</div></div>'+
   '</div>';
 }

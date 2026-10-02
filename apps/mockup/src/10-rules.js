@@ -10,6 +10,8 @@ function levelsFor(action){ return myRoles().map(r=>(PERM[action]||{})[r]||'').f
 function isMine(rec){ const n = me(); return !!rec && [rec.staff, rec.ops, rec.sales].some(l=>(l||[]).includes(n)); }
 /* Can I DO this action (on this record)? */
 function can(action, rec){
+  if(ACCOUNTING_BASIC && /^(bill|profit)\./.test(action)) return false;
+  if(hasRole('Admin')) return true;
   const lv = levelsFor(action);
   if(lv.includes('Y')) return true;
   if(lv.includes('A')) return rec ? isMine(rec) : true;
@@ -17,6 +19,8 @@ function can(action, rec){
 }
 /* Can I SEE what this action covers (on this record)? */
 function canView(action, rec){
+  if(ACCOUNTING_BASIC && /^(bill|profit)\./.test(action)) return false;
+  if(hasRole('Admin')) return true;
   const lv = levelsFor(action);
   if(lv.includes('Y') || lv.includes('V')) return true;
   if(rec && (lv.includes('A') || lv.includes('VA')) && isMine(rec)) return true;
@@ -108,16 +112,20 @@ function linkDocs(ms, docs){
 function stepDocs(j, m, kind){ return j.docs.filter(d=>d.step===m.name && d.svc===m.svc && (!kind || d.kind===kind)); }
 /* Task-based access: Operations only work the services they were assigned on the job. Managers can work any. */
 function opsFor(j, svc){ return (j.opsByService && j.opsByService[svc]) || j.ops; }
-function canWork(j, svc){ return can('job.update', j) && (hasRole('Manager') || !svc || opsFor(j, svc).includes(me())); }
-/* "Duties paid" can only be ticked once a "Duties & taxes" fund request has been approved and released. */
+function canWork(j, svc){ return can('job.update', j) && (hasRole('Manager') || hasRole('Admin') || !svc || opsFor(j, svc).includes(me())); }
+/* Some steps can only be ticked once the matching fund request has been approved and released. */
+const FUND_STEPS = { 'Duties paid':{ purpose:'Duties & taxes', what:'duties' }, 'Port charges paid':{ purpose:'Port charges (arrastre, wharfage, storage)', what:'port charges' },
+  'D/O released':{ purpose:'Shipping line local charges', what:'shipping line charges' },
+  'Fees paid':{ purpose:'LTO fees', what:'LTO fees' } };
 function fundGate(j, m){
-  if(m.name!=='Duties paid') return null;
-  const fs = (j.funds||[]).filter(f=>f.purpose==='Duties & taxes');
+  const rule = FUND_STEPS[m.name]; if(!rule) return null;
+  const fs = (j.funds||[]).filter(f=>f.purpose===rule.purpose);
   if(fs.some(f=>['Released','Liquidated','Verified'].includes(f.status))) return null;
   const open = fs.find(f=>['For approval','Approved','Returned'].includes(f.status)) || null;
   const ref = open ? open.id+' · '+money(open.amount)+' · ' : '';
-  const sub = !fs.length ? 'Request a “Duties & taxes” fund request first' : !open ? 'Request funds for the duties' : ref+(open.status==='For approval' ? 'Waiting for the manager to approve it' : open.status==='Approved' ? 'Approved. Waiting for Accounting to release it' : 'Returned by the manager. Edit and resubmit');
-  return { label:'Funds for duties released', sub, fund:open, none:!open };
+  const sub = !fs.length ? 'Request a “'+rule.purpose.split(' (')[0]+'” fund request first' : !open ? 'Request funds for the '+rule.what : ref+(open.status==='For approval' ? 'Waiting for the manager to approve it' : open.status==='Approved' ? 'Approved. Waiting for Accounting to release it' : 'Returned by the manager. Edit and resubmit');
+  const badge = !open ? null : open.status==='For approval' ? { text:'Submitted · awaiting approval', tone:'info', icon:'clock' } : open.status==='Approved' ? { text:'Approved · awaiting release', tone:'success', icon:'check' } : { text:'Returned', tone:'warning', icon:'refresh' };
+  return { label:'Funds for '+rule.what+' released', sub, fund:open, none:!open, badge, purpose:rule.purpose, what:rule.what, step:m.name };
 }
 function missingNeeds(j, m){ return stepDocs(j, m, 'needs').filter(d=>d.status!=='Received'); }
 function nextMsIndex(j){ return j.ms.findIndex(m=>!m.done); }
@@ -201,19 +209,21 @@ function latestBill(j){ return j.billing && j.billing.versions.length ? j.billin
 function billedAmount(j){ const b = latestBill(j); return b && ['Approved','Sent'].includes(b.status) ? b.amount : 0; }
 function paidTotal(j){ return j.billing ? sumOf(j.billing.payments, p=>p.amount+(p.wht||0)) : 0; }
 function billingStatus(j){
+  if(ACCOUNTING_BASIC) return { key:'none', label:'', tone:'neutral', icon:'circle' };
   if(j.status!=='Completed') return { key:'notyet', label:'Not billable yet', tone:'neutral', icon:'circle' };
   const b = latestBill(j);
   if(!b) return { key:'tobill', label:'Ready to bill', tone:'brand', icon:'receipt' };
   if(b.status==='For approval') return { key:'approval', label:'For approval', tone:'warning', icon:'clock' };
   if(b.status==='Returned') return { key:'returned', label:'Returned · revise', tone:'warning', icon:'refresh' };
   if(b.status==='Approved') return { key:'ready', label:'Approved · ready to send', tone:'brand', icon:'arrow-right' };
+  if(FINANCE_SOA_ONLY) return { key:'sent', label:'SOA sent', tone:'success', icon:'check' };
   const paid = paidTotal(j), overdue = daysUntil(b.dueDate)<0;
   if(paid>=b.amount-0.005) return { key:'paid', label:'Paid', tone:'success', icon:'check' };
   if(overdue) return { key:'overdue', label: paid ? 'Partially paid · overdue' : 'Overdue', tone:'danger', icon:'alert' };
   if(paid) return { key:'partial', label:'Partially paid', tone:'info', icon:'wallet' };
   return { key:'sent', label:'Sent · awaiting payment', tone:'info', icon:'clock' };
 }
-function financiallyClosed(j){ return billingStatus(j).key==='paid' && j.funds.every(f=>f.status==='Verified'); }
+function financiallyClosed(j){ return !FINANCE_SOA_ONLY && billingStatus(j).key==='paid' && j.funds.every(f=>f.status==='Verified'); }
 function jobProfit(j){
   const billed = billedAmount(j), reimb = reimbursable(j), own = ownCosts(j);
   const service = billed - reimb, profit = service - own;

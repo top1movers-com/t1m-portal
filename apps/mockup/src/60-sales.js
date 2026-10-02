@@ -175,7 +175,7 @@ function renderInquiry(id){
           ['Notes',r.notes]].filter(x=>x[1]||x[0]==='Customer').map(x=>x[0]==='Customer' ? f('Customer', canView('customer.edit')?'<a class="ds-link" href="#/customers/'+c.id+'">'+esc(c.name)+'</a>':esc(c.name)) : f(x[0], esc(x[1]))).join('')+
         f('Created', esc(i.createdOn+' by '+i.createdBy))+'</dl></div></section>'+
       '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h3>'+icon('users')+'Assigned staff</h3></div><div class="ds-panel__body ds-stack--sm">'+i.staff.map(s=>'<div class="ds-row ds-row--tight">'+avatar(s,true)+esc(s)+'<span class="ds-muted ds-xs">'+esc(rolesText(userByName(s)))+'</span></div>').join('')+'</div></section>'+
-      '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h3>'+icon('file')+'Supporting documents</h3></div><div class="ds-panel__body ds-stack--sm ds-scroll-list">'+(docs.length ? docs.map(d=>fileRow(d.name, d.meta)).join('') : '<p class="ds-muted ds-small">No documents yet.</p>')+'</div></section>'+
+      '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h3>'+icon('file')+'Supporting documents</h3></div><div class="ds-panel__body ds-panel__body--flush ds-scroll-list">'+(docs.length ? docs.map(d=>fileRow(d.name, d.meta)).join('') : '<p class="ds-muted ds-small">No documents yet.</p>')+'</div></section>'+
     '</div></div>'+
     '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h2>'+icon('clock')+'Activity</h2></div><div class="ds-panel__body">'+historyList(i.log.slice().reverse())+'</div></section></div>';
 }
@@ -207,7 +207,7 @@ function refreshPlan(){
 }
 function requestFieldsHtml(r){
   r = r || {};
-  const wrap = (key, html)=>'<div data-req="'+key+'" style="display:none">'+html+'</div>';
+  const wrap = (key, html)=>'<div data-req="'+key+'" class="ds-stack--sm" style="display:none">'+html+'</div>';
   const inp = (id, name, label, ph)=>'<div class="ds-field"><label for="'+id+'">'+label+'</label><input class="ds-input" id="'+id+'" name="'+name+'" value="'+esc(r[name]||'')+'" placeholder="'+esc(ph)+'">'+errorSlot(name)+'</div>';
   const two = (x, y)=>'<div class="ds-grid-2" style="gap:var(--t1m-space-3)">'+x+y+'</div>';
   return wrap('route', two(inp('inq-origin','origin','From','e.g. Yokohama, JP'), inp('inq-dest','destination','To','e.g. Quezon City, PH')))+
@@ -464,7 +464,7 @@ function renderQuotePage(id){
     : '<div class="ds-alert ds-alert--warning">'+icon('alert')+'<div><strong>Please contact your Top1Movers coordinator</strong>This version has expired or was replaced.</div></div>';
   return '<div class="ds-public">'+trackHero('<div class="ds-public__headline"><p class="ds-label">Quotation <span class="ds-mono" style="color:var(--t1m-ink-inverse)">'+esc(quoteNo(i))+'</span></p><h1 class="ds-public__status" id="quote-status">'+esc(headline)+'</h1><div class="ds-public__meta"><span>'+esc(c)+'</span></div></div>','Quotation')+
     '<div class="ds-public__body">'+sim+
-    '<div class="ds-panel"><div class="ds-panel__head"><h2>Quotation v'+v.v+'</h2></div><div class="ds-panel__body ds-stack--sm">'+fileRow(v.file,'Prepared by Top1Movers')+
+    '<div class="ds-panel"><div class="ds-panel__head"><h2>Quotation v'+v.v+'</h2></div><div class="ds-panel__body ds-stack--sm"><div class="ds-panel">'+fileRow(v.file,'Prepared by Top1Movers')+'</div>'+
       '<dl class="ds-facts"><dt>Amount</dt><dd>'+amountText(v)+'</dd><dt>Valid until</dt><dd>'+esc(v.validUntil)+'</dd><dt>Services</dt><dd>'+esc(servicesText(i.services))+'</dd></dl></div></div>'+
     '<div class="ds-panel"><div class="ds-panel__head"><h2>Your answer</h2></div><div class="ds-panel__body ds-stack--sm">'+body+'</div></div></div></div>';
 }

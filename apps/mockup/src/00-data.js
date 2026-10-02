@@ -2,6 +2,12 @@
    Only the demo USERS are seeded. Customers, inquiries, jobs and money start EMPTY and live in
    memory for this browser session: everything created while testing disappears on refresh.
    Requirements: docs/requirements/01–05. */
+/* Finance scope: Accounting's part ends when the SOA is sent. No Finance dashboard, no payment tracking.
+   Set to false to bring all of that back. Ledger: docs/requirements/finance-scope-removal-ledger.md */
+const FINANCE_SOA_ONLY = true;
+/* Accounting is limited to: take receipts or quotations, approve fund release, review liquidations. No billing, SOA, payments or profit in this portal (integrated later).
+   Set to false to bring billing back. Ledger: docs/requirements/finance-scope-removal-ledger.md */
+const ACCOUNTING_BASIC = true;
 const TODAY = (()=>{ const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); })();
 
 /* Dates are stored as "05 Oct 2026" strings, the way staff write them. */
@@ -46,6 +52,7 @@ function serviceBlockReason(key, scope, direction){
   if(direction==='Export' && key==='accreditation') return 'Importers only';
   return '';
 }
+const TRUCK_TYPES = ['Wing van','Closed van','Refrigerated van','4-wheeler','6-wheeler','10-wheeler','Flatbed','Boom truck','Tractor head with trailer'];
 const CARGO_TYPES = ['FCL','LCL','RoRo','Air','Bulk','Breakbulk','Land (truck)'];
 const CARGO_TYPE_SHORT = { 'FCL':'Full container load', 'LCL':'Shared container', 'RoRo':'Drive-on vehicles', 'Air':'By plane', 'Bulk':'Loose goods in the hold', 'Breakbulk':'Oversized, piece by piece', 'Land (truck)':'Road only' };
 const CARGO_TYPE_INFO = {
@@ -75,8 +82,8 @@ const STEP_HINT = {
   'Requirements complete':'Every document the agency asks for is in hand.',
   'Filed with BOC':'Application submitted to the Bureau of Customs.',
   'Under evaluation':'BOC is reviewing the application.',
-  'Approved':'Accreditation granted. The client can now import.',
-  'Booked with shipping line':'Space confirmed with the carrier (ship, plane or truck line).',
+  'Approved':'Accreditation granted. Attach the approval from the BOC. The client can now import.',
+  'Booked with shipping line':'Space confirmed with the carrier. Record the shipping line.',
   'Departed origin port':'The vessel or flight has left the origin port.',
   'Arrived at port':'The cargo is at the Philippine port. Port free time starts.',
   'Cargo arrived at port':'The cargo (shipped by someone else) is at the port. Port free time starts.',
@@ -87,15 +94,14 @@ const STEP_HINT = {
   'BOC released':'Customs released the cargo.',
   'Port charges paid':'Arrastre, wharfage and any storage paid to the port.',
   'Gate pass':'The cargo is cleared to leave the port. Port free time stops.',
-  'Truck scheduled':'Truck, driver and date booked.',
+  'Truck scheduled':'Truck, driver and date booked. Record the driver and the truck details.',
   'Picked up at port':'The truck collected the cargo at the port.',
   'Picked up at shipper':'The truck collected the cargo from the shipper.',
   'Picked up':'The truck has the cargo.',
-  'Delivered':'The cargo reached the delivery address.',
-  'Delivered to warehouse':'The cargo reached the Top1Movers warehouse.',
+  'Delivered':'The cargo reached the delivery address. Attach the signed proof of delivery.',
+  'Delivered to warehouse':'The cargo reached the Top1Movers warehouse. Attach the signed proof of delivery.',
   'Delivered to origin port':'The cargo is at the port of departure.',
-  'POD signed':'The receiver signed the proof of delivery. Attach it.',
-  'Empty container returned':'The empty container is back with the shipping line. Container free time stops.',
+  'Empty container returned':'The empty container is back with the shipping line. Attach the interchange or return receipt. Container free time stops.',
   'Received at warehouse':'The cargo is checked in at the warehouse.',
   'Stored':'Put away; storage billing runs from here.',
   'Release requested':'The client asked for the goods to go out.',
@@ -126,14 +132,14 @@ const STEP_HINT = {
 function buildPlan(services, scope, direction, cargoType, truckLegs){
   const has = s=>services.includes(s), fcl = cargoType==='FCL', out = [];
   const add = (svc, phase, names)=>names.forEach(n=>{ if(!n) return; const [name, flags] = Array.isArray(n) ? n : [n, {}]; out.push(Object.assign({ svc, phase, name }, flags)); });
-  const simpleTrip = ['Truck scheduled','Picked up','Delivered',['POD signed',{proof:true}]];
+  const simpleTrip = ['Truck scheduled','Picked up',['Delivered',{proof:true}]];
   const warehousing = ()=>{ if(has('warehousing')) add('warehousing','Warehousing',['Received at warehouse','Stored','Release requested','Dispatched']); };
   if(scope==='International' && direction==='Import'){
-    if(has('accreditation')) add('accreditation','Importer accreditation',['Requirements complete','Filed with BOC','Under evaluation','Approved']);
+    if(has('accreditation')) add('accreditation','Importer accreditation',['Requirements complete','Filed with BOC','Under evaluation',['Approved',{proof:true}]]);
     if(has('freight')) add('freight','Shipping to the Philippines',['Booked with shipping line','Departed origin port',['Arrived at port',{arrival:true}],['D/O released',{doRelease:true}]]);
     if(has('customs')) add('customs','Customs clearance',[!has('freight') && ['Cargo arrived at port',{arrival:true}],'Entry lodged',['Lane assigned',{lane:true}],['Duties paid',{proof:true}],'BOC released','Port charges paid',['Gate pass',{cargoOut:true}]]);
     if(has('trucking')){
-      if(has('freight') || has('customs')) add('trucking', has('warehousing') ? 'Trucking to the warehouse' : 'Delivery to the consignee',['Truck scheduled','Picked up at port', has('warehousing') ? 'Delivered to warehouse' : 'Delivered',['POD signed',{proof:true}], fcl && ['Empty container returned',{emptyReturned:true}]]);
+      if(has('freight') || has('customs')) add('trucking', has('warehousing') ? 'Trucking to the warehouse' : 'Delivery to the consignee',['Truck scheduled','Picked up at port', [has('warehousing') ? 'Delivered to warehouse' : 'Delivered',{proof:true}], fcl && ['Empty container returned',{emptyReturned:true,proof:true}]]);
       else add('trucking','Trucking',simpleTrip);
     }
     warehousing();
@@ -154,7 +160,7 @@ function buildPlan(services, scope, direction, cargoType, truckLegs){
       add('freight','Booking',['Booked']);
       if(has('trucking') && legs.includes('pickup')) add('trucking','Pickup from the shipper',['Truck scheduled','Picked up at shipper','Delivered to origin port']);
       add('freight','Sea / land freight',['Loaded at origin port','Departed','Arrived at destination port', has('trucking') && legs.includes('delivery') ? 'Released at destination port' : 'Released to consignee']);
-      if(has('trucking') && legs.includes('delivery')) add('trucking','Delivery to the consignee',['Truck scheduled','Picked up at port','Delivered',['POD signed',{proof:true}]]);
+      if(has('trucking') && legs.includes('delivery')) add('trucking','Delivery to the consignee',['Truck scheduled','Picked up at port',['Delivered',{proof:true}]]);
     } else if(has('trucking')) add('trucking','Trucking',simpleTrip);
     warehousing();
     if(has('lto')) add('lto','LTO registration',['Requirements complete','Filed at LTO','Fees paid','OR/CR released','Handed to client']);
@@ -193,7 +199,7 @@ const DOC_RULES = {
   'Bill of Lading':[['BL released to client','produces']],
   'Domestic Bill of Lading':[['Loaded at origin port','produces']],
   'Export Declaration':[['Export declaration lodged','produces']],
-  'Delivery Receipt / POD':[['POD signed','produces']],
+  'Delivery Receipt / POD':[['Delivered','produces'],['Delivered to warehouse','produces']],
   'Warehouse Receipt':[['Received at warehouse','produces']],
   'Release Order':[['Release requested','produces']],
   'SEC / DTI Registration':[['Requirements complete','needs']],
@@ -230,7 +236,7 @@ const ROLE_BLURB = {
   Manager:'Creates customers and inquiries, assigns staff, approves quotes, money and billing.',
   Sales:'Uploads quotations, sends them and records the client’s answer.',
   Operations:'Runs jobs: milestones, documents, issues, fund requests and liquidation.',
-  Accounting:'Releases funds, verifies liquidation, bills the client and records payments.'
+  Accounting: ACCOUNTING_BASIC ? 'Takes receipts and quotations, approves fund release and reviews liquidations.' : FINANCE_SOA_ONLY ? 'Releases funds, verifies liquidation, uploads the SOA and sends it to the client.' : 'Releases funds, verifies liquidation, bills the client and records payments.'
 };
 const PERM_GROUPS = [
   { group:'Administration', items:[
@@ -257,20 +263,21 @@ const PERM_GROUPS = [
   { group:'Money', items:[
     ['fund.request','Create fund request', { Manager:'Y', Operations:'A' }],
     ['fund.approve','Approve / return fund request', { Manager:'Y' }],
-    ['fund.release','Release funds', { Accounting:'Y' }],
+    ['fund.release', ACCOUNTING_BASIC ? 'Approve fund release' : 'Release funds', { Accounting:'Y' }],
     ['fund.liquidate','Liquidate (upload receipts)', { Manager:'Y', Operations:'A' }],
-    ['fund.verify','Verify liquidation', { Accounting:'Y' }],
+    ['fund.verify', ACCOUNTING_BASIC ? 'Review liquidation' : 'Verify liquidation', { Accounting:'Y' }],
     ['money.view','See fund requests, costs, vendor bills', { Manager:'Y', Operations:'A', Accounting:'Y' }],
     ['bill.submit','Upload SOA + submit for approval', { Accounting:'Y' }],
     ['bill.approve','Approve / return billing', { Manager:'Y' }],
-    ['bill.send','Send billing, record payments', { Accounting:'Y' }],
+    ['bill.send', FINANCE_SOA_ONLY ? 'Send the SOA to the client' : 'Send billing, record payments', { Accounting:'Y' }],
     ['bill.view','See billing and payments', { Manager:'Y', Accounting:'Y' }],
-    ['vendor.record','Record vendor bills', { Accounting:'Y' }],
+    ['vendor.record', ACCOUNTING_BASIC ? 'Record receipts and quotations' : 'Record vendor bills', { Accounting:'Y' }],
     ['profit.view','View job profit', { Manager:'Y' }] ]},
   { group:'Reports', items:[
-    ['dash.view','View dashboards / analytics / job profit', { Admin:'Y', Manager:'Y' }],
+    ['dash.view', ACCOUNTING_BASIC ? 'View dashboards / analytics' : 'View dashboards / analytics / job profit', { Admin:'Y', Manager:'Y' }],
     ['mywork.view','“My Work” home page (to-do lists)', { Sales:'Y', Operations:'Y', Accounting:'Y' }] ]}
 ];
+if(ACCOUNTING_BASIC) PERM_GROUPS.forEach(g=>{ g.items = g.items.filter(r=>!/^(bill|profit)\./.test(r[0])); });
 /* The live matrix. DEFAULT keeps the original level so a re-ticked box restores it. */
 const PERM = {}, PERM_DEFAULT = {}, PERM_LABEL = {};
 PERM_GROUPS.forEach(g=>g.items.forEach(([key,label,lv])=>{ PERM_LABEL[key] = label; PERM_DEFAULT[key] = {}; PERM[key] = {}; ROLES.forEach(r=>{ PERM_DEFAULT[key][r] = lv[r]||''; PERM[key][r] = lv[r]||''; }); }));

@@ -1,8 +1,10 @@
-# Finance scope reduction: removal ledger (PROPOSED, nothing removed yet)
+# Finance scope reduction: removal ledger (APPLIED behind a switch)
 
 New scope for Finance / Accounting: **no Finance dashboard. Accounting's part of getting an inquiry to close ends at the SOA being sent (or proof that the SOA was sent to the client).**
 
-This file records what would be removed or switched off, and where it lives, so every item can be put back. Status: `[ ]` not done yet, `[x]` removed. Nothing below has been changed in code.
+This file records what would be removed or switched off, and where it lives, so every item can be put back. Status: all of section A and B are switched off by `FINANCE_SOA_ONLY = true` in `apps/mockup/src/00-data.js` (code kept, not deleted). Set it to `false` and rebuild to restore everything. Checkpoint commit before the change: `001756e` on `demo`.
+
+Applied: Finance tab hidden (A1; the export code is unused since the Excel/PDF buttons were removed, A2), B1 payment recording hidden, B2 billing status ends at `SOA sent`, B3 financially closed off, B4/B5 follow from B2, B6/B7 wording changed. Section C kept as agreed.
 
 ## How to revert
 1. Before removing anything, create a git checkpoint (commit or branch) of the current `demo` branch. Reverting is then `git revert <commit>` or checking out the files from the checkpoint.
@@ -12,20 +14,20 @@ This file records what would be removed or switched off, and where it lives, so 
 ## A. Finance dashboard (remove)
 | # | Item | Location | Status |
 |---|------|----------|--------|
-| A1 | "Finance" tab of the dashboard (`DASH_TABS.finance`, its KPIs: outstanding, billed, collected, profit) | `src/40-home.js` (`DASH_TABS`, finance tab renderer, ~line 223) | [ ] |
-| A2 | Finance rows in dashboard CSV export (job profit, billing label) | `src/40-home.js` (~line 289) | [ ] |
+| A1 | "Finance" tab of the dashboard (`DASH_TABS.finance`, its KPIs: outstanding, billed, collected, profit) | `src/40-home.js` (`DASH_TABS`, finance tab renderer, ~line 223) | [x] |
+| A2 | Finance rows in dashboard CSV export (job profit, billing label) | `src/40-home.js` (~line 289) | [x] |
 | A3 | `dash.view` for Accounting | already not granted (Admin, Manager only) | n/a |
 
 ## B. Accounting steps after the SOA is sent (remove / hide)
 | # | Item | Location | Status |
 |---|------|----------|--------|
-| B1 | Record payments (`openPayment`, `savePayment`, "Record payment" button) | `src/55-money.js` | [ ] |
-| B2 | Billing states after "Sent": `Partly paid`, `Paid`, `Overdue` in `billingStatus` | `src/10-rules.js` (~line 203) | [ ] |
-| B3 | "Financially closed" (`financiallyClosed`) and its banner and notification | `src/10-rules.js:216`, `src/55-money.js:218`, `:299` | [ ] |
-| B4 | "Billing overdue" to-do on My work / Needs attention | `src/40-home.js` (~line 110) | [ ] |
-| B5 | Outstanding / collected figures and billing pills on job list and header | `src/50-jobs.js` (~lines 113, 133) | [ ] |
-| B6 | Permission `bill.send` wording "Send billing, record payments" becomes "Send SOA" | `src/00-data.js:266` | [ ] |
-| B7 | Accounting role description: "Releases funds, verifies liquidation, bills the client and records payments" | `src/00-data.js:233` | [ ] |
+| B1 | Record payments (`openPayment`, `savePayment`, "Record payment" button) | `src/55-money.js` | [x] |
+| B2 | Billing states after "Sent": `Partly paid`, `Paid`, `Overdue` in `billingStatus` | `src/10-rules.js` (~line 203) | [x] |
+| B3 | "Financially closed" (`financiallyClosed`) and its banner and notification | `src/10-rules.js:216`, `src/55-money.js:218`, `:299` | [x] |
+| B4 | "Billing overdue" to-do on My work / Needs attention | `src/40-home.js` (~line 110) | [x] |
+| B5 | Outstanding / collected figures and billing pills on job list and header | `src/50-jobs.js` (~lines 113, 133) | [x] |
+| B6 | Permission `bill.send` wording "Send billing, record payments" becomes "Send SOA" | `src/00-data.js:266` | [x] |
+| B7 | Accounting role description: "Releases funds, verifies liquidation, bills the client and records payments" | `src/00-data.js:233` | [x] |
 
 ## C. To decide before removing (not removed in this proposal)
 These are Accounting tasks but are not "after the SOA is sent". Confirm each.
@@ -42,3 +44,11 @@ These are Accounting tasks but are not "after the SOA is sent". Confirm each.
 
 ## E. Docs to update after removal
 `docs/requirements/03-accounting-billing.md`, `docs/requirements/workflow-by-stage.md`, `docs/testing/UAT-test-plan.md`, `docs/demo/` manual (regenerate with `python docs/demo/manual/build_manual.py`).
+
+## F. Accounting simplified further (APPLIED behind `ACCOUNTING_BASIC = true` in `apps/mockup/src/00-data.js`)
+Accounting only: takes receipts or quotations, approves fund release, reviews liquidations. No billing, SOA, payments or profit in the portal (accounting is integrated later). Set `ACCOUNTING_BASIC = false` and rebuild to bring billing back.
+- All `bill.*` and `profit.*` permissions are off for every role (including Admin) and hidden from the permission matrix.
+- No Billing section, SOA actions, reimbursable summary or job profit on the job page; no billing status or "Ready to bill" anywhere; job completion no longer notifies Accounting.
+- Money tab renamed **Funds**; "Vendor bills" renamed **Receipts & quotations** (no totals).
+- Accounting wording: "Approve release" (was Release funds), "Review liquidation" (was Verify liquidation).
+- Kept: fund requests (amounts are needed for release approval), the Duties paid / Port charges gates.
