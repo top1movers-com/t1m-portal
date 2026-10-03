@@ -496,7 +496,8 @@ th[aria-sort="ascending"] .ds-icon { rotate: 180deg; }
 .ds-acct-picker { width: min(420px, 92vw); background: var(--t1m-surface); border-radius: var(--t1m-radius-lg); box-shadow: var(--t1m-shadow-float); overflow: hidden; animation: ds-acct-picker-in 160ms var(--t1m-ease); }
 @keyframes ds-acct-picker-in { from { opacity: 0; translate: 0 -8px; scale: 0.98; } to { opacity: 1; translate: 0 0; scale: 1; } }
 @media (prefers-reduced-motion: reduce) { .ds-acct-picker { animation: none; } }
-.ds-acct-picker__head { padding: 28px 28px 16px; text-align: center; }
+.ds-acct-picker__head { position: relative; z-index: 1; padding: 28px 28px 16px; text-align: center; transition: box-shadow var(--t1m-dur-base) var(--t1m-ease); }
+.ds-acct-picker[data-scrolled] .ds-acct-picker__head { box-shadow: 0 6px 12px -8px color-mix(in srgb, var(--t1m-navy-950) 28%, transparent), 0 1px 0 var(--t1m-border); } /* header lifts once the list scrolls under it */
 .ds-acct-picker__head .ds-msbtn__logo { margin: 0 auto 16px; width: 24px; height: 24px; }
 .ds-acct-picker__head h2 { margin-bottom: 4px; }
 .ds-acct-picker__list { padding: 8px; max-height: 360px; overflow: auto; }

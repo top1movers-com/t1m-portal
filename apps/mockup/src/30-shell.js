@@ -34,7 +34,7 @@ function openAcctPicker(){
   const el = document.getElementById('acctPickerRoot');
   el.innerHTML = '<div class="ds-acct-picker" role="dialog" aria-modal="true" aria-label="Pick an account">'+
     '<div class="ds-acct-picker__head">'+msLogo()+'<h2>Pick an account</h2><p class="ds-muted ds-small">to continue to Top1Movers Operations Portal</p></div>'+
-    '<div class="ds-acct-picker__list" style="max-height:60vh;overflow:auto">'+rows+
+    '<div class="ds-acct-picker__list" style="max-height:60vh;overflow:auto" onscroll="this.parentElement.toggleAttribute(\'data-scrolled\', this.scrollTop>0)">'+rows+
       '<button type="button" class="ds-acct-row" onclick="showToast(\'This mockup only has the demo accounts above.\',\'info\',\'info\')"><span class="ds-acct-row__addicon">'+icon('plus')+'</span><span class="ds-acct-row__main"><span class="ds-acct-row__name">Use another account</span></span></button>'+
     '</div><div class="ds-acct-picker__foot">Demo only. Illustrative accounts, not a real directory.</div></div>';
   el.classList.add('open');
