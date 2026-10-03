@@ -30,7 +30,7 @@ Full lifecycle: INQUIRY → QUOTATION → JOB → BILLING → PAID → FINANCIAL
 
 ## Agreed decisions
 1. Fund request flow as above (Ops requests → Manager approves → Accounting releases → Ops liquidates → Accounting verifies).
-2. Each fund request has a funding source: Company funds / Client deposit (a client deposit is recorded with proof before release).
+2. Fund requests are always paid from company funds; there is no funding-source choice and no client deposit (demo feedback, see 06).
 3. Billing = Option A: Accounting uploads the SOA in their own format + enters total amount + due date.
    Plus a "Reimbursable costs summary" panel listing all liquidated costs on the job (with receipts).
 4. Manager approval before the bill is sent, with version history (same pattern as the quote).

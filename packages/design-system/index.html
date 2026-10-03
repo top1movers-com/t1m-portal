@@ -101,7 +101,7 @@
 <div class="doc">
 <nav class="doc__nav" aria-label="Sections">
   <img src="./assets/top1movers-logo.png" alt="Top1Movers Worldwide Inc.">
-  <a href="#principles">Principles</a><a href="#color">Color</a><a href="#type">Typography</a><a href="#space">Space &amp; shape</a><a href="#icons">Icons</a><a href="#buttons">Buttons</a><a href="#forms">Fields</a><a href="#status">Status</a><a href="#tables">Tables</a><a href="#print">Print</a><a href="#nav">Shell &amp; nav</a><a href="#signature">Shipment patterns</a><a href="#workflow">Workflow (v3)</a><a href="#feedback">Feedback</a><a href="#rules">Do &amp; don't</a><a href="#use">Using it</a>
+  <a href="#principles">Principles</a><a href="#color">Color</a><a href="#type">Typography</a><a href="#space">Space &amp; shape</a><a href="#icons">Icons</a><a href="#buttons">Buttons</a><a href="#forms">Fields</a><a href="#status">Status</a><a href="#tables">Tables</a><a href="#print">Print</a><a href="#nav">Shell &amp; nav</a><a href="#signature">Shipment patterns</a><a href="#workflow">Workflow (v3)</a><a href="#dashboard">Dashboard &amp; charts</a><a href="#feedback">Feedback</a><a href="#rules">Do &amp; don't</a><a href="#use">Using it</a>
 </nav>
 <main>
   <h1>Top1Movers Operations Portal: Design System</h1>
@@ -536,6 +536,33 @@
 
     <h3>Overlays that adapt</h3>
     <p><code>.ds-overlay</code> + <code>.ds-drawer</code> slide in from the right on desktop and become a bottom sheet under 640px, with a sticky <code>.ds-drawer__foot</code> so the confirm button never scrolls away. Under 640px the sidebar becomes a bottom navigation <em>with labels</em>: icon-only bars make people guess, and a wrong tap costs a trip back.</p>
+  </section>
+
+  <section id="dashboard">
+    <h2>Dashboard and charts</h2>
+    <p>Pick the chart by the data's job: columns for months, a donut for the share of a whole (six slices at most, always with a legend), bars for ranked categories. Stats sit on the left (70%); a highlighted <code>.ds-panel--alert</code> queue sits on the right (30%) and scrolls on its own.</p>
+    <div class="demo demo--col">
+      <div class="ds-dash" style="width:100%">
+        <div class="ds-stack ds-dash__main">
+          <div class="ds-kpis ds-kpis--3">
+            <button class="ds-kpi"><span class="ds-kpi__icon"><svg class="ds-icon"><use href="#i-box"/></svg></span><span class="ds-kpi__label">Active jobs</span><span class="ds-kpi__value">3</span><span class="ds-kpi__hint">not yet completed</span></button>
+            <button class="ds-kpi ds-kpi--danger"><span class="ds-kpi__icon"><svg class="ds-icon"><use href="#i-lock"/></svg></span><span class="ds-kpi__label">On hold</span><span class="ds-kpi__value">1</span><span class="ds-kpi__hint">waiting for approval</span></button>
+            <button class="ds-kpi ds-kpi--warning"><span class="ds-kpi__icon"><svg class="ds-icon"><use href="#i-clock"/></svg></span><span class="ds-kpi__label">Overdue steps</span><span class="ds-kpi__value">2</span><span class="ds-kpi__hint">past their due date</span></button>
+          </div>
+          <div class="ds-grid-2">
+            <section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h2>Where inquiries stand</h2></div><div class="ds-panel__body">
+              <div class="ds-donut"><div class="ds-donut__plot"><svg viewBox="0 0 140 140" role="img" aria-label="Inquiries by stage"><circle class="ds-donut__track" cx="70" cy="70" r="52"/><circle class="ds-donut__arc" cx="70" cy="70" r="52" style="stroke:var(--t1m-chart-seq-2)" stroke-dasharray="64 326.7" stroke-dashoffset="0"/><circle class="ds-donut__arc" cx="70" cy="70" r="52" style="stroke:var(--t1m-chart-seq-4)" stroke-dasharray="162 326.7" stroke-dashoffset="-65.3"/><circle class="ds-donut__arc" cx="70" cy="70" r="52" style="stroke:var(--t1m-danger)" stroke-dasharray="97 326.7" stroke-dashoffset="-229.7"/></svg><div class="ds-donut__center"><span class="ds-donut__total">10</span><span class="ds-donut__unit">inquiries</span></div></div>
+              <ul class="ds-donut__legend"><li><span class="ds-donut__dot" style="background:var(--t1m-chart-seq-2)"></span><span class="ds-donut__name">Preparing the quote</span><span class="ds-donut__val">2<span class="ds-muted"> · 20%</span></span></li><li><span class="ds-donut__dot" style="background:var(--t1m-chart-seq-4)"></span><span class="ds-donut__name">Won</span><span class="ds-donut__val">5<span class="ds-muted"> · 50%</span></span></li><li><span class="ds-donut__dot" style="background:var(--t1m-danger)"></span><span class="ds-donut__name">Lost</span><span class="ds-donut__val">3<span class="ds-muted"> · 30%</span></span></li></ul></div>
+              <p class="ds-chart-note"><svg class="ds-icon"><use href="#i-info"/></svg><span>An ordered scale steps light to dark; the terminal outcome is a status color.</span></p></div></section>
+            <section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h2>Inquiries by month</h2><span class="ds-panel__hint">last 6 months</span></div><div class="ds-panel__body">
+              <div class="ds-cols" role="img" aria-label="Inquiries by month"><div class="ds-col" data-tip="May: 0" style="--h:0%"><span class="ds-col__track"><span class="ds-col__fill"></span></span><span class="ds-col__name">May</span></div><div class="ds-col" data-tip="Jun: 4" style="--h:44%"><span class="ds-col__track"><span class="ds-col__fill"></span><span class="ds-col__val">4</span></span><span class="ds-col__name">Jun</span></div><div class="ds-col" data-tip="Jul: 9" style="--h:100%"><span class="ds-col__track"><span class="ds-col__fill"></span><span class="ds-col__val">9</span></span><span class="ds-col__name">Jul</span></div><div class="ds-col" data-tip="Aug: 6" style="--h:67%"><span class="ds-col__track"><span class="ds-col__fill"></span><span class="ds-col__val">6</span></span><span class="ds-col__name">Aug</span></div></div></div></section>
+          </div>
+        </div>
+        <aside class="ds-dash__aside" aria-label="Needs attention"><section class="ds-panel ds-panel--elevated ds-panel--alert"><div class="ds-panel__head"><h2><svg class="ds-icon"><use href="#i-flag"/></svg>Needs attention</h2><span class="ds-pill ds-pill--warning ds-pill--sm"><svg class="ds-icon"><use href="#i-alert"/></svg>3</span></div><p class="ds-dash__note">Most urgent first. Each row opens the record.</p><div class="ds-dash__scroll"><ul class="ds-queue"><li class="ds-queue__item" data-tone="danger"><span class="ds-queue__icon"><svg class="ds-icon"><use href="#i-lock"/></svg></span><div><div class="ds-queue__title">On hold: exception waiting for approval</div><div class="ds-queue__meta"><span class="ds-mono">SJ-2026-00002</span><span>Sample Motors Inc.</span></div></div><div class="ds-queue__actions"><button class="ds-btn ds-btn--secondary ds-btn--sm">Review</button></div></li><li class="ds-queue__item" data-tone="warning"><span class="ds-queue__icon"><svg class="ds-icon"><use href="#i-file"/></svg></span><div><div class="ds-queue__title">3 documents missing</div><div class="ds-queue__meta"><span class="ds-mono">SJ-2026-00003</span></div></div><div class="ds-queue__actions"><button class="ds-btn ds-btn--secondary ds-btn--sm">Open</button></div></li></ul></div></section></aside>
+      </div>
+    </div>
+    <h3>Sliding selection pill</h3>
+    <div class="demo"><fieldset class="ds-seg ds-seg--slide" style="--n:2" aria-label="Scope"><label><input type="radio" name="slide-demo" value="Domestic">Domestic</label><label><input type="radio" name="slide-demo" value="International" checked>International</label></fieldset></div>
   </section>
 
   <section id="feedback">

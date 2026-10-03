@@ -245,6 +245,7 @@ function renderJob(id, tab){
   if(can('job.freeDays', j) && clockApplies(j) && j.status!=='Completed') menu.push('<button onclick="closePopover(); openFreeDays(\''+id+'\')">'+icon('clock')+'Set free days</button>');
   if(can('job.update', j) && j.status!=='Completed') menu.push('<button onclick="closePopover(); openRefs(\''+id+'\')">'+icon('file')+'Shipment references</button>');
   if(can('fund.request', j) && j.status!=='Completed') menu.push('<button onclick="closePopover(); openFundRequest(\''+id+'\')">'+icon('wallet')+'New fund request</button>');
+  menu.push('<button id="job-summary" onclick="closePopover(); downloadJobSummaryPdf(\''+id+'\')">'+icon('download')+'Generate summary report</button>');
   menu.push('<a href="#/track/'+esc(j.trackingCode)+'" onclick="closePopover()">'+icon('eye')+'Open the client tracking page</a>');
   JOB_MENU = menu.join('');
   return '<nav class="ds-crumbs"><a href="#/jobs">Jobs</a>'+icon('chevron-right')+'<span class="ds-mono">'+j.id+'</span></nav>'+

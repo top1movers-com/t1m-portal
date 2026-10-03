@@ -105,6 +105,12 @@
   --t1m-shadow-card: 0 1px 2px color-mix(in srgb, var(--t1m-ink) 6%, transparent), 0 8px 24px -12px color-mix(in srgb, var(--t1m-navy-950) 18%, transparent); /* soft lift for hero-overlapping and elevated panels */
   --t1m-shadow-card-hover: 0 2px 4px color-mix(in srgb, var(--t1m-ink) 8%, transparent), 0 14px 32px -12px color-mix(in srgb, var(--t1m-navy-950) 26%, transparent); /* a clickable card under the pointer */
   --t1m-scrim: color-mix(in srgb, var(--t1m-navy-950) 45%, transparent); /* behind drawers, sheets, the command palette and the account chooser */
+  /* Charts: an ordered scale (stages, steps) is one navy hue stepping from light to dark; every step keeps 3:1 against the surface. */
+  --t1m-chart-seq-1: color-mix(in srgb, var(--t1m-navy-700) 55%, var(--t1m-surface));
+  --t1m-chart-seq-2: color-mix(in srgb, var(--t1m-navy-700) 68%, var(--t1m-surface));
+  --t1m-chart-seq-3: color-mix(in srgb, var(--t1m-navy-700) 82%, var(--t1m-surface));
+  --t1m-chart-seq-4: var(--t1m-navy-700);
+  --t1m-chart-seq-5: var(--t1m-navy-950);
   --t1m-focus-ring: 0 0 0 2px var(--t1m-surface), 0 0 0 4px var(--t1m-navy-700);
   --t1m-focus-glow: color-mix(in srgb, var(--t1m-navy-700) 18%, transparent);   /* soft halo for form fields */
   --t1m-danger-glow: color-mix(in srgb, var(--t1m-danger) 18%, transparent);

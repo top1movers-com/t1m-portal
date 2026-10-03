@@ -223,7 +223,7 @@ function trackLookup(form){
   STATE.trackError = q ? 'We could not find a shipment for “'+q+'”. Check the tracking code from your Top1Movers coordinator.' : 'Enter your tracking code.';
   STATE.trackQuery = q; render();
 }
-function trackHero(inner, label){ return '<div class="ds-public__hero"><div class="ds-public__hero-inner"><div class="ds-public__brand"><img src="'+LOGO_SRC+'" alt="Top1Movers"><span>'+(label||'Shipment tracking')+'</span></div>'+inner+'</div></div>'; }
+function trackHero(inner, label){ return '<div class="ds-public__hero"><div class="ds-public__hero-inner"><div class="ds-public__brand"><img src="'+LOGO_SRC+'" alt="Top1Movers"><span>'+(label||'Shipment tracking')+'</span></div>'+inner+'</div><div class="ds-public__mark" aria-hidden="true">T1M</div></div>'; }
 function renderTrackLookup(){
   const err = STATE.trackError;
   return '<div class="ds-public">'+trackHero('<div class="ds-public__headline"><p class="ds-label">Customer tracking</p><h1 class="ds-public__status">Where is your shipment?</h1><p class="ds-public__meta">Enter the tracking code your Top1Movers coordinator gave you. No account needed.</p></div>')+

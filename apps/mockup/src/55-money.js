@@ -77,11 +77,11 @@ function jobMoneyTab(j){
 
 /* ---------- One request, in full ---------- */
 function fundSummary(f){
-  return '<dl class="ds-facts"><dt>Purpose</dt><dd>'+esc(f.purpose)+'</dd><dt>Amount</dt><dd>'+money(f.amount)+'</dd><dt>Pay to</dt><dd>'+esc(f.payee)+'</dd><dt>How</dt><dd>'+esc(FR_HOW[f.how||'cash'])+'</dd><dt>Needed by</dt><dd>'+esc(f.neededBy)+'</dd><dt>Source</dt><dd>'+esc(f.source)+'</dd><dt>Requested</dt><dd>'+esc(f.by+', '+f.on)+'</dd></dl>'+
-    (f.depositProof?fileRow(f.depositProof,'Client deposit proof'):'')+(f.support?fileRow(f.support,'Supporting file from '+f.by):'');
+  return '<dl class="ds-facts"><dt>Purpose</dt><dd>'+esc(f.purpose)+'</dd><dt>Amount</dt><dd>'+money(f.amount)+'</dd><dt>Pay to</dt><dd>'+esc(f.payee)+'</dd><dt>How</dt><dd>'+esc(FR_HOW[f.how||'cash'])+'</dd><dt>Needed by</dt><dd>'+esc(f.neededBy)+'</dd><dt>Requested</dt><dd>'+esc(f.by+', '+f.on)+'</dd></dl>'+
+    (f.support?fileRow(f.support,'Supporting file from '+f.by):'');
 }
 function fundTrail(f){
-  const t = [{ action:'Fund request', detail:money(f.amount)+' for '+f.purpose+' to '+f.payee+'. '+FR_HOW[f.how||'cash']+' · '+f.source+'.', ts:f.on, actor:f.by }];
+  const t = [{ action:'Fund request', detail:money(f.amount)+' for '+f.purpose+' to '+f.payee+'. '+FR_HOW[f.how||'cash']+'.', ts:f.on, actor:f.by }];
   if(f.review) t.push({ action:f.review.decision==='Approved'?'Fund request approved':'Fund request returned', detail:f.review.comment||'Approved.', ts:f.review.on, actor:f.review.by });
   if(f.release) t.push({ action:'Funds released', detail:f.release.mode+(f.release.ref?' ('+f.release.ref+')':'')+(f.release.proof?' · '+f.release.proof:''), ts:f.release.on, actor:f.release.by });
   if(f.liq) t.push({ action:'Receipts submitted', detail:'Spent '+money(f.liq.actual)+' · '+f.liq.receipts+(f.liq.note?' · '+f.liq.note:''), ts:f.liq.on, actor:f.liq.by });
@@ -113,22 +113,18 @@ function openFundRequest(jobId, editId, preset){
       dateField('fr-need','neededBy','Needed by', f?f.neededBy:addDaysDMY(1))+
       '<div class="ds-field"><span class="ds-field__label">How will it be paid?</span>'+segControl('how', [FR_HOW.cash, FR_HOW.vendor], FR_HOW[f&&f.how||'cash'])+
         '<p class="ds-field__hint">Staff gets the money: you receive it (cash, check or a transfer to you), pay the vendor, then submit the receipts and return any excess. Accounting pays the vendor: Accounting pays them directly and you only submit their receipt afterwards.</p></div>'+
-      '<div class="ds-field"><span class="ds-field__label">Where does the money come from?</span>'+segControl('source', ['Company funds','Client deposit'], f?f.source:'Company funds', "document.getElementById('fr-dep').style.display = this.value==='Client deposit' ? '' : 'none'")+'</div>'+
-      '<div class="ds-field" id="fr-dep"'+(f&&f.source==='Client deposit'?'':' style="display:none"')+'><label>Client deposit proof</label>'+uploadHtml('depositProof','The client’s deposit slip or transfer confirmation')+errorSlot('deposit')+'<p class="ds-field__hint">Shows the money came from the client, not from company funds.</p></div>'+
       '<div class="ds-field"><label>Supporting file <span class="ds-opt">optional</span></label>'+uploadHtml('fundSupport','Quotation, bill or assessment from the payee')+'</div></form>',
     foot: drawerFoot(f?'Resubmit for approval':'Submit for approval','fund-form',{icon:'wallet'}) });
 }
 function saveFundRequest(jobId, form, editId){
-  const j = jobById(jobId), fd = new FormData(form), amount = Number(fd.get('amount')), payee = String(fd.get('payee')||'').trim(), need = isoToDMY(fd.get('neededBy')), source = String(fd.get('source'));
+  const j = jobById(jobId), fd = new FormData(form), amount = Number(fd.get('amount')), payee = String(fd.get('payee')||'').trim(), need = isoToDMY(fd.get('neededBy'));
   const existing = editId ? j.funds.find(x=>x.id===editId) : null, how = String(fd.get('how'))===FR_HOW.vendor ? 'vendor' : 'cash';
-  const deposit = UPLOADS.depositProof || (existing && existing.depositProof);
-  const bad = fieldError(form,'amount', amount>0?'':'Enter the amount needed.') | fieldError(form,'payee', payee?'':'Who will be paid?') | fieldError(form,'neededBy', need?'':'When is it needed?') |
-    fieldError(form,'deposit', source==='Client deposit' && !deposit ? 'Attach the client’s deposit proof.' : '');
+  const bad = fieldError(form,'amount', amount>0?'':'Enter the amount needed.') | fieldError(form,'payee', payee?'':'Who will be paid?') | fieldError(form,'neededBy', need?'':'When is it needed?');
   if(bad) return;
-  const data = { purpose:String(fd.get('purpose')), amount, payee, neededBy:need, source, how, depositProof: source==='Client deposit' ? deposit : null, support:UPLOADS.fundSupport || (existing && existing.support) || null, status:'For approval', review:null };
+  const data = { purpose:String(fd.get('purpose')), amount, payee, neededBy:need, source:'Company funds', how, support:UPLOADS.fundSupport || (existing && existing.support) || null, status:'For approval', review:null };
   let f;
   if(existing){ f = Object.assign(existing, data); logTo(j, 'Fund request', f.id+' resubmitted: '+f.purpose+' '+money(amount)+'.'); }
-  else { f = Object.assign({ id:nextId('fr'), by:me(), on:todayDMY() }, data); j.funds.push(f); logTo(j, 'Fund request', f.id+': '+f.purpose+' '+money(amount)+' to '+payee+' ('+FR_HOW[how].toLowerCase()+', '+source+').'); }
+  else { f = Object.assign({ id:nextId('fr'), by:me(), on:todayDMY() }, data); j.funds.push(f); logTo(j, 'Fund request', f.id+': '+f.purpose+' '+money(amount)+' to '+payee+' ('+FR_HOW[how].toLowerCase()+').'); }
   notify({ roles:['Manager'] }, me()+' requested '+money(amount)+' on '+j.id+' ('+f.purpose+').', '#/jobs/'+j.id+'/money');
   closeDrawer(); showToast(f.id+' sent for approval.', 'success', 'wallet'); render();
 }
@@ -311,8 +307,8 @@ function renderFunds(){
     (rows.length ? fundTable(rows, true, true) : '<div class="ds-panel__body">'+(base.length ? emptyState('search','Nothing here','Try another group above, or clear the search.') : emptyState('wallet','No fund requests yet','Operations create them from a job when money is needed.'))+'</div>')+'</section>';
 }
 function exportFundsCSV(){
-  const head = ['Request','Job','Customer','Purpose','Pay to','Amount','How paid','Source','Requested by','Requested on','Status','Approved by','Approved on','Released by','Released on','Mode','Reference','Spent','Receipts file','Confirmed by','Confirmed on'];
-  const rows = allFunds().map(({j,f})=>[f.id, j.id, custById(j.customerId).name, f.purpose, f.payee, f.amount, FR_HOW[f.how||'cash'], f.source, f.by, f.on, frLabel(f),
+  const head = ['Request','Job','Customer','Purpose','Pay to','Amount','How paid','Requested by','Requested on','Status','Approved by','Approved on','Released by','Released on','Mode','Reference','Spent','Receipts file','Confirmed by','Confirmed on'];
+  const rows = allFunds().map(({j,f})=>[f.id, j.id, custById(j.customerId).name, f.purpose, f.payee, f.amount, FR_HOW[f.how||'cash'], f.by, f.on, frLabel(f),
     f.review&&f.review.decision==='Approved'?f.review.by:'', f.review&&f.review.decision==='Approved'?f.review.on:'', f.release?f.release.by:'', f.release?f.release.on:'', f.release?f.release.mode:'', f.release?f.release.ref:'', f.liq?f.liq.actual:'', f.liq?f.liq.receipts:'', f.verify?f.verify.by:'', f.verify?f.verify.on:'']);
   const csv = [head].concat(rows).map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\r\n');
   const a = document.createElement('a');

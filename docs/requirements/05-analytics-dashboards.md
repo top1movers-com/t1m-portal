@@ -12,9 +12,9 @@ Answers "What needs my attention?" first, then "How is the business doing?". Bui
 4. REASON TYPE dropdown in version history (Stage 1 updated):
    - Manager returned: Pricing error / Missing charge / Wrong details / Other
    - Client: Price too high / Transit time / Chose competitor / Shipment cancelled / No response / Other
-5. Layout: "Needs attention" panel on top + 4 tabs.
+5. Layout (updated 2026-10-03, demo feedback): a two-column split, 70% / 30%. Left: the filters, then the tabs with their stats and charts. Right: "Needs attention", highlighted (amber rule and header, count badge; green and calm when empty), pinned under the top bar and scrolling on its own. Under 1100px it stacks with Needs attention first. The point is that missing documents and pending transactions are noticed, not scrolled past.
 6. Filters on every tab (date range, service, scope/direction, customer, staff) + export to Excel and PDF.
-7. Simple charts only: KPI tiles, monthly trend lines, bar charts, funnel.
+7. Simple charts only, chosen by the job of the data (updated 2026-10-03): KPI tiles for headline numbers; **column charts** for a measure over months; **donut** for the share of a whole (6 slices at most, legend with counts); **horizontal bars** for ranked or long-labelled categories; funnel for conversion. The Operations KPI tiles sit in an even 3 x 2 grid.
 8. ~~Mockup filled with sample data~~ CHANGED by the user (2026-10-02): NO seeded customers, inquiries or jobs. Only many demo USERS are seeded.
    Everything else is created while testing and lives in memory until the page is refreshed. Dashboards show empty states until then.
 9. Phase 2: scheduled report emails, monthly targets, client profitability over time.
@@ -30,7 +30,8 @@ Answers "What needs my attention?" first, then "How is the business doing?". Bui
 - Quotes awaiting client response > X days (S1)
 
 ## Tab 1 — Sales & Quotations
-- Inquiries received (count by period)
+- **Revenue per month** (added 2026-10-03, demo feedback): column chart for the last 6 months with "This month" and "Last 6 months" totals. Revenue = the service fees on jobs marked ready for Finance, counted in the month of the handover; at-cost pass-throughs are not revenue. *Definition to be confirmed with the stakeholder.*
+- Inquiries received (count by period; "Inquiries by month" is a column chart, "Where inquiries stand" a donut)
 - Conversion funnel: Inquiries → Quoted → Accepted
 - Win rate = Accepted ÷ (Accepted + Rejected + Expired)
 - Pipeline value = sum of latest quote amounts not yet decided
@@ -44,7 +45,7 @@ Answers "What needs my attention?" first, then "How is the business doing?". Bui
 ## Tab 2 — Operations
 - Active jobs by stage (per track/milestone)
 - Jobs on hold (count + reasons)
-- Customs lanes: % Green / Yellow / Red
+- Customs lanes: % Green / Yellow / Red (donut in the lane colours)
 - Customs release time = Arrived → BOC released (avg days)
 - Job cycle time = job created → completed (avg days)
 - Free-time performance: % released within free time; total days over

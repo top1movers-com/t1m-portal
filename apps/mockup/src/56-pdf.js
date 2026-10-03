@@ -138,7 +138,7 @@ function downloadFundPdf(jobId, fid){
   if(!canView('money.view', j)) return denied();
   const tone = f.status==='Verified' ? 'success' : f.status==='Returned' || frLate(f) ? 'danger' : 'info';
   const d = pdfDoc('Fund request record').title('Fund request '+f.id, j.id+'  |  '+custById(j.customerId).name, frLabel(f), tone).amount('Amount requested', money(f.amount), f.purpose);
-  const req = [['Purpose', f.purpose], ['Pay to', f.payee], ['How it is paid', FR_HOW[f.how||'cash']], ['Needed by', f.neededBy], ['Source of money', f.source], ['Requested by', f.by+', '+f.on]];
+  const req = [['Purpose', f.purpose], ['Pay to', f.payee], ['How it is paid', FR_HOW[f.how||'cash']], ['Needed by', f.neededBy], ['Requested by', f.by+', '+f.on]];
   if(f.review) req.push([f.review.decision==='Approved'?'Approved by':'Returned by', f.review.by+', '+f.review.on+(f.review.comment&&f.review.decision!=='Approved'?'. '+f.review.comment:'')]);
   d.heading('Request').card(req).heading('Release');
   if(f.release) d.card([['Released by', f.release.by+', '+f.release.on], ['Mode', f.release.mode], ['Reference no.', f.release.ref||'-'], ['Proof file', f.release.proof||'-']]); else d.para('Not released yet.');
@@ -182,9 +182,47 @@ function downloadBillingPdf(jobId){
     const W = [190, 75, 115, 115];
     d.row(['Charge','Type','Evidence','Amount'].map((t,k)=>({ w:W[k], text:t, right:k===3 })), { head:true });
     ch.forEach((c,x)=>d.row([c.desc+'\n'+c.by+', '+c.on, c.kind, c.file||'-', money(c.amount)].map((t,k)=>({ w:W[k], text:t, right:k===3, bold:k===0 })), { shade:x%2===1 }));
+    d.row([{ w:380, text:'Service fees' }, { w:115, text:money(sumOf(ch.filter(c=>c.kind===CHARGE_KINDS[0]), c=>c.amount)), right:true }], { shade:true });
+    d.row([{ w:380, text:'Paid at cost (costs paid for the client)' }, { w:115, text:money(sumOf(ch.filter(c=>c.kind!==CHARGE_KINDS[0]), c=>c.amount)), right:true }]);
     d.row([{ w:380, text:'Total charges' }, { w:115, text:money(total), right:true }], { total:true });
     if(quoted!=null) d.gap(12).card([['Accepted quote (v'+v.v+')', money(quoted)], ['Difference', money(total-quoted)+(total>=quoted?' (listed is above the quote)':' (listed is below the quote)')]]);
   } else d.para('No charges listed yet.');
   d.gap(12).para('Finance bills from this list in their own system. This page is a handover record, not an invoice.');
   d.save(pdfStamp('Billing-'+j.id)+'.pdf');
+}
+
+/* ---------- Job summary report: one page-set that tells the whole story of a job ---------- */
+function downloadJobSummaryPdf(jobId){
+  const j = jobById(jobId);
+  if(!j || !canView('job.view', j)) return denied();
+  const c = custById(j.customerId), h = jobHealth(j), money_ = canView('money.view', j), i = inqById(j.inquiryId), v = i ? acceptedVersion(i) : null;
+  const tone = ['success','danger','warning','info'].includes(h.tone) ? h.tone : 'info';
+  const d = pdfDoc('Job summary report').title('Job '+j.id, c.name+'  |  '+scopeText(j)+'  |  '+servicesText(j.services), h.label, tone);
+  if(v) d.amount('Accepted quote', money(toPHP(v)), 'v'+v.v+(v.currency==='USD' ? ' (USD '+v.amount.toLocaleString('en-US')+')' : ''));
+  const team = SERVICE_ORDER.filter(s=>j.services.includes(s)).map(s=>SERVICES[s].short+': '+opsFor(j, s).join(', ')).join('  /  ');
+  d.heading('Job').card([['Customer', c.name], ['Route', routeText(j.origin, j.destination)||'-'], ['Current step', stageText(j)], ['Status', j.status+(j.completed ? ' (confirmed by '+j.completed.by+', '+j.completed.on+')' : '')], ['Created', j.createdOn], ['Sales', (j.sales||[]).join(', ')||'-'], ['Operations', team||'-'], ['Billing handover', readinessStatus(j).label]]);
+  const W = [170, 80, 70, 85, 90], done = j.ms.filter(m=>m.done).length;
+  d.heading('Milestones ('+done+' of '+j.ms.length+' done)').row(['Step','Service','Status','Date','By'].map((t,k)=>({ w:W[k], text:t })), { head:true });
+  j.ms.forEach((m,x)=>d.row([m.name, SERVICES[m.svc] ? SERVICES[m.svc].short : '-', m.done ? 'Done' : 'Pending', m.done ? m.date : (m.due ? 'due '+m.due : '-'), m.done ? m.by : '-'].map((t,k)=>({ w:W[k], text:String(t), bold:k===0 })), { shade:x%2===1 }));
+  const pend = pendingDocs(j);
+  d.heading('Documents ('+(j.docs.length-pend.length)+' of '+j.docs.length+' received)');
+  pend.length ? d.para('Still missing: '+pend.map(x=>x.name+(x.status==='Rejected' ? ' (rejected)' : '')).join(', ')+'.') : d.para('All documents received.');
+  d.heading('Exceptions ('+j.issues.length+')');
+  if(j.issues.length){ const EW = [150, 120, 225]; d.row(['Category','Status','Reason'].map((t,k)=>({ w:EW[k], text:t })), { head:true }); j.issues.forEach((x,k)=>d.row([x.category, EXC_LABEL[x.status]||x.status, x.reason].map((t,n)=>({ w:EW[n], text:String(t), bold:n===0 })), { shade:k%2===1 })); }
+  else d.para('No exceptions raised.');
+  if(money_){
+    const FW = [55, 150, 100, 100, 90];
+    d.heading('Fund requests ('+j.funds.length+')');
+    if(j.funds.length){
+      d.row(['Request','Purpose','Amount','Spent','Status'].map((t,k)=>({ w:FW[k], text:t, right:k===2||k===3 })), { head:true });
+      j.funds.forEach((f,k)=>d.row([f.id, f.purpose, money(f.amount), f.liq ? money(f.liq.actual) : '-', frLabel(f)].map((t,n)=>({ w:FW[n], text:String(t), right:n===2||n===3, bold:n===0 })), { shade:k%2===1 }));
+      d.row([{ w:205, text:'Total' }, { w:100, text:money(sumOf(j.funds, f=>f.amount)), right:true }, { w:100, text:money(sumOf(j.funds, f=>f.liq ? f.liq.actual : 0)), right:true }, { w:90, text:'' }], { total:true });
+    } else d.para('No fund requests.');
+    const ch = chargesOf(j), svc = sumOf(ch.filter(x=>x.kind===CHARGE_KINDS[0]), x=>x.amount), pass = sumOf(ch.filter(x=>x.kind===CHARGE_KINDS[1]), x=>x.amount), tot = svc+pass;
+    d.heading('Charges to bill');
+    if(ch.length){ const rows = [['Service fees', money(svc)], ['At-cost pass-throughs', money(pass)], ['Total charges', money(tot)]]; if(v) rows.push(['Accepted quote', money(toPHP(v))], ['Difference vs quote', money(tot-toPHP(v))]); d.card(rows); }
+    else d.para('No charges listed yet.');
+  }
+  d.gap(8).para('A summary of this job as recorded in the portal. It is a record, not an invoice.');
+  d.save(pdfStamp('Job-summary-'+j.id)+'.pdf');
 }

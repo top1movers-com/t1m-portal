@@ -219,7 +219,7 @@ Soft, modern radii: 8px (`--t1m-radius-sm`) for controls and nav items, 12px (`-
 
 ### Inputs / Fields
 - 36px tall (30px small, 44px touch), white, 1px Border Strong, 8px radius, with a faint 1px lift shadow. Hover darkens the border to Ink 3. Focus swaps the border to Harbour Navy and adds a soft 4px translucent navy halo (`--t1m-field-focus`, 18% of Harbour Navy) instead of the hard double ring buttons use. Invalid: Danger border and a Danger halo on focus, with an icon-led error line beneath that names the problem and the fix. Disabled and read-only fields sit on Surface Muted with no shadow. Labels sit above at 13px/500; optional fields say "optional" in Ink 3 rather than marking required with an asterisk.
-- **Select and dropdown:** the trigger is field-styled with a custom chevron (Ink 3, navy and flipped when open); the open state shows the same navy border and halo as focus. The panel is a custom listbox that floats like every overlay: white, 1px Border, 12px radius, `--t1m-shadow-float`, 6px below the trigger (or above it via `data-placement="top"`), 4px inner padding, max 296px with scroll, entering with a 120ms fade and 4px slide. Options are 36px minimum with 8px radius; the highlighted option (hover or keyboard) is Navy Tint, the selected option is Harbour Navy at weight 500 with a trailing check, disabled options are Ink 3. Options may carry a 12px Ink 3 description line; groups use 12px caps labels; separators are 1px Border. Behavior follows the ARIA listbox pattern (arrows, Home/End, type-ahead, Enter/Space, Escape). On touch devices use the native select, whose picker is better on phones.
+- **Select and dropdown:** the trigger is field-styled with a custom chevron (Ink 3, navy and flipped when open); the open state shows the same navy border and halo as focus. The panel is a custom listbox that floats like every overlay: white, 1px Border, 12px radius, `--t1m-shadow-float`, 6px below the trigger (or above it via `data-placement="top"`), 4px inner padding, max 296px with scroll, entering with a 120ms fade and 4px slide. Options are 36px minimum with 8px radius; the highlighted option (hover or keyboard) is Navy Tint, the selected option is Harbour Navy at weight 500 with a trailing check, disabled options are Ink 3. Options may carry a 12px Ink 3 description line; groups use 12px caps labels; separators are 1px Border. Behavior follows the ARIA listbox pattern (arrows, Home/End, type-ahead, Enter/Space, Escape). On touch devices use the native select, whose picker is better on phones. In the mockup, `src/25-dropdown.js` upgrades every `select.ds-select` inside a `.ds-select-wrap` to this dropdown on pointer devices; the real select stays in the page, visually hidden (`.ds-dropdown > select.ds-select`), so forms, `onchange` handlers and `.value` writes keep working.
 - **Multi-select dropdown:** the same `.ds-dropdown` listbox with `aria-multiselectable="true"`; clicking an option toggles its check and keeps the panel open, and the trigger lists the picked names (ellipsis when long). Use it for picking several people (e.g. assigning sales staff); open it upward (`data-placement="top"`) near the bottom of a drawer. Check lists (`.ds-check`) put one option per row.
 - **Input group:** prefix and suffix adornments (PHP, kg) sit inside one shared border on Surface Muted and share one focus halo.
 - **Text area:** same treatment, 96px minimum height, vertical resize, optional character count in Ink 3.
@@ -275,6 +275,9 @@ Soft, modern radii: 8px (`--t1m-radius-sm`) for controls and nav items, 12px (`-
 ### Key facts (`.ds-facts--cols`)
 - A definition list laid out in two columns (one on phones) with a muted 12px label over each value; wrap each label and value in a `.ds-fact` div, and add `.ds-fact--wide` for entries that need the full width (people lists, codes). Used for a job's Key facts, always placed in the wide left column of the job page, under the Next step panel, so the left column has no empty space; the narrow right column holds Free time, Delivery and Supporting documents.
 
+### Segmented control, sliding (`.ds-seg--slide`)
+- The default segmented control for up to four short options (the mockup's `segControl` applies it automatically unless `block`). The options share equal widths and a white pill glides to the chosen one (`--n` = option count, set inline; `--k` is set by `:has(:checked)`). It stays visible on phones with 44px-tall options; focus shows the standard ring. The pill's slide respects `prefers-reduced-motion`.
+
 ### Segmented control, block (`.ds-seg--block`)
 - For choices with long labels: the options share the row in equal widths, text centred, wrapping inside its own option; stacked vertically on phones. The plain `.ds-seg` is for short labels only.
 
@@ -293,6 +296,12 @@ Soft, modern radii: 8px (`--t1m-radius-sm`) for controls and nav items, 12px (`-
 ### Sign in with Microsoft
 - `.ds-msbtn`: the full-width branded button that replaced the email/password form on login. Its colors (`#fff` fill, `#8c8c8c` border, `#5e5e5e` text, `#f25022`/`#7fba00`/`#00a4ef`/`#ffb900` logo squares), Segoe UI font, and square corners are Microsoft's own brand requirements, not ours — this is the one place besides the Top1Movers logo itself where hardcoded, non-token colors are correct, because altering them would violate Microsoft's guidelines. Never restyle it to match `.ds-btn`.
 - Clicking it opens the account chooser rather than posting a form, since a real Microsoft sign-in redirects to Microsoft and comes back with an identity — there's nothing for this app's own form to validate.
+
+### Elevation on scroll (account chooser header)
+- `.ds-acct-picker__head` sits above its list (`z-index: 1`). Once the list scrolls under it (`data-scrolled` on `.ds-acct-picker`), the header lifts with a soft Navy-950 shadow and a 1px Border, so the scrolled-away rows read as underneath. No new colors.
+
+### Public hero (`.ds-public__hero`)
+- Used on the tracking, quotation and client pages. Midnight with a dot grid, two blurred drifting glows (`::before`, `::after`) and an outlined "T1M" mark (`.ds-public__mark`, outline only, hidden under 640px). It matches the sign-in brand pane. The drift stops under `prefers-reduced-motion`.
 
 ### Account chooser (mock SSO)
 - A deactivated user's row is disabled (`.ds-acct-row:disabled`: Surface Muted, Ink 3, dimmed avatar, not-allowed cursor) and its role label reads "Role · Deactivated", so a deactivated account visibly cannot sign in.
@@ -326,7 +335,18 @@ The v3 idea: every screen answers **what needs me?** first and **what is the sta
 Motion only marks a change the user caused or must notice: a stage connector fills once when a job moves (`data-just`, `--t1m-dur-slow`), the Next step panel eases in with its new state, queue rows and cards stagger in so the eye reads top-down, bars grow from their baseline, the current stage breathes. Nothing loops except "in progress" signals. All of it switches off under `prefers-reduced-motion`.
 
 ### Charts
-Single series, one hue (Navy 700), labelled in ink, with a one-sentence *what this tells you* note. Status colors appear only where the bars **are** statuses (job health, document status). Hover shows the exact value (`data-tip`). The old status-colored donut was removed because it used status colors as categories.
+Pick the form by the data's job. A one-sentence *what this tells you* note sits under every chart; hover shows the exact value; the legend or direct labels always carry the numbers, so color is never the only signal.
+- **Horizontal bars (`.ds-bar-row`)**: ranked or long-labelled categories (by service, lost reasons, open exceptions). Single series, Navy 700. Status colors only where the bars **are** statuses (job health, document status).
+- **Columns (`.ds-cols` / `.ds-col`)**: a measure over months. One color (Navy 700, or Success for revenue), a hairline baseline, the figure sitting on each non-zero column, month labels beneath. Bars grow from the baseline (off under reduced motion).
+- **Donut (`.ds-donut`)**: the share of a whole, 6 slices at most, never for comparing close values. A 2px gap between slices, the total in the centre, and a legend listing every slice with its count and percentage. An *ordered* set (pipeline stages) uses the chart scale `--t1m-chart-seq-1` to `-5` (Navy 700 mixed into the surface, light to dark; each step keeps 3:1 against the surface) with one status color (Danger) for the terminal "Lost" slice. A set whose slices **are** statuses (customs lanes) uses Success, Warning and Danger, with names in the legend.
+
+### Dashboard split (`.ds-dash`)
+- A 7fr / 3fr grid: `.ds-dash__main` (filters, tabs, stats and charts) and `.ds-dash__aside` (the queue). The aside is sticky under the top bar; `.ds-dash__scroll` makes the queue scroll on its own.
+- **Alert panel (`.ds-panel--alert`)**: a 3px Warning top rule, Warning-tinted header with a count pill, and a one-line note. `.ds-panel--calm` turns it Success-tinted when nothing needs attention. Queue rows inside use the compact two-column layout.
+- Under 1100px the grid becomes one column and the aside moves to the top (`order: -1`), so what needs doing is never pushed below the fold.
+
+### KPI grid (`.ds-kpis`, `.ds-kpis--3`)
+- KPI tiles auto-fit at 160px minimum. A row of exactly six uses `.ds-kpis--3` for an even 3 x 2 grid above 640px; phones keep two columns.
 
 ## Building the mockup
 `apps/mockup/index.html` is generated by `node apps/mockup/build.mjs` from this package (tokens, components, icons, font, logo) and `apps/mockup/src/*.js`. Never edit the generated file; building from the package makes drift between the mockup and the system impossible.

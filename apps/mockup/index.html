@@ -114,6 +114,12 @@
   --t1m-shadow-card: 0 1px 2px color-mix(in srgb, var(--t1m-ink) 6%, transparent), 0 8px 24px -12px color-mix(in srgb, var(--t1m-navy-950) 18%, transparent); /* soft lift for hero-overlapping and elevated panels */
   --t1m-shadow-card-hover: 0 2px 4px color-mix(in srgb, var(--t1m-ink) 8%, transparent), 0 14px 32px -12px color-mix(in srgb, var(--t1m-navy-950) 26%, transparent); /* a clickable card under the pointer */
   --t1m-scrim: color-mix(in srgb, var(--t1m-navy-950) 45%, transparent); /* behind drawers, sheets, the command palette and the account chooser */
+  /* Charts: an ordered scale (stages, steps) is one navy hue stepping from light to dark; every step keeps 3:1 against the surface. */
+  --t1m-chart-seq-1: color-mix(in srgb, var(--t1m-navy-700) 55%, var(--t1m-surface));
+  --t1m-chart-seq-2: color-mix(in srgb, var(--t1m-navy-700) 68%, var(--t1m-surface));
+  --t1m-chart-seq-3: color-mix(in srgb, var(--t1m-navy-700) 82%, var(--t1m-surface));
+  --t1m-chart-seq-4: var(--t1m-navy-700);
+  --t1m-chart-seq-5: var(--t1m-navy-950);
   --t1m-focus-ring: 0 0 0 2px var(--t1m-surface), 0 0 0 4px var(--t1m-navy-700);
   --t1m-focus-glow: color-mix(in srgb, var(--t1m-navy-700) 18%, transparent);   /* soft halo for form fields */
   --t1m-danger-glow: color-mix(in srgb, var(--t1m-danger) 18%, transparent);
@@ -365,6 +371,17 @@ a { color: var(--t1m-navy-700); text-underline-offset: 2px; }
 .ds-seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
 .ds-seg label:has(input:checked) { background: var(--t1m-surface); color: var(--t1m-navy-700); box-shadow: 0 1px 2px rgba(20, 22, 58, 0.08); }
 .ds-seg label:has(input:focus-visible) { box-shadow: var(--t1m-focus-ring); }
+/* Sliding variant: tab-picker that sizes to its content, equal-width options, and a pill that glides to the chosen one.
+   Set --n (option count, up to 4) inline. Stays visible on phones. */
+.ds-seg--slide { --n: 2; --k: 0; position: relative; display: inline-grid; grid-auto-flow: column; grid-auto-columns: 1fr; width: fit-content; align-self: flex-start; }
+.ds-seg--slide::before { content: ""; position: absolute; top: 2px; bottom: 2px; left: 2px; width: calc((100% - 4px - (var(--n) - 1) * 2px) / var(--n)); border-radius: calc(var(--t1m-radius-sm) - 2px); background: var(--t1m-surface); box-shadow: 0 1px 2px rgba(20, 22, 58, 0.08); transform: translateX(calc(var(--k) * (100% + 2px))); transition: transform var(--t1m-dur-base) var(--t1m-ease); }
+.ds-seg--slide label { justify-content: center; white-space: nowrap; transition: color var(--t1m-dur-base) var(--t1m-ease); }
+.ds-seg--slide label:has(input:checked) { background: transparent; box-shadow: none; }
+.ds-seg--slide:has(label:nth-child(2) input:checked) { --k: 1; }
+.ds-seg--slide:has(label:nth-child(3) input:checked) { --k: 2; }
+.ds-seg--slide:has(label:nth-child(4) input:checked) { --k: 3; }
+.ds-seg--slide label:has(input:focus-visible) { box-shadow: var(--t1m-focus-ring); }
+@media (max-width: 640px) { .ds-seg--slide label { height: calc(var(--t1m-control-h-touch) - 4px); padding: 0 var(--t1m-space-5); } }
 
 /* Checkbox */
 .ds-check input, .ds-table input[type="checkbox"] { appearance: none; -webkit-appearance: none; width: 18px; height: 18px; margin: 0; border: 1.5px solid var(--t1m-border-strong); border-radius: 5px; background: var(--t1m-surface); cursor: pointer; display: inline-grid; place-content: center; transition: background var(--t1m-dur-fast) var(--t1m-ease), border-color var(--t1m-dur-fast) var(--t1m-ease); }
@@ -523,7 +540,7 @@ th[aria-sort="ascending"] .ds-icon { rotate: 180deg; }
   .ds-table--stack td { height: auto; min-height: 28px; padding: 2px 0; border: 0; display: flex; justify-content: space-between; gap: var(--t1m-space-3); align-items: center; text-align: right; }
   .ds-table--stack td::before { content: attr(data-label); font-size: var(--t1m-text-xs); font-weight: var(--t1m-w-label); letter-spacing: 0.04em; text-transform: uppercase; color: var(--t1m-ink-2); text-align: left; }
   .ds-table--stack td.ds-check-col, .ds-table--stack td.ds-actions-col { display: none; }
-  .ds-seg { display: none; }
+  .ds-seg:not(.ds-seg--always):not(.ds-seg--slide) { display: none; }
   .ds-panel__head { flex-wrap: wrap; }
   .ds-table--stack tr[aria-selected="true"] { background: var(--t1m-navy-100); border-radius: var(--t1m-radius-sm); }
   .ds-table--stack tbody tr:hover td, .ds-table--stack tr[aria-selected="true"] td { background: transparent; border-radius: 0; }
@@ -645,7 +662,8 @@ th[aria-sort="ascending"] .ds-icon { rotate: 180deg; }
 .ds-acct-picker { width: min(420px, 92vw); background: var(--t1m-surface); border-radius: var(--t1m-radius-lg); box-shadow: var(--t1m-shadow-float); overflow: hidden; animation: ds-acct-picker-in 160ms var(--t1m-ease); }
 @keyframes ds-acct-picker-in { from { opacity: 0; translate: 0 -8px; scale: 0.98; } to { opacity: 1; translate: 0 0; scale: 1; } }
 @media (prefers-reduced-motion: reduce) { .ds-acct-picker { animation: none; } }
-.ds-acct-picker__head { padding: 28px 28px 16px; text-align: center; }
+.ds-acct-picker__head { position: relative; z-index: 1; padding: 28px 28px 16px; text-align: center; transition: box-shadow var(--t1m-dur-base) var(--t1m-ease); }
+.ds-acct-picker[data-scrolled] .ds-acct-picker__head { box-shadow: 0 6px 12px -8px color-mix(in srgb, var(--t1m-navy-950) 28%, transparent), 0 1px 0 var(--t1m-border); } /* header lifts once the list scrolls under it */
 .ds-acct-picker__head .ds-msbtn__logo { margin: 0 auto 16px; width: 24px; height: 24px; }
 .ds-acct-picker__head h2 { margin-bottom: 4px; }
 .ds-acct-picker__list { padding: 8px; max-height: 360px; overflow: auto; }
@@ -1288,6 +1306,16 @@ th[aria-sort="ascending"] .ds-icon { rotate: 180deg; }
 @media (max-width: 640px) { .ds-login__mark, .ds-login__foot { display: none; } }
 @media (prefers-reduced-motion: reduce) { .ds-login__sub, .ds-login__lines i, .ds-login__mark, .ds-login__foot { animation: none; } }
 
+/* Public pages (tracking, quotation, inquiry): the hero wears the same dot grid, drifting glows and outlined mark as the login brand pane. */
+.ds-public__hero { position: relative; overflow: hidden; background-image: radial-gradient(color-mix(in srgb, var(--t1m-ink-inverse) 14%, transparent) 1px, transparent 1px); background-size: 26px 26px; }
+.ds-public__hero::before, .ds-public__hero::after { content: ""; position: absolute; border-radius: var(--t1m-radius-full); pointer-events: none; filter: blur(70px); opacity: 0.55; }
+.ds-public__hero::before { width: 360px; height: 360px; top: -160px; right: -100px; background: var(--t1m-navy-600); animation: ds-login-drift-a 14s ease-in-out infinite alternate; }
+.ds-public__hero::after { width: 300px; height: 300px; bottom: -150px; left: -90px; background: var(--t1m-navy-700); animation: ds-login-drift-b 18s ease-in-out infinite alternate; }
+.ds-public__hero-inner { position: relative; z-index: 1; }
+.ds-public__mark { position: absolute; right: var(--t1m-space-6); bottom: calc(var(--t1m-space-6) * -0.5); z-index: 0; font: 800 clamp(100px, 16vw, 200px)/1 var(--t1m-font-display); letter-spacing: -0.04em; color: transparent; -webkit-text-stroke: 2px color-mix(in srgb, var(--t1m-ink-inverse) 14%, transparent); user-select: none; pointer-events: none; }
+@media (max-width: 640px) { .ds-public__mark { display: none; } }
+@media (prefers-reduced-motion: reduce) { .ds-public__hero::before, .ds-public__hero::after { animation: none; } }
+
 /* Touch targets: these come last so they win over the base sizes above. */
 @media (max-width: 640px) {
   .ds-chip { height: var(--t1m-control-h-touch); }
@@ -1300,6 +1328,58 @@ th[aria-sort="ascending"] .ds-icon { rotate: 180deg; }
 .ds-seg--block { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; width: 100%; }
 .ds-seg--block label { height: auto; min-height: 40px; padding: var(--t1m-space-2) var(--t1m-space-3); justify-content: center; text-align: center; line-height: 1.25; }
 @media (max-width: 640px) { .ds-seg.ds-seg--block { display: grid; grid-auto-flow: row; grid-auto-columns: auto; } }
+
+/* Dashboard split: stats and charts on the left (70%), a highlighted "Needs attention" queue on the right (30%) that scrolls on its own.
+   Under 1100px it stacks with the queue first, so what needs doing is never pushed below the fold. */
+.ds-dash { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 3fr); gap: var(--t1m-space-5); align-items: start; }
+.ds-dash__main { min-width: 0; }
+.ds-dash__aside { position: sticky; top: calc(var(--t1m-topbar-h) + var(--t1m-space-4)); }
+.ds-dash__scroll { max-height: calc(100vh - var(--t1m-topbar-h) - 150px); overflow-y: auto; overscroll-behavior: contain; }
+.ds-dash__note { margin: 0; padding: var(--t1m-space-2) var(--t1m-space-4); font-size: var(--t1m-text-xs); color: var(--t1m-ink-2); border-bottom: 1px solid var(--t1m-border); }
+.ds-panel--alert { border-top: 3px solid var(--t1m-warning); background: var(--t1m-surface); }
+.ds-panel--alert > .ds-panel__head { background: var(--t1m-warning-bg); }
+.ds-panel--alert > .ds-panel__head h2 { color: var(--t1m-warning); }
+.ds-panel--alert.ds-panel--calm { border-top-color: var(--t1m-success); }
+.ds-panel--alert.ds-panel--calm > .ds-panel__head { background: var(--t1m-success-bg); }
+.ds-panel--alert.ds-panel--calm > .ds-panel__head h2 { color: var(--t1m-success); }
+.ds-dash__aside .ds-queue__item { grid-template-columns: 32px minmax(0, 1fr); }
+.ds-dash__aside .ds-queue__icon { width: 32px; height: 32px; }
+.ds-dash__aside .ds-queue__actions { grid-column: 2; }
+@media (max-width: 1100px) { .ds-dash { grid-template-columns: minmax(0, 1fr); } .ds-dash__aside { position: static; order: -1; } .ds-dash__scroll { max-height: 60vh; } }
+
+/* Donut chart: share of a whole. Legend carries name, count and percentage so colour is never the only signal. */
+.ds-donut { display: flex; align-items: center; gap: var(--t1m-space-6); flex-wrap: wrap; }
+.ds-donut__plot { position: relative; width: 148px; height: 148px; flex: none; }
+.ds-donut__plot svg { width: 100%; height: 100%; rotate: -90deg; }
+.ds-donut__track { fill: none; stroke: var(--t1m-surface-muted); stroke-width: 20; }
+.ds-donut__arc { fill: none; stroke-width: 20; transition: stroke-width var(--t1m-dur-fast) var(--t1m-ease); }
+.ds-donut__arc:hover { stroke-width: 24; }
+.ds-donut__center { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; pointer-events: none; }
+.ds-donut__total { font-size: var(--t1m-text-xl); font-weight: var(--t1m-w-label); color: var(--t1m-ink); line-height: 1; }
+.ds-donut__unit { font-size: var(--t1m-text-xs); color: var(--t1m-ink-2); margin-top: 2px; }
+.ds-donut__legend { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--t1m-space-2); flex: 1; min-width: 180px; font-size: var(--t1m-text-sm); }
+.ds-donut__legend li { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; align-items: center; gap: var(--t1m-space-2); }
+.ds-donut__dot { width: 12px; height: 12px; border-radius: 3px; }
+.ds-donut__val { font-variant-numeric: tabular-nums; color: var(--t1m-ink); }
+/* Column chart: a measure over time. */
+.ds-cols { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: var(--t1m-space-3); align-items: end; height: 190px; padding-top: var(--t1m-space-2); }
+.ds-col { position: relative; display: grid; grid-template-rows: 1fr auto; height: 100%; gap: var(--t1m-space-1); text-align: center; min-width: 0; }
+.ds-col__track { position: relative; border-bottom: 1px solid var(--t1m-border-strong); }
+.ds-col__fill { position: absolute; bottom: 0; left: 50%; translate: -50% 0; height: var(--h); display: block; width: min(100%, 44px); background: var(--t1m-navy-700); border-radius: var(--t1m-radius-sm) var(--t1m-radius-sm) 0 0; animation: ds-col-grow var(--t1m-dur-slow) var(--t1m-ease) backwards; transform-origin: bottom; }
+.ds-col__fill--success { background: var(--t1m-success); }
+.ds-col__val { position: absolute; left: 50%; bottom: calc(var(--h) + 4px); translate: -50% 0; font-size: var(--t1m-text-xs); color: var(--t1m-ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ds-col__name { font-size: var(--t1m-text-xs); color: var(--t1m-ink-2); }
+.ds-col[data-tip]:hover::after { content: attr(data-tip); position: absolute; left: 50%; top: 0; translate: -50% 0; z-index: 10; padding: 4px 8px; border-radius: var(--t1m-radius-sm); background: var(--t1m-navy-950); color: var(--t1m-ink-inverse); font-size: var(--t1m-text-xs); white-space: nowrap; pointer-events: none; }
+@keyframes ds-col-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@media (prefers-reduced-motion: reduce) { .ds-col__fill { animation: none; } .ds-donut__arc { transition: none; } }
+
+/* Native select kept for forms once it is upgraded to the dropdown: invisible, takes no clicks, still holds the value. */
+.ds-dropdown > select.ds-select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; pointer-events: none; }
+.ds-dropdown > button.ds-select[aria-invalid="true"] { border-color: var(--t1m-danger); }
+.ds-dropdown > button.ds-select:disabled { background: var(--t1m-surface-muted); color: var(--t1m-ink-3); border-color: var(--t1m-border); box-shadow: none; cursor: not-allowed; }
+.ds-dropdown > .ds-menu { width: max-content; max-width: min(360px, 90vw); }
+/* Six KPI cards divide evenly: 3 across, two rows (the Operations tab). Phones keep the 2-column rule above. */
+@media (min-width: 641px) { .ds-kpis--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
 </style>
 </head>
@@ -1952,7 +2032,7 @@ function pickMulti(id, li, ev){
   el.querySelector('[data-inputs]').innerHTML = vals.map(x=>'<input type="hidden" name="'+esc(el.dataset.name)+'" value="'+esc(x)+'">').join('');
   clearFieldErrorIn(el);
 }
-function segControl(name, opts, value, onchange, block){ return '<fieldset class="ds-seg'+(block?' ds-seg--block':'')+'" aria-label="'+esc(name)+'">'+opts.map(o=>'<label><input type="radio" name="'+name+'" value="'+esc(o)+'"'+(o===value?' checked':'')+(onchange?' onchange="'+onchange+'"':'')+'>'+esc(o)+'</label>').join('')+'</fieldset>'; }
+function segControl(name, opts, value, onchange, block){ const slide = !block && opts.length<=4; return '<fieldset class="ds-seg'+(block?' ds-seg--block':'')+(slide?' ds-seg--slide" style="--n:'+opts.length:'')+'" aria-label="'+esc(name)+'">'+opts.map(o=>'<label><input type="radio" name="'+name+'" value="'+esc(o)+'"'+(o===value?' checked':'')+(onchange?' onchange="'+onchange+'"':'')+'>'+esc(o)+'</label>').join('')+'</fieldset>'; }
 function reasonFields(list, label, selected){ return '<div class="ds-field"><label for="rs-type">'+esc(label||'Reason')+'</label>'+selectWrap('<select class="ds-select" id="rs-type" name="reasonType"><option value="">Select a reason</option>'+options(list, selected)+'</select>')+errorSlot('reasonType')+'</div>'+
   '<div class="ds-field"><label for="rs-comment">Comment</label><textarea class="ds-textarea" id="rs-comment" name="comment" style="min-height:72px" placeholder="Explain in a sentence or two"></textarea>'+errorSlot('comment')+'</div>'; }
 function dateField(id, name, label, value, opt){ return '<div class="ds-field"><label for="'+id+'">'+esc(label)+(opt?' <span class="ds-opt">optional</span>':'')+'</label><input class="ds-input" type="date" id="'+id+'" name="'+name+'" value="'+dmyToISO(value||'')+'">'+errorSlot(name)+'</div>'; }
@@ -2165,6 +2245,76 @@ function render(){
   STATE.justNext = null;
 }
 
+/* ---- src/25-dropdown.js ---- */
+/* ============================== SELECT -> DESIGN-SYSTEM DROPDOWN ==============================
+   A native <select> opens a list the browser draws, which ignores the design system. On devices with a mouse every
+   `.ds-select-wrap > select.ds-select` is upgraded to the `.ds-dropdown` listbox from the style guide (ARIA combobox
+   pattern: arrows, Home/End, type-ahead, Enter/Space, Escape). The real <select> stays in the DOM, visually hidden, so
+   FormData, `onchange="..."` handlers, `.value = ...` and `required` keep working. Touch devices keep the native picker. */
+const FINE_POINTER = window.matchMedia('(hover: hover) and (pointer: fine)');
+function upgradeSelect(sel){
+  const wrap = sel.parentElement;
+  if(sel.dataset.upgraded || !wrap || !wrap.classList.contains('ds-select-wrap') || !FINE_POINTER.matches) return;
+  sel.dataset.upgraded = '1'; sel.tabIndex = -1; sel.setAttribute('aria-hidden', 'true');
+  wrap.classList.add('ds-dropdown'); if(sel.classList.contains('ds-select--sm')) wrap.dataset.size = 'sm';
+  const id = sel.id || 'dd'+Math.random().toString(36).slice(2, 8), lbl = document.querySelector('label[for="'+sel.id+'"]');
+  const btn = document.createElement('button'); btn.type = 'button'; btn.className = sel.className.replace('ds-select--native', '');
+  btn.setAttribute('role', 'combobox'); btn.setAttribute('aria-haspopup', 'listbox'); btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-controls', id+'-list');
+  btn.setAttribute('aria-label', (sel.getAttribute('aria-label') || (lbl && lbl.textContent.trim()) || sel.name || 'Choose').replace(/\s+/g, ' '));
+  btn.innerHTML = '<span class="ds-dropdown__value"></span>';
+  const list = document.createElement('ul'); list.className = 'ds-menu'; list.id = id+'-list'; list.setAttribute('role', 'listbox'); list.tabIndex = -1;
+  sel.after(btn); wrap.insertBefore(list, wrap.querySelector('.ds-icon').nextSibling);
+  const val = btn.querySelector('.ds-dropdown__value');
+  let opts = [], active = 0, buf = '', bufT;
+  const enabled = i => opts[i] && !opts[i].hasAttribute('aria-disabled');
+  const sync = ()=>{ const o = sel.selectedOptions[0]; val.textContent = o ? o.textContent : ''; (o && o.value==='' && sel.options.length>1) ? val.setAttribute('data-placeholder', '') : val.removeAttribute('data-placeholder'); btn.disabled = sel.disabled; };
+  const build = ()=>{
+    list.innerHTML = [...sel.options].map((o, i)=>'<li class="ds-option" role="option" id="'+id+'-o'+i+'" data-i="'+i+'" aria-selected="'+(o.selected)+'"'+(o.disabled?' aria-disabled="true"':'')+'><span class="ds-option__text">'+esc(o.textContent)+'</span>'+icon('check')+'</li>').join('');
+    opts = [...list.querySelectorAll('.ds-option')];
+  };
+  const setActive = (i, dir = 1)=>{ if(!opts.length) return; for(let n = 0; n < opts.length && !enabled((i + opts.length) % opts.length); n++) i += dir; active = (i + opts.length) % opts.length;
+    opts.forEach(o=>o.removeAttribute('data-active')); opts[active].setAttribute('data-active', ''); btn.setAttribute('aria-activedescendant', opts[active].id); opts[active].scrollIntoView({ block:'nearest' }); };
+  const isOpen = ()=>wrap.hasAttribute('data-open');
+  const open = ()=>{
+    if(sel.disabled) return;
+    document.querySelectorAll('.ds-dropdown[data-open]').forEach(d=>{ if(d!==wrap){ d.removeAttribute('data-open'); const b = d.querySelector('[role=combobox]'); b && b.setAttribute('aria-expanded', 'false'); } });
+    build(); const r = btn.getBoundingClientRect(), need = Math.min(296, opts.length*36 + 8);
+    if(window.innerHeight - r.bottom < need + 12 && r.top > window.innerHeight - r.bottom) wrap.dataset.placement = 'top'; else wrap.removeAttribute('data-placement');
+    wrap.setAttribute('data-open', ''); btn.setAttribute('aria-expanded', 'true'); setActive(Math.max(0, sel.selectedIndex));
+  };
+  const close = ()=>{ wrap.removeAttribute('data-open'); btn.setAttribute('aria-expanded', 'false'); btn.removeAttribute('aria-activedescendant'); };
+  const choose = i=>{
+    if(!enabled(i)) return;
+    if(sel.selectedIndex !== i){ sel.selectedIndex = i; sel.dispatchEvent(new Event('input', { bubbles:true })); sel.dispatchEvent(new Event('change', { bubbles:true })); }
+    sync(); close(); btn.focus();
+  };
+  btn.addEventListener('click', ()=>isOpen() ? close() : open());
+  btn.addEventListener('keydown', e=>{
+    const k = e.key;
+    if(k==='ArrowDown' || k==='ArrowUp'){ e.preventDefault(); if(!isOpen()) return open(); setActive(active + (k==='ArrowDown' ? 1 : -1), k==='ArrowDown' ? 1 : -1); }
+    else if(k==='Home' || k==='End'){ if(isOpen()){ e.preventDefault(); setActive(k==='Home' ? 0 : opts.length - 1, k==='Home' ? 1 : -1); } }
+    else if(k==='Enter' || k===' '){ e.preventDefault(); isOpen() ? choose(active) : open(); }
+    else if(k==='Escape'){ if(isOpen()){ e.preventDefault(); e.stopPropagation(); close(); } }
+    else if(k==='Tab'){ close(); }
+    else if(k.length===1 && !e.ctrlKey && !e.metaKey){ clearTimeout(bufT); buf += k.toLowerCase(); bufT = setTimeout(()=>buf = '', 600);
+      if(!isOpen()) open(); const hit = opts.findIndex((o, i)=>enabled(i) && o.textContent.trim().toLowerCase().startsWith(buf)); if(hit >= 0) setActive(hit); }
+  });
+  list.addEventListener('mousemove', e=>{ const o = e.target.closest('.ds-option'); if(o && enabled(+o.dataset.i)) setActive(+o.dataset.i); });
+  list.addEventListener('mousedown', e=>e.preventDefault());
+  list.addEventListener('click', e=>{ const o = e.target.closest('.ds-option'); if(o) choose(+o.dataset.i); });
+  document.addEventListener('click', e=>{ if(isOpen() && !wrap.contains(e.target)) close(); });
+  /* Keep the trigger honest when code changes the native select directly (.value = ..., innerHTML = ..., aria-invalid). */
+  const d = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
+  Object.defineProperty(sel, 'value', { get(){ return d.get.call(this); }, set(v){ d.set.call(this, v); sync(); }, configurable:true });
+  new MutationObserver(sync).observe(sel, { childList:true, subtree:true, attributes:true, attributeFilter:['disabled'] });
+  new MutationObserver(()=>sel.getAttribute('aria-invalid')==='true' ? btn.setAttribute('aria-invalid', 'true') : btn.removeAttribute('aria-invalid')).observe(sel, { attributes:true, attributeFilter:['aria-invalid'] });
+  if(lbl){ lbl.addEventListener('click', e=>{ e.preventDefault(); btn.focus(); }); }
+  sync();
+}
+const upgradeSelects = (root)=>(root||document).querySelectorAll('.ds-select-wrap > select.ds-select').forEach(upgradeSelect);
+new MutationObserver(()=>upgradeSelects()).observe(document.documentElement, { childList:true, subtree:true });
+document.addEventListener('DOMContentLoaded', ()=>upgradeSelects());
+
 /* ---- src/30-shell.js ---- */
 /* ============================== SIGN IN ==============================
    Microsoft single sign-on. Clicking the button opens a stand-in for Microsoft's "Pick an account"
@@ -2201,7 +2351,7 @@ function openAcctPicker(){
   const el = document.getElementById('acctPickerRoot');
   el.innerHTML = '<div class="ds-acct-picker" role="dialog" aria-modal="true" aria-label="Pick an account">'+
     '<div class="ds-acct-picker__head">'+msLogo()+'<h2>Pick an account</h2><p class="ds-muted ds-small">to continue to Top1Movers Operations Portal</p></div>'+
-    '<div class="ds-acct-picker__list" style="max-height:60vh;overflow:auto">'+rows+
+    '<div class="ds-acct-picker__list" style="max-height:60vh;overflow:auto" onscroll="this.parentElement.toggleAttribute(\'data-scrolled\', this.scrollTop>0)">'+rows+
       '<button type="button" class="ds-acct-row" onclick="showToast(\'This mockup only has the demo accounts above.\',\'info\',\'info\')"><span class="ds-acct-row__addicon">'+icon('plus')+'</span><span class="ds-acct-row__main"><span class="ds-acct-row__name">Use another account</span></span></button>'+
     '</div><div class="ds-acct-picker__foot">Demo only. Illustrative accounts, not a real directory.</div></div>';
   el.classList.add('open');
@@ -2464,6 +2614,24 @@ function barRows(rows, opts){
   if(!rows.length || rows.every(r=>!r.value)) return '<p class="ds-muted ds-small">'+esc(opts.empty||'No data in this range yet.')+'</p>';
   return '<div class="ds-bars">'+rows.map(r=>'<div class="ds-bar-row'+(opts.wide?' ds-bar-row--wide':'')+'" data-tip="'+esc(r.tip||r.label+': '+r.valueText)+'"><span class="ds-bar-row__name">'+(r.icon?icon(r.icon)+' ':'')+esc(r.label)+'</span><span class="ds-bar-track"><span class="ds-bar-fill'+(r.tone?' ds-bar-fill--'+r.tone:'')+'" style="width:'+Math.round(r.value/max*100)+'%"></span></span><span class="ds-bar-row__value">'+esc(r.valueText)+'</span></div>').join('')+'</div>';
 }
+/* Donut: parts of a whole (6 slices at most). Colour is never the only carrier: the legend names every slice with its count and share. */
+function donutChart(rows, opts){
+  opts = opts||{};
+  const total = sumOf(rows, r=>r.value);
+  if(!total) return '<p class="ds-muted ds-small">'+esc(opts.empty||'No data in this range yet.')+'</p>';
+  const R = 52, C = 2*Math.PI*R, live = rows.filter(r=>r.value); let off = 0;
+  const arcs = live.map(r=>{ const len = r.value/total*C, gap = live.length>1 ? 2 : 0, a = '<circle class="ds-donut__arc" cx="70" cy="70" r="'+R+'" style="stroke:'+r.color+'" stroke-dasharray="'+Math.max(len-gap,0.5).toFixed(2)+' '+C.toFixed(2)+'" stroke-dashoffset="'+(-off).toFixed(2)+'"><title>'+esc(r.label+': '+r.value+' ('+Math.round(r.value/total*100)+'%)')+'</title></circle>'; off += len; return a; }).join('');
+  return '<div class="ds-donut"><div class="ds-donut__plot"><svg viewBox="0 0 140 140" role="img" aria-label="'+esc(opts.label||'Share by group')+'"><circle class="ds-donut__track" cx="70" cy="70" r="'+R+'"/>'+arcs+'</svg><div class="ds-donut__center"><span class="ds-donut__total">'+total+'</span><span class="ds-donut__unit">'+esc(opts.unit||'total')+'</span></div></div>'+
+    '<ul class="ds-donut__legend">'+rows.map(r=>'<li><span class="ds-donut__dot" style="background:'+r.color+'"></span><span class="ds-donut__name">'+esc(r.label)+'</span><span class="ds-donut__val">'+r.value+'<span class="ds-muted"> · '+Math.round(r.value/total*100)+'%</span></span></li>').join('')+'</ul></div>';
+}
+/* Columns: a measure over time. One colour, a hairline baseline, the figure above each non-zero column. */
+function columnChart(rows, opts){
+  opts = opts||{};
+  const max = Math.max(1, ...rows.map(r=>r.value));
+  if(!rows.length || rows.every(r=>!r.value)) return '<p class="ds-muted ds-small">'+esc(opts.empty||'No data in this range yet.')+'</p>';
+  return '<div class="ds-cols" role="img" aria-label="'+esc(opts.label||'By month')+'">'+rows.map(r=>'<div class="ds-col" data-tip="'+esc(r.label+': '+r.valueText)+'" style="--h:'+(r.value?Math.max(Math.round(r.value/max*100),2):0)+'%"><span class="ds-col__track"><span class="ds-col__fill'+(opts.tone?' ds-col__fill--'+opts.tone:'')+'"></span>'+(r.value?'<span class="ds-col__val">'+esc(r.valueText)+'</span>':'')+'</span><span class="ds-col__name">'+esc(r.label.replace(/ \d{4}$/,''))+'</span></div>').join('')+'</div>';
+}
+const chartSeq = i=>'var(--t1m-chart-seq-'+i+')';
 function panel(title, ic, inner, note, hint){ return '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h2>'+(ic?icon(ic):'')+esc(title)+'</h2>'+(hint?'<span class="ds-panel__hint">'+esc(hint)+'</span>':'')+'</div><div class="ds-panel__body">'+inner+(note?'<p class="ds-chart-note">'+icon('info')+'<span>'+esc(note)+'</span></p>':'')+'</div></section>'; }
 function lastMonths(n){ const out = []; for(let k=n-1;k>=0;k--){ const d = new Date(TODAY.getFullYear(), TODAY.getMonth()-k, 1); out.push({ y:d.getFullYear(), m:d.getMonth(), label:MONTH_NAMES[d.getMonth()].slice(0,3)+' '+d.getFullYear() }); } return out; }
 function monthOf(dmy){ const d = parseDMY(dmy); return d ? d.getFullYear()*12+d.getMonth() : null; }
@@ -2473,6 +2641,14 @@ function monthlyRows(list, dateFn, valFn, fmt){
 function countBy(list, keyFn, labels){ const m = {}; list.forEach(x=>[].concat(keyFn(x)).forEach(k=>{ if(k) m[k] = (m[k]||0)+1; })); return (labels||Object.keys(m)).map(k=>({ label:k, value:m[k]||0, valueText:String(m[k]||0) })); }
 function isWon(i){ return i.closed==='won' || !!i.jobId; }
 
+/* Revenue = the service fees on jobs handed to Finance (pass-through costs paid for the client are not revenue), counted in the month of the handover. */
+const serviceFees = j=>sumOf(chargesOf(j).filter(c=>c.kind===CHARGE_KINDS[0]), c=>c.amount);
+function revenuePanel(){
+  const billed = dashJobs().filter(j=>j.handover && j.handover.readyOn), rows = monthlyRows(billed, j=>j.handover.readyOn, serviceFees, v=>'₱'+Math.round(v).toLocaleString('en-PH'));
+  const thisMonth = rows[rows.length-1].value, total = sumOf(rows, r=>r.value);
+  return panel('Revenue per month','chart', '<div class="ds-stats" style="margin-bottom:var(--t1m-space-4)">'+stat('This month', money(thisMonth), false, plural(billed.filter(j=>monthOf(j.handover.readyOn)===monthOf(todayDMY())).length,'job')+' handed to Finance')+stat('Last 6 months', money(total), false, plural(billed.length,'job')+' handed to Finance')+'</div>'+columnChart(rows, { tone:'success', label:'Revenue per month', empty:'No job has been handed to Finance yet.' }),
+    'Service fees on jobs marked ready for Finance, in the month of the handover. Costs paid for the client at cost are not counted.', 'last 6 months');
+}
 function salesTab(){
   const inq = dashInq(), won = inq.filter(isWon), lost = inq.filter(i=>i.closed==='lost'), decided = won.length + lost.length;
   const quoted = inq.filter(i=>i.versions.some(v=>v.sent));
@@ -2486,21 +2662,21 @@ function salesTab(){
     ['Accepted, to be closed', inq.filter(i=>key(i)==='accepted').length],
     ['Won', won.length],
     ['Lost', lost.length]
-  ].map(([l,n])=>({ label:l, value:n, valueText:String(n) }));
+  ].map(([l,n],k)=>({ label:l, value:n, valueText:String(n), color:k===5?'var(--t1m-danger)':chartSeq(k+1) }));
   const funnel = barRows([['Inquiries', inq.length],['Quoted', quoted.length],['Accepted', won.length]].map(([l,n])=>({ label:l, value:n, valueText:String(n)+(l!=='Inquiries'&&inq.length?' ('+Math.round(n/inq.length*100)+'%)':'') })), { empty:'No inquiries in this range.' });
   const custRows = CUSTOMERS.map(c=>{ const ci = inq.filter(i=>i.customerId===c.id); return { c, n:ci.length, w:ci.filter(isWon).length }; }).filter(r=>r.n).sort((a,b)=>b.n-a.n || b.w-a.w).slice(0,8);
-  return '<div class="ds-stack"><div class="ds-kpis">'+
+  return '<div class="ds-stack">'+revenuePanel()+'<div class="ds-kpis">'+
       kpi('quote','Inquiries', inq.length, 'received in the selected range', null, "STATE.inqFilter='all'; go('#/inquiries')")+
       kpi('clock','Open now', openInq.length, 'still being worked on', null, "STATE.inqFilter='open'; go('#/inquiries')")+
       kpi('arrow-right','Waiting for client', awaiting.length, 'quote sent, no answer yet', awaiting.length?'warning':null, "STATE.inqFilter='awaiting'; go('#/inquiries')")+
       kpi('check','Win rate', decided ? Math.round(won.length/decided*100)+'%' : '—', won.length+' won · '+lost.length+' lost', null, "STATE.inqFilter='accepted'; go('#/inquiries')")+
     '</div>'+
     '<div class="ds-grid-2">'+
-      panel('Where inquiries stand','tasks', barRows(stand, { empty:'No inquiries in this range.' }), 'Every inquiry in the range, by where it is right now.')+
+      panel('Where inquiries stand','tasks', donutChart(stand, { unit:'inquiries', label:'Inquiries by stage', empty:'No inquiries in this range.' }), 'Every inquiry in the range, by where it is right now.')+
       panel('Conversion funnel','chart', funnel, 'How many requests turn into quotes, and quotes into wins.')+
     '</div>'+
     '<div class="ds-grid-2">'+
-      panel('Inquiries by month','calendar', barRows(monthlyRows(inq, i=>i.createdOn)), null, 'last 6 months')+
+      panel('Inquiries by month','calendar', columnChart(monthlyRows(inq, i=>i.createdOn), { label:'Inquiries by month' }), null, 'last 6 months')+
       panel('Why we lose deals','x', barRows(countBy(lost, i=>i.lostReason.type, CLIENT_REASONS), { empty:'No lost inquiries in this range.' }), 'From the reason picked when an inquiry is closed as lost.')+
     '</div>'+
     '<div class="ds-grid-2">'+
@@ -2513,12 +2689,12 @@ function opsTab(){
   const jobs = dashJobs(), active = jobs.filter(j=>j.status!=='Completed'), held = active.filter(j=>openIssue(j)), done = jobs.filter(j=>j.status==='Completed');
   const stageRows = SERVICE_ORDER.map(s=>({ label:SERVICES[s].short, value:active.filter(j=>j.status==='Active' && currentMs(j) && currentMs(j).svc===s).length })).concat([{ label:'For closing', value:active.filter(j=>j.status==='For closing').length }]).map(r=>Object.assign(r,{ valueText:String(r.value) }));
   const lanes = jobs.map(laneOf).filter(Boolean);
-  const laneRows = LANES.map(l=>{ const n = lanes.filter(x=>x===l).length; return { label:l, value:n, valueText: lanes.length ? Math.round(n/lanes.length*100)+'% ('+n+')' : '0', tone:LANE_TONE[l] }; });
+  const laneRows = LANES.map(l=>{ const n = lanes.filter(x=>x===l).length; return { label:l, value:n, valueText: lanes.length ? Math.round(n/lanes.length*100)+'% ('+n+')' : '0', color:'var(--t1m-'+LANE_TONE[l]+')' }; });
   const release = avg(jobs.map(j=>{ const rel = j.ms.find(m=>m.name==='BOC released' && m.done), arr = msByFlag(j,'arrival'); const start = arr && arr.done ? arr.date : (j.free && j.free.arrival); return rel && start ? daysBetween(start, rel.date) : null; }).filter(x=>x!=null));
   const cycle = avg(done.map(j=>daysBetween(j.createdOn, j.completed.on)));
   const stopped = [].concat(...jobs.map(j=>jobClocks(j).filter(c=>c.type==='port' && c.state==='stopped')));
   const within = stopped.filter(c=>!c.over).length, over = sumOf(stopped, c=>c.over);
-  return '<div class="ds-stack"><div class="ds-kpis">'+
+  return '<div class="ds-stack"><div class="ds-kpis ds-kpis--3">'+
       kpi('box','Active jobs', active.length, 'not yet completed', null, "STATE.jobFilter='active'; go('#/jobs')")+
       kpi('lock','On hold', held.length, 'waiting for an exception to be approved', held.length?'danger':null, "STATE.jobFilter='hold'; go('#/jobs')")+
       kpi('clock','Overdue steps', active.filter(jobOverdue).length, 'past their due date', active.filter(jobOverdue).length?'warning':null, "STATE.jobFilter='overdue'; go('#/jobs')")+
@@ -2528,11 +2704,11 @@ function opsTab(){
     '</div>'+
     '<div class="ds-grid-2">'+
       panel('Active jobs by stage','flag', barRows(stageRows, { empty:'No active jobs.' }), 'The service track each active job is on now. A long bar is a queue forming.')+
-      panel('Customs lanes','shield', barRows(laneRows, { empty:'No lanes recorded yet.' }), 'Share of jobs per BOC lane. Red means physical inspection and the longest release.')+
+      panel('Customs lanes','shield', donutChart(laneRows, { unit:'jobs', label:'Jobs by customs lane', empty:'No lanes recorded yet.' }), 'Share of jobs per BOC lane. Red means physical inspection and the longest release.')+
     '</div>'+
     '<div class="ds-grid-2">'+
       panel('Free-time performance','clock', stopped.length ? '<div class="ds-stats">'+stat('Released within free time', Math.round(within/stopped.length*100)+'%', false, within+' of '+stopped.length+' jobs')+stat('Total days over', String(over), over>0, 'storage + demurrage days')+'</div>' : '<p class="ds-muted ds-small">No port clocks have stopped yet.</p>')+
-      panel('Jobs completed by month','calendar', barRows(monthlyRows(done, j=>j.completed.on)), null, 'last 6 months')+
+      panel('Jobs completed by month','calendar', columnChart(monthlyRows(done, j=>j.completed.on), { label:'Jobs completed by month' }), null, 'last 6 months')+
     '</div>'+
     opsExtraPanels(active, jobs)+
     (held.length ? panel('On hold now','lock', '<ul class="ds-gate">'+held.map(j=>gateItemHtml({ label:j.id+' · '+cname(j.customerId), sub:openIssue(j).reason, met:false, blocked:true, act:act('Open',"go('#/jobs/"+j.id+"/issues')",'arrow-right') })).join('')+'</ul>') : '')+
@@ -2583,9 +2759,7 @@ function renderDashboard(){
   return '<div class="ds-page-head"><div class="ds-hello"><h1>'+esc(greeting())+'</h1><p>'+esc(todayLong())+'. <strong>'+plural(q.length,'item')+'</strong> need'+(q.length===1?'s':'')+' attention.</p></div>'+
       '<div class="ds-page-head__actions no-print">'+
       '<button class="ds-btn ds-btn--secondary" id="dash-export" onclick="exportDashCSV()">'+icon('download')+'Export to Excel</button>'+(can('inquiry.create')?'<button class="ds-btn ds-btn--primary" onclick="openNewInquiry()">'+icon('plus')+'New inquiry</button>':'')+'</div></div>'+
-    '<div class="ds-stack">'+
-    '<section class="ds-panel ds-panel--elevated" id="needs-attention"><div class="ds-panel__head"><h2>'+icon('flag')+'Needs attention</h2><span class="ds-panel__hint">most urgent first · each row opens the record</span></div>'+
-      queueHtml(q, 'Nothing needs you right now. Approvals, holds, overdue steps and free-time alerts appear here.')+'</section>'+
+    '<div class="ds-dash"><div class="ds-stack ds-dash__main">'+
     (empty ? '<div class="ds-alert ds-alert--info">'+icon('info')+'<div><strong>No data yet</strong>The figures below fill in as customers, inquiries and jobs are created in this session.<div class="ds-alert__actions"><button class="ds-btn ds-btn--secondary ds-btn--sm" id="load-sample" onclick="loadSampleData()">'+icon('download')+'Load sample data</button></div></div></div>' : '')+
     '<section class="ds-panel ds-panel--elevated no-print"><div class="ds-panel__body"><div class="ds-row" style="flex-wrap:wrap">'+icon('filter')+
       sel('dash-range','', 'dashRange', Object.keys(RANGES))+
@@ -2596,7 +2770,9 @@ function renderDashboard(){
       ((STATE.dashService||STATE.dashScope||STATE.dashCustomer||STATE.dashStaff||STATE.dashRange!=='All time')?'<button class="ds-btn ds-btn--ghost ds-btn--sm" onclick="STATE.dashService=STATE.dashScope=STATE.dashCustomer=STATE.dashStaff=\'\'; STATE.dashRange=\'All time\'; render()">'+icon('x')+'Clear</button>':'')+
     '</div></div></section>'+
     '<section class="ds-panel ds-panel--elevated"><div class="ds-tabs no-print" role="tablist">'+Object.entries(DASH_TABS).map(([k,l])=>'<button class="ds-tab" role="tab" aria-selected="'+(STATE.dashTab===k)+'" onclick="STATE.dashTab=\''+k+'\'; render()"><span class="ds-tab__label" data-text="'+l+'">'+l+'</span></button>').join('')+'</div>'+
-      '<div class="ds-panel__body" id="dash-body">'+body+'</div></section></div>';
+      '<div class="ds-panel__body" id="dash-body">'+body+'</div></section></div>'+
+    '<aside class="ds-dash__aside" aria-label="Needs attention"><section class="ds-panel ds-panel--elevated ds-panel--alert'+(q.length?'':' ds-panel--calm')+'" id="needs-attention"><div class="ds-panel__head"><h2>'+icon('flag')+'Needs attention</h2>'+(q.length?pill(String(q.length),'warning','alert','ds-pill--sm'):'')+'</div>'+
+      '<p class="ds-dash__note">Most urgent first. Each row opens the record.</p><div class="ds-dash__scroll">'+queueHtml(q, 'Nothing needs you right now. Approvals, holds, overdue steps and free-time alerts appear here.')+'</div></section></aside></div>';
 }
 /* Excel export: the records behind the current tab, as CSV (opens in Excel). */
 function exportDashCSV(){
@@ -2964,6 +3140,7 @@ function renderJob(id, tab){
   if(can('job.freeDays', j) && clockApplies(j) && j.status!=='Completed') menu.push('<button onclick="closePopover(); openFreeDays(\''+id+'\')">'+icon('clock')+'Set free days</button>');
   if(can('job.update', j) && j.status!=='Completed') menu.push('<button onclick="closePopover(); openRefs(\''+id+'\')">'+icon('file')+'Shipment references</button>');
   if(can('fund.request', j) && j.status!=='Completed') menu.push('<button onclick="closePopover(); openFundRequest(\''+id+'\')">'+icon('wallet')+'New fund request</button>');
+  menu.push('<button id="job-summary" onclick="closePopover(); downloadJobSummaryPdf(\''+id+'\')">'+icon('download')+'Generate summary report</button>');
   menu.push('<a href="#/track/'+esc(j.trackingCode)+'" onclick="closePopover()">'+icon('eye')+'Open the client tracking page</a>');
   JOB_MENU = menu.join('');
   return '<nav class="ds-crumbs"><a href="#/jobs">Jobs</a>'+icon('chevron-right')+'<span class="ds-mono">'+j.id+'</span></nav>'+
@@ -3427,7 +3604,7 @@ function readinessPill(j, sm){ const r = readinessStatus(j); return pill(sm ? r.
 function jobBillingTab(j){
   const rs = readinessStatus(j);
   if(rs.key==='na') return emptyState('receipt','Billing readiness starts after delivery','Once the cargo is delivered, this tab shows what is still missing before Finance can take the job over.');
-  const items = readinessItems(j), ch = chargesOf(j), total = sumOf(ch, c=>c.amount), locked = ['ready','received'].includes(rs.key), editCh = can('charge.edit') && !locked;
+  const items = readinessItems(j), ch = chargesOf(j), total = sumOf(ch, c=>c.amount), fees = sumOf(ch.filter(c=>c.kind===CHARGE_KINDS[0]), c=>c.amount), atCost = total - fees, locked = ['ready','received'].includes(rs.key), editCh = can('charge.edit') && !locked;
   const i = inqById(j.inquiryId), v = i ? acceptedVersion(i) : null, quoted = v ? toPHP(v) : null;
   const fixes = { delivery:act('Open milestones',"goTab('"+j.id+"','milestones')",'flag'), docs:act('Open documents',"goTab('"+j.id+"','documents')",'file'), exc:act('Open exceptions',"goTab('"+j.id+"','issues')",'flag'), funds:act('Open funds',"goTab('"+j.id+"','money')",'wallet'), charges:editCh ? act('Add a charge',"openAddCharge('"+j.id+"')",'plus') : null };
   const rows = ch.map(c=>'<tr><td data-label="Charge"><span class="ds-strong">'+esc(c.desc)+'</span><div class="ds-muted ds-xs">'+esc(c.by+' · '+c.on)+'</div></td><td data-label="Type">'+esc(c.kind)+'</td><td data-label="Evidence">'+(c.file?'<span class="ds-mono ds-xs">'+esc(c.file)+'</span>':'<span class="ds-muted3">—</span>')+'</td><td data-label="Amount" class="ds-num">'+money(c.amount)+'</td><td class="ds-num">'+(editCh?'<button class="ds-btn ds-btn--ghost ds-btn--sm" onclick="removeCharge(\''+j.id+'\',\''+c.id+'\')" aria-label="Remove '+esc(c.desc)+'">Remove</button>':'')+'</td></tr>').join('');
@@ -3441,7 +3618,7 @@ function jobBillingTab(j){
       (rs.key==='ready' && can('ready.receive') ? '<button class="ds-btn ds-btn--primary" id="receive-finance" onclick="openReceiveFinance(\''+j.id+'\')">'+icon('check')+'Mark received by Finance</button>' : '')+'</div></section>'+
     '<section id="charges"><div class="ds-section-head"><h2>'+icon('wallet')+'Charges to bill</h2>'+(editCh?'<span class="ds-row ds-row--tight">'+(fundsToAdd.length?'<button class="ds-btn ds-btn--ghost ds-btn--sm" id="add-from-receipts" onclick="addChargesFromFunds(\''+j.id+'\')">Add '+plural(fundsToAdd.length,'closed fund request')+' at cost</button>':'')+'<button class="ds-btn ds-btn--secondary ds-btn--sm" id="add-charge" onclick="openAddCharge(\''+j.id+'\')">'+icon('plus')+'Add charge</button></span>':'')+'</div>'+
       '<p class="ds-muted ds-small" style="margin-bottom:var(--t1m-space-3)">Service fees and costs paid on the client’s behalf. Finance bills from this list in their own system.</p>'+
-      '<div class="ds-stats" style="margin-bottom:var(--t1m-space-4)">'+stat('Charges listed', money(total), false, plural(ch.length,'line'))+(quoted!=null?stat('Accepted quote', money(quoted), false, 'v'+v.v)+stat('Difference', money(total-quoted), false, total>=quoted?'listed is above the quote':'listed is below the quote'):'')+'</div>'+
+      '<div class="ds-stats" style="margin-bottom:var(--t1m-space-4)">'+stat('Service fees', money(fees), false, plural(ch.filter(c=>c.kind===CHARGE_KINDS[0]).length,'line'))+stat('Paid at cost', money(atCost), false, 'costs paid for the client')+stat('Charges listed', money(total), false, 'fees + at cost')+(quoted!=null?stat('Accepted quote', money(quoted), false, 'v'+v.v)+stat('Difference', money(total-quoted), false, (total>=quoted?'listed is above the quote':'listed is below the quote')+(atCost?' · '+money(atCost)+' of it is at cost':'')):'')+'</div>'+
       (rows ? '<div class="ds-table-wrap" style="margin:0 calc(var(--t1m-space-4) * -1)"><table class="ds-table ds-table--stack"><thead><tr><th>Charge</th><th>Type</th><th>Evidence</th><th class="ds-num">Amount</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>' : '<p class="ds-muted">No charges listed yet.</p>')+'</section></div>';
 }
 function openAddCharge(jobId){
@@ -3590,11 +3767,11 @@ function jobMoneyTab(j){
 
 /* ---------- One request, in full ---------- */
 function fundSummary(f){
-  return '<dl class="ds-facts"><dt>Purpose</dt><dd>'+esc(f.purpose)+'</dd><dt>Amount</dt><dd>'+money(f.amount)+'</dd><dt>Pay to</dt><dd>'+esc(f.payee)+'</dd><dt>How</dt><dd>'+esc(FR_HOW[f.how||'cash'])+'</dd><dt>Needed by</dt><dd>'+esc(f.neededBy)+'</dd><dt>Source</dt><dd>'+esc(f.source)+'</dd><dt>Requested</dt><dd>'+esc(f.by+', '+f.on)+'</dd></dl>'+
-    (f.depositProof?fileRow(f.depositProof,'Client deposit proof'):'')+(f.support?fileRow(f.support,'Supporting file from '+f.by):'');
+  return '<dl class="ds-facts"><dt>Purpose</dt><dd>'+esc(f.purpose)+'</dd><dt>Amount</dt><dd>'+money(f.amount)+'</dd><dt>Pay to</dt><dd>'+esc(f.payee)+'</dd><dt>How</dt><dd>'+esc(FR_HOW[f.how||'cash'])+'</dd><dt>Needed by</dt><dd>'+esc(f.neededBy)+'</dd><dt>Requested</dt><dd>'+esc(f.by+', '+f.on)+'</dd></dl>'+
+    (f.support?fileRow(f.support,'Supporting file from '+f.by):'');
 }
 function fundTrail(f){
-  const t = [{ action:'Fund request', detail:money(f.amount)+' for '+f.purpose+' to '+f.payee+'. '+FR_HOW[f.how||'cash']+' · '+f.source+'.', ts:f.on, actor:f.by }];
+  const t = [{ action:'Fund request', detail:money(f.amount)+' for '+f.purpose+' to '+f.payee+'. '+FR_HOW[f.how||'cash']+'.', ts:f.on, actor:f.by }];
   if(f.review) t.push({ action:f.review.decision==='Approved'?'Fund request approved':'Fund request returned', detail:f.review.comment||'Approved.', ts:f.review.on, actor:f.review.by });
   if(f.release) t.push({ action:'Funds released', detail:f.release.mode+(f.release.ref?' ('+f.release.ref+')':'')+(f.release.proof?' · '+f.release.proof:''), ts:f.release.on, actor:f.release.by });
   if(f.liq) t.push({ action:'Receipts submitted', detail:'Spent '+money(f.liq.actual)+' · '+f.liq.receipts+(f.liq.note?' · '+f.liq.note:''), ts:f.liq.on, actor:f.liq.by });
@@ -3626,22 +3803,18 @@ function openFundRequest(jobId, editId, preset){
       dateField('fr-need','neededBy','Needed by', f?f.neededBy:addDaysDMY(1))+
       '<div class="ds-field"><span class="ds-field__label">How will it be paid?</span>'+segControl('how', [FR_HOW.cash, FR_HOW.vendor], FR_HOW[f&&f.how||'cash'])+
         '<p class="ds-field__hint">Staff gets the money: you receive it (cash, check or a transfer to you), pay the vendor, then submit the receipts and return any excess. Accounting pays the vendor: Accounting pays them directly and you only submit their receipt afterwards.</p></div>'+
-      '<div class="ds-field"><span class="ds-field__label">Where does the money come from?</span>'+segControl('source', ['Company funds','Client deposit'], f?f.source:'Company funds', "document.getElementById('fr-dep').style.display = this.value==='Client deposit' ? '' : 'none'")+'</div>'+
-      '<div class="ds-field" id="fr-dep"'+(f&&f.source==='Client deposit'?'':' style="display:none"')+'><label>Client deposit proof</label>'+uploadHtml('depositProof','The client’s deposit slip or transfer confirmation')+errorSlot('deposit')+'<p class="ds-field__hint">Shows the money came from the client, not from company funds.</p></div>'+
       '<div class="ds-field"><label>Supporting file <span class="ds-opt">optional</span></label>'+uploadHtml('fundSupport','Quotation, bill or assessment from the payee')+'</div></form>',
     foot: drawerFoot(f?'Resubmit for approval':'Submit for approval','fund-form',{icon:'wallet'}) });
 }
 function saveFundRequest(jobId, form, editId){
-  const j = jobById(jobId), fd = new FormData(form), amount = Number(fd.get('amount')), payee = String(fd.get('payee')||'').trim(), need = isoToDMY(fd.get('neededBy')), source = String(fd.get('source'));
+  const j = jobById(jobId), fd = new FormData(form), amount = Number(fd.get('amount')), payee = String(fd.get('payee')||'').trim(), need = isoToDMY(fd.get('neededBy'));
   const existing = editId ? j.funds.find(x=>x.id===editId) : null, how = String(fd.get('how'))===FR_HOW.vendor ? 'vendor' : 'cash';
-  const deposit = UPLOADS.depositProof || (existing && existing.depositProof);
-  const bad = fieldError(form,'amount', amount>0?'':'Enter the amount needed.') | fieldError(form,'payee', payee?'':'Who will be paid?') | fieldError(form,'neededBy', need?'':'When is it needed?') |
-    fieldError(form,'deposit', source==='Client deposit' && !deposit ? 'Attach the client’s deposit proof.' : '');
+  const bad = fieldError(form,'amount', amount>0?'':'Enter the amount needed.') | fieldError(form,'payee', payee?'':'Who will be paid?') | fieldError(form,'neededBy', need?'':'When is it needed?');
   if(bad) return;
-  const data = { purpose:String(fd.get('purpose')), amount, payee, neededBy:need, source, how, depositProof: source==='Client deposit' ? deposit : null, support:UPLOADS.fundSupport || (existing && existing.support) || null, status:'For approval', review:null };
+  const data = { purpose:String(fd.get('purpose')), amount, payee, neededBy:need, source:'Company funds', how, support:UPLOADS.fundSupport || (existing && existing.support) || null, status:'For approval', review:null };
   let f;
   if(existing){ f = Object.assign(existing, data); logTo(j, 'Fund request', f.id+' resubmitted: '+f.purpose+' '+money(amount)+'.'); }
-  else { f = Object.assign({ id:nextId('fr'), by:me(), on:todayDMY() }, data); j.funds.push(f); logTo(j, 'Fund request', f.id+': '+f.purpose+' '+money(amount)+' to '+payee+' ('+FR_HOW[how].toLowerCase()+', '+source+').'); }
+  else { f = Object.assign({ id:nextId('fr'), by:me(), on:todayDMY() }, data); j.funds.push(f); logTo(j, 'Fund request', f.id+': '+f.purpose+' '+money(amount)+' to '+payee+' ('+FR_HOW[how].toLowerCase()+').'); }
   notify({ roles:['Manager'] }, me()+' requested '+money(amount)+' on '+j.id+' ('+f.purpose+').', '#/jobs/'+j.id+'/money');
   closeDrawer(); showToast(f.id+' sent for approval.', 'success', 'wallet'); render();
 }
@@ -3824,8 +3997,8 @@ function renderFunds(){
     (rows.length ? fundTable(rows, true, true) : '<div class="ds-panel__body">'+(base.length ? emptyState('search','Nothing here','Try another group above, or clear the search.') : emptyState('wallet','No fund requests yet','Operations create them from a job when money is needed.'))+'</div>')+'</section>';
 }
 function exportFundsCSV(){
-  const head = ['Request','Job','Customer','Purpose','Pay to','Amount','How paid','Source','Requested by','Requested on','Status','Approved by','Approved on','Released by','Released on','Mode','Reference','Spent','Receipts file','Confirmed by','Confirmed on'];
-  const rows = allFunds().map(({j,f})=>[f.id, j.id, custById(j.customerId).name, f.purpose, f.payee, f.amount, FR_HOW[f.how||'cash'], f.source, f.by, f.on, frLabel(f),
+  const head = ['Request','Job','Customer','Purpose','Pay to','Amount','How paid','Requested by','Requested on','Status','Approved by','Approved on','Released by','Released on','Mode','Reference','Spent','Receipts file','Confirmed by','Confirmed on'];
+  const rows = allFunds().map(({j,f})=>[f.id, j.id, custById(j.customerId).name, f.purpose, f.payee, f.amount, FR_HOW[f.how||'cash'], f.by, f.on, frLabel(f),
     f.review&&f.review.decision==='Approved'?f.review.by:'', f.review&&f.review.decision==='Approved'?f.review.on:'', f.release?f.release.by:'', f.release?f.release.on:'', f.release?f.release.mode:'', f.release?f.release.ref:'', f.liq?f.liq.actual:'', f.liq?f.liq.receipts:'', f.verify?f.verify.by:'', f.verify?f.verify.on:'']);
   const csv = [head].concat(rows).map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\r\n');
   const a = document.createElement('a');
@@ -3977,7 +4150,7 @@ function downloadFundPdf(jobId, fid){
   if(!canView('money.view', j)) return denied();
   const tone = f.status==='Verified' ? 'success' : f.status==='Returned' || frLate(f) ? 'danger' : 'info';
   const d = pdfDoc('Fund request record').title('Fund request '+f.id, j.id+'  |  '+custById(j.customerId).name, frLabel(f), tone).amount('Amount requested', money(f.amount), f.purpose);
-  const req = [['Purpose', f.purpose], ['Pay to', f.payee], ['How it is paid', FR_HOW[f.how||'cash']], ['Needed by', f.neededBy], ['Source of money', f.source], ['Requested by', f.by+', '+f.on]];
+  const req = [['Purpose', f.purpose], ['Pay to', f.payee], ['How it is paid', FR_HOW[f.how||'cash']], ['Needed by', f.neededBy], ['Requested by', f.by+', '+f.on]];
   if(f.review) req.push([f.review.decision==='Approved'?'Approved by':'Returned by', f.review.by+', '+f.review.on+(f.review.comment&&f.review.decision!=='Approved'?'. '+f.review.comment:'')]);
   d.heading('Request').card(req).heading('Release');
   if(f.release) d.card([['Released by', f.release.by+', '+f.release.on], ['Mode', f.release.mode], ['Reference no.', f.release.ref||'-'], ['Proof file', f.release.proof||'-']]); else d.para('Not released yet.');
@@ -4021,11 +4194,49 @@ function downloadBillingPdf(jobId){
     const W = [190, 75, 115, 115];
     d.row(['Charge','Type','Evidence','Amount'].map((t,k)=>({ w:W[k], text:t, right:k===3 })), { head:true });
     ch.forEach((c,x)=>d.row([c.desc+'\n'+c.by+', '+c.on, c.kind, c.file||'-', money(c.amount)].map((t,k)=>({ w:W[k], text:t, right:k===3, bold:k===0 })), { shade:x%2===1 }));
+    d.row([{ w:380, text:'Service fees' }, { w:115, text:money(sumOf(ch.filter(c=>c.kind===CHARGE_KINDS[0]), c=>c.amount)), right:true }], { shade:true });
+    d.row([{ w:380, text:'Paid at cost (costs paid for the client)' }, { w:115, text:money(sumOf(ch.filter(c=>c.kind!==CHARGE_KINDS[0]), c=>c.amount)), right:true }]);
     d.row([{ w:380, text:'Total charges' }, { w:115, text:money(total), right:true }], { total:true });
     if(quoted!=null) d.gap(12).card([['Accepted quote (v'+v.v+')', money(quoted)], ['Difference', money(total-quoted)+(total>=quoted?' (listed is above the quote)':' (listed is below the quote)')]]);
   } else d.para('No charges listed yet.');
   d.gap(12).para('Finance bills from this list in their own system. This page is a handover record, not an invoice.');
   d.save(pdfStamp('Billing-'+j.id)+'.pdf');
+}
+
+/* ---------- Job summary report: one page-set that tells the whole story of a job ---------- */
+function downloadJobSummaryPdf(jobId){
+  const j = jobById(jobId);
+  if(!j || !canView('job.view', j)) return denied();
+  const c = custById(j.customerId), h = jobHealth(j), money_ = canView('money.view', j), i = inqById(j.inquiryId), v = i ? acceptedVersion(i) : null;
+  const tone = ['success','danger','warning','info'].includes(h.tone) ? h.tone : 'info';
+  const d = pdfDoc('Job summary report').title('Job '+j.id, c.name+'  |  '+scopeText(j)+'  |  '+servicesText(j.services), h.label, tone);
+  if(v) d.amount('Accepted quote', money(toPHP(v)), 'v'+v.v+(v.currency==='USD' ? ' (USD '+v.amount.toLocaleString('en-US')+')' : ''));
+  const team = SERVICE_ORDER.filter(s=>j.services.includes(s)).map(s=>SERVICES[s].short+': '+opsFor(j, s).join(', ')).join('  /  ');
+  d.heading('Job').card([['Customer', c.name], ['Route', routeText(j.origin, j.destination)||'-'], ['Current step', stageText(j)], ['Status', j.status+(j.completed ? ' (confirmed by '+j.completed.by+', '+j.completed.on+')' : '')], ['Created', j.createdOn], ['Sales', (j.sales||[]).join(', ')||'-'], ['Operations', team||'-'], ['Billing handover', readinessStatus(j).label]]);
+  const W = [170, 80, 70, 85, 90], done = j.ms.filter(m=>m.done).length;
+  d.heading('Milestones ('+done+' of '+j.ms.length+' done)').row(['Step','Service','Status','Date','By'].map((t,k)=>({ w:W[k], text:t })), { head:true });
+  j.ms.forEach((m,x)=>d.row([m.name, SERVICES[m.svc] ? SERVICES[m.svc].short : '-', m.done ? 'Done' : 'Pending', m.done ? m.date : (m.due ? 'due '+m.due : '-'), m.done ? m.by : '-'].map((t,k)=>({ w:W[k], text:String(t), bold:k===0 })), { shade:x%2===1 }));
+  const pend = pendingDocs(j);
+  d.heading('Documents ('+(j.docs.length-pend.length)+' of '+j.docs.length+' received)');
+  pend.length ? d.para('Still missing: '+pend.map(x=>x.name+(x.status==='Rejected' ? ' (rejected)' : '')).join(', ')+'.') : d.para('All documents received.');
+  d.heading('Exceptions ('+j.issues.length+')');
+  if(j.issues.length){ const EW = [150, 120, 225]; d.row(['Category','Status','Reason'].map((t,k)=>({ w:EW[k], text:t })), { head:true }); j.issues.forEach((x,k)=>d.row([x.category, EXC_LABEL[x.status]||x.status, x.reason].map((t,n)=>({ w:EW[n], text:String(t), bold:n===0 })), { shade:k%2===1 })); }
+  else d.para('No exceptions raised.');
+  if(money_){
+    const FW = [55, 150, 100, 100, 90];
+    d.heading('Fund requests ('+j.funds.length+')');
+    if(j.funds.length){
+      d.row(['Request','Purpose','Amount','Spent','Status'].map((t,k)=>({ w:FW[k], text:t, right:k===2||k===3 })), { head:true });
+      j.funds.forEach((f,k)=>d.row([f.id, f.purpose, money(f.amount), f.liq ? money(f.liq.actual) : '-', frLabel(f)].map((t,n)=>({ w:FW[n], text:String(t), right:n===2||n===3, bold:n===0 })), { shade:k%2===1 }));
+      d.row([{ w:205, text:'Total' }, { w:100, text:money(sumOf(j.funds, f=>f.amount)), right:true }, { w:100, text:money(sumOf(j.funds, f=>f.liq ? f.liq.actual : 0)), right:true }, { w:90, text:'' }], { total:true });
+    } else d.para('No fund requests.');
+    const ch = chargesOf(j), svc = sumOf(ch.filter(x=>x.kind===CHARGE_KINDS[0]), x=>x.amount), pass = sumOf(ch.filter(x=>x.kind===CHARGE_KINDS[1]), x=>x.amount), tot = svc+pass;
+    d.heading('Charges to bill');
+    if(ch.length){ const rows = [['Service fees', money(svc)], ['At-cost pass-throughs', money(pass)], ['Total charges', money(tot)]]; if(v) rows.push(['Accepted quote', money(toPHP(v))], ['Difference vs quote', money(tot-toPHP(v))]); d.card(rows); }
+    else d.para('No charges listed yet.');
+  }
+  d.gap(8).para('A summary of this job as recorded in the portal. It is a record, not an invoice.');
+  d.save(pdfStamp('Job-summary-'+j.id)+'.pdf');
 }
 
 /* ---- src/60-sales.js ---- */
@@ -4938,7 +5149,7 @@ function trackLookup(form){
   STATE.trackError = q ? 'We could not find a shipment for “'+q+'”. Check the tracking code from your Top1Movers coordinator.' : 'Enter your tracking code.';
   STATE.trackQuery = q; render();
 }
-function trackHero(inner, label){ return '<div class="ds-public__hero"><div class="ds-public__hero-inner"><div class="ds-public__brand"><img src="'+LOGO_SRC+'" alt="Top1Movers"><span>'+(label||'Shipment tracking')+'</span></div>'+inner+'</div></div>'; }
+function trackHero(inner, label){ return '<div class="ds-public__hero"><div class="ds-public__hero-inner"><div class="ds-public__brand"><img src="'+LOGO_SRC+'" alt="Top1Movers"><span>'+(label||'Shipment tracking')+'</span></div>'+inner+'</div><div class="ds-public__mark" aria-hidden="true">T1M</div></div>'; }
 function renderTrackLookup(){
   const err = STATE.trackError;
   return '<div class="ds-public">'+trackHero('<div class="ds-public__headline"><p class="ds-label">Customer tracking</p><h1 class="ds-public__status">Where is your shipment?</h1><p class="ds-public__meta">Enter the tracking code your Top1Movers coordinator gave you. No account needed.</p></div>')+

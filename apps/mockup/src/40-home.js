@@ -132,6 +132,24 @@ function barRows(rows, opts){
   if(!rows.length || rows.every(r=>!r.value)) return '<p class="ds-muted ds-small">'+esc(opts.empty||'No data in this range yet.')+'</p>';
   return '<div class="ds-bars">'+rows.map(r=>'<div class="ds-bar-row'+(opts.wide?' ds-bar-row--wide':'')+'" data-tip="'+esc(r.tip||r.label+': '+r.valueText)+'"><span class="ds-bar-row__name">'+(r.icon?icon(r.icon)+' ':'')+esc(r.label)+'</span><span class="ds-bar-track"><span class="ds-bar-fill'+(r.tone?' ds-bar-fill--'+r.tone:'')+'" style="width:'+Math.round(r.value/max*100)+'%"></span></span><span class="ds-bar-row__value">'+esc(r.valueText)+'</span></div>').join('')+'</div>';
 }
+/* Donut: parts of a whole (6 slices at most). Colour is never the only carrier: the legend names every slice with its count and share. */
+function donutChart(rows, opts){
+  opts = opts||{};
+  const total = sumOf(rows, r=>r.value);
+  if(!total) return '<p class="ds-muted ds-small">'+esc(opts.empty||'No data in this range yet.')+'</p>';
+  const R = 52, C = 2*Math.PI*R, live = rows.filter(r=>r.value); let off = 0;
+  const arcs = live.map(r=>{ const len = r.value/total*C, gap = live.length>1 ? 2 : 0, a = '<circle class="ds-donut__arc" cx="70" cy="70" r="'+R+'" style="stroke:'+r.color+'" stroke-dasharray="'+Math.max(len-gap,0.5).toFixed(2)+' '+C.toFixed(2)+'" stroke-dashoffset="'+(-off).toFixed(2)+'"><title>'+esc(r.label+': '+r.value+' ('+Math.round(r.value/total*100)+'%)')+'</title></circle>'; off += len; return a; }).join('');
+  return '<div class="ds-donut"><div class="ds-donut__plot"><svg viewBox="0 0 140 140" role="img" aria-label="'+esc(opts.label||'Share by group')+'"><circle class="ds-donut__track" cx="70" cy="70" r="'+R+'"/>'+arcs+'</svg><div class="ds-donut__center"><span class="ds-donut__total">'+total+'</span><span class="ds-donut__unit">'+esc(opts.unit||'total')+'</span></div></div>'+
+    '<ul class="ds-donut__legend">'+rows.map(r=>'<li><span class="ds-donut__dot" style="background:'+r.color+'"></span><span class="ds-donut__name">'+esc(r.label)+'</span><span class="ds-donut__val">'+r.value+'<span class="ds-muted"> · '+Math.round(r.value/total*100)+'%</span></span></li>').join('')+'</ul></div>';
+}
+/* Columns: a measure over time. One colour, a hairline baseline, the figure above each non-zero column. */
+function columnChart(rows, opts){
+  opts = opts||{};
+  const max = Math.max(1, ...rows.map(r=>r.value));
+  if(!rows.length || rows.every(r=>!r.value)) return '<p class="ds-muted ds-small">'+esc(opts.empty||'No data in this range yet.')+'</p>';
+  return '<div class="ds-cols" role="img" aria-label="'+esc(opts.label||'By month')+'">'+rows.map(r=>'<div class="ds-col" data-tip="'+esc(r.label+': '+r.valueText)+'" style="--h:'+(r.value?Math.max(Math.round(r.value/max*100),2):0)+'%"><span class="ds-col__track"><span class="ds-col__fill'+(opts.tone?' ds-col__fill--'+opts.tone:'')+'"></span>'+(r.value?'<span class="ds-col__val">'+esc(r.valueText)+'</span>':'')+'</span><span class="ds-col__name">'+esc(r.label.replace(/ \d{4}$/,''))+'</span></div>').join('')+'</div>';
+}
+const chartSeq = i=>'var(--t1m-chart-seq-'+i+')';
 function panel(title, ic, inner, note, hint){ return '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h2>'+(ic?icon(ic):'')+esc(title)+'</h2>'+(hint?'<span class="ds-panel__hint">'+esc(hint)+'</span>':'')+'</div><div class="ds-panel__body">'+inner+(note?'<p class="ds-chart-note">'+icon('info')+'<span>'+esc(note)+'</span></p>':'')+'</div></section>'; }
 function lastMonths(n){ const out = []; for(let k=n-1;k>=0;k--){ const d = new Date(TODAY.getFullYear(), TODAY.getMonth()-k, 1); out.push({ y:d.getFullYear(), m:d.getMonth(), label:MONTH_NAMES[d.getMonth()].slice(0,3)+' '+d.getFullYear() }); } return out; }
 function monthOf(dmy){ const d = parseDMY(dmy); return d ? d.getFullYear()*12+d.getMonth() : null; }
@@ -141,6 +159,14 @@ function monthlyRows(list, dateFn, valFn, fmt){
 function countBy(list, keyFn, labels){ const m = {}; list.forEach(x=>[].concat(keyFn(x)).forEach(k=>{ if(k) m[k] = (m[k]||0)+1; })); return (labels||Object.keys(m)).map(k=>({ label:k, value:m[k]||0, valueText:String(m[k]||0) })); }
 function isWon(i){ return i.closed==='won' || !!i.jobId; }
 
+/* Revenue = the service fees on jobs handed to Finance (pass-through costs paid for the client are not revenue), counted in the month of the handover. */
+const serviceFees = j=>sumOf(chargesOf(j).filter(c=>c.kind===CHARGE_KINDS[0]), c=>c.amount);
+function revenuePanel(){
+  const billed = dashJobs().filter(j=>j.handover && j.handover.readyOn), rows = monthlyRows(billed, j=>j.handover.readyOn, serviceFees, v=>'₱'+Math.round(v).toLocaleString('en-PH'));
+  const thisMonth = rows[rows.length-1].value, total = sumOf(rows, r=>r.value);
+  return panel('Revenue per month','chart', '<div class="ds-stats" style="margin-bottom:var(--t1m-space-4)">'+stat('This month', money(thisMonth), false, plural(billed.filter(j=>monthOf(j.handover.readyOn)===monthOf(todayDMY())).length,'job')+' handed to Finance')+stat('Last 6 months', money(total), false, plural(billed.length,'job')+' handed to Finance')+'</div>'+columnChart(rows, { tone:'success', label:'Revenue per month', empty:'No job has been handed to Finance yet.' }),
+    'Service fees on jobs marked ready for Finance, in the month of the handover. Costs paid for the client at cost are not counted.', 'last 6 months');
+}
 function salesTab(){
   const inq = dashInq(), won = inq.filter(isWon), lost = inq.filter(i=>i.closed==='lost'), decided = won.length + lost.length;
   const quoted = inq.filter(i=>i.versions.some(v=>v.sent));
@@ -154,21 +180,21 @@ function salesTab(){
     ['Accepted, to be closed', inq.filter(i=>key(i)==='accepted').length],
     ['Won', won.length],
     ['Lost', lost.length]
-  ].map(([l,n])=>({ label:l, value:n, valueText:String(n) }));
+  ].map(([l,n],k)=>({ label:l, value:n, valueText:String(n), color:k===5?'var(--t1m-danger)':chartSeq(k+1) }));
   const funnel = barRows([['Inquiries', inq.length],['Quoted', quoted.length],['Accepted', won.length]].map(([l,n])=>({ label:l, value:n, valueText:String(n)+(l!=='Inquiries'&&inq.length?' ('+Math.round(n/inq.length*100)+'%)':'') })), { empty:'No inquiries in this range.' });
   const custRows = CUSTOMERS.map(c=>{ const ci = inq.filter(i=>i.customerId===c.id); return { c, n:ci.length, w:ci.filter(isWon).length }; }).filter(r=>r.n).sort((a,b)=>b.n-a.n || b.w-a.w).slice(0,8);
-  return '<div class="ds-stack"><div class="ds-kpis">'+
+  return '<div class="ds-stack">'+revenuePanel()+'<div class="ds-kpis">'+
       kpi('quote','Inquiries', inq.length, 'received in the selected range', null, "STATE.inqFilter='all'; go('#/inquiries')")+
       kpi('clock','Open now', openInq.length, 'still being worked on', null, "STATE.inqFilter='open'; go('#/inquiries')")+
       kpi('arrow-right','Waiting for client', awaiting.length, 'quote sent, no answer yet', awaiting.length?'warning':null, "STATE.inqFilter='awaiting'; go('#/inquiries')")+
       kpi('check','Win rate', decided ? Math.round(won.length/decided*100)+'%' : '—', won.length+' won · '+lost.length+' lost', null, "STATE.inqFilter='accepted'; go('#/inquiries')")+
     '</div>'+
     '<div class="ds-grid-2">'+
-      panel('Where inquiries stand','tasks', barRows(stand, { empty:'No inquiries in this range.' }), 'Every inquiry in the range, by where it is right now.')+
+      panel('Where inquiries stand','tasks', donutChart(stand, { unit:'inquiries', label:'Inquiries by stage', empty:'No inquiries in this range.' }), 'Every inquiry in the range, by where it is right now.')+
       panel('Conversion funnel','chart', funnel, 'How many requests turn into quotes, and quotes into wins.')+
     '</div>'+
     '<div class="ds-grid-2">'+
-      panel('Inquiries by month','calendar', barRows(monthlyRows(inq, i=>i.createdOn)), null, 'last 6 months')+
+      panel('Inquiries by month','calendar', columnChart(monthlyRows(inq, i=>i.createdOn), { label:'Inquiries by month' }), null, 'last 6 months')+
       panel('Why we lose deals','x', barRows(countBy(lost, i=>i.lostReason.type, CLIENT_REASONS), { empty:'No lost inquiries in this range.' }), 'From the reason picked when an inquiry is closed as lost.')+
     '</div>'+
     '<div class="ds-grid-2">'+
@@ -181,12 +207,12 @@ function opsTab(){
   const jobs = dashJobs(), active = jobs.filter(j=>j.status!=='Completed'), held = active.filter(j=>openIssue(j)), done = jobs.filter(j=>j.status==='Completed');
   const stageRows = SERVICE_ORDER.map(s=>({ label:SERVICES[s].short, value:active.filter(j=>j.status==='Active' && currentMs(j) && currentMs(j).svc===s).length })).concat([{ label:'For closing', value:active.filter(j=>j.status==='For closing').length }]).map(r=>Object.assign(r,{ valueText:String(r.value) }));
   const lanes = jobs.map(laneOf).filter(Boolean);
-  const laneRows = LANES.map(l=>{ const n = lanes.filter(x=>x===l).length; return { label:l, value:n, valueText: lanes.length ? Math.round(n/lanes.length*100)+'% ('+n+')' : '0', tone:LANE_TONE[l] }; });
+  const laneRows = LANES.map(l=>{ const n = lanes.filter(x=>x===l).length; return { label:l, value:n, valueText: lanes.length ? Math.round(n/lanes.length*100)+'% ('+n+')' : '0', color:'var(--t1m-'+LANE_TONE[l]+')' }; });
   const release = avg(jobs.map(j=>{ const rel = j.ms.find(m=>m.name==='BOC released' && m.done), arr = msByFlag(j,'arrival'); const start = arr && arr.done ? arr.date : (j.free && j.free.arrival); return rel && start ? daysBetween(start, rel.date) : null; }).filter(x=>x!=null));
   const cycle = avg(done.map(j=>daysBetween(j.createdOn, j.completed.on)));
   const stopped = [].concat(...jobs.map(j=>jobClocks(j).filter(c=>c.type==='port' && c.state==='stopped')));
   const within = stopped.filter(c=>!c.over).length, over = sumOf(stopped, c=>c.over);
-  return '<div class="ds-stack"><div class="ds-kpis">'+
+  return '<div class="ds-stack"><div class="ds-kpis ds-kpis--3">'+
       kpi('box','Active jobs', active.length, 'not yet completed', null, "STATE.jobFilter='active'; go('#/jobs')")+
       kpi('lock','On hold', held.length, 'waiting for an exception to be approved', held.length?'danger':null, "STATE.jobFilter='hold'; go('#/jobs')")+
       kpi('clock','Overdue steps', active.filter(jobOverdue).length, 'past their due date', active.filter(jobOverdue).length?'warning':null, "STATE.jobFilter='overdue'; go('#/jobs')")+
@@ -196,11 +222,11 @@ function opsTab(){
     '</div>'+
     '<div class="ds-grid-2">'+
       panel('Active jobs by stage','flag', barRows(stageRows, { empty:'No active jobs.' }), 'The service track each active job is on now. A long bar is a queue forming.')+
-      panel('Customs lanes','shield', barRows(laneRows, { empty:'No lanes recorded yet.' }), 'Share of jobs per BOC lane. Red means physical inspection and the longest release.')+
+      panel('Customs lanes','shield', donutChart(laneRows, { unit:'jobs', label:'Jobs by customs lane', empty:'No lanes recorded yet.' }), 'Share of jobs per BOC lane. Red means physical inspection and the longest release.')+
     '</div>'+
     '<div class="ds-grid-2">'+
       panel('Free-time performance','clock', stopped.length ? '<div class="ds-stats">'+stat('Released within free time', Math.round(within/stopped.length*100)+'%', false, within+' of '+stopped.length+' jobs')+stat('Total days over', String(over), over>0, 'storage + demurrage days')+'</div>' : '<p class="ds-muted ds-small">No port clocks have stopped yet.</p>')+
-      panel('Jobs completed by month','calendar', barRows(monthlyRows(done, j=>j.completed.on)), null, 'last 6 months')+
+      panel('Jobs completed by month','calendar', columnChart(monthlyRows(done, j=>j.completed.on), { label:'Jobs completed by month' }), null, 'last 6 months')+
     '</div>'+
     opsExtraPanels(active, jobs)+
     (held.length ? panel('On hold now','lock', '<ul class="ds-gate">'+held.map(j=>gateItemHtml({ label:j.id+' · '+cname(j.customerId), sub:openIssue(j).reason, met:false, blocked:true, act:act('Open',"go('#/jobs/"+j.id+"/issues')",'arrow-right') })).join('')+'</ul>') : '')+
@@ -251,9 +277,7 @@ function renderDashboard(){
   return '<div class="ds-page-head"><div class="ds-hello"><h1>'+esc(greeting())+'</h1><p>'+esc(todayLong())+'. <strong>'+plural(q.length,'item')+'</strong> need'+(q.length===1?'s':'')+' attention.</p></div>'+
       '<div class="ds-page-head__actions no-print">'+
       '<button class="ds-btn ds-btn--secondary" id="dash-export" onclick="exportDashCSV()">'+icon('download')+'Export to Excel</button>'+(can('inquiry.create')?'<button class="ds-btn ds-btn--primary" onclick="openNewInquiry()">'+icon('plus')+'New inquiry</button>':'')+'</div></div>'+
-    '<div class="ds-stack">'+
-    '<section class="ds-panel ds-panel--elevated" id="needs-attention"><div class="ds-panel__head"><h2>'+icon('flag')+'Needs attention</h2><span class="ds-panel__hint">most urgent first · each row opens the record</span></div>'+
-      queueHtml(q, 'Nothing needs you right now. Approvals, holds, overdue steps and free-time alerts appear here.')+'</section>'+
+    '<div class="ds-dash"><div class="ds-stack ds-dash__main">'+
     (empty ? '<div class="ds-alert ds-alert--info">'+icon('info')+'<div><strong>No data yet</strong>The figures below fill in as customers, inquiries and jobs are created in this session.<div class="ds-alert__actions"><button class="ds-btn ds-btn--secondary ds-btn--sm" id="load-sample" onclick="loadSampleData()">'+icon('download')+'Load sample data</button></div></div></div>' : '')+
     '<section class="ds-panel ds-panel--elevated no-print"><div class="ds-panel__body"><div class="ds-row" style="flex-wrap:wrap">'+icon('filter')+
       sel('dash-range','', 'dashRange', Object.keys(RANGES))+
@@ -264,7 +288,9 @@ function renderDashboard(){
       ((STATE.dashService||STATE.dashScope||STATE.dashCustomer||STATE.dashStaff||STATE.dashRange!=='All time')?'<button class="ds-btn ds-btn--ghost ds-btn--sm" onclick="STATE.dashService=STATE.dashScope=STATE.dashCustomer=STATE.dashStaff=\'\'; STATE.dashRange=\'All time\'; render()">'+icon('x')+'Clear</button>':'')+
     '</div></div></section>'+
     '<section class="ds-panel ds-panel--elevated"><div class="ds-tabs no-print" role="tablist">'+Object.entries(DASH_TABS).map(([k,l])=>'<button class="ds-tab" role="tab" aria-selected="'+(STATE.dashTab===k)+'" onclick="STATE.dashTab=\''+k+'\'; render()"><span class="ds-tab__label" data-text="'+l+'">'+l+'</span></button>').join('')+'</div>'+
-      '<div class="ds-panel__body" id="dash-body">'+body+'</div></section></div>';
+      '<div class="ds-panel__body" id="dash-body">'+body+'</div></section></div>'+
+    '<aside class="ds-dash__aside" aria-label="Needs attention"><section class="ds-panel ds-panel--elevated ds-panel--alert'+(q.length?'':' ds-panel--calm')+'" id="needs-attention"><div class="ds-panel__head"><h2>'+icon('flag')+'Needs attention</h2>'+(q.length?pill(String(q.length),'warning','alert','ds-pill--sm'):'')+'</div>'+
+      '<p class="ds-dash__note">Most urgent first. Each row opens the record.</p><div class="ds-dash__scroll">'+queueHtml(q, 'Nothing needs you right now. Approvals, holds, overdue steps and free-time alerts appear here.')+'</div></section></aside></div>';
 }
 /* Excel export: the records behind the current tab, as CSV (opens in Excel). */
 function exportDashCSV(){

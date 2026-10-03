@@ -185,7 +185,7 @@ Free days come from the arrival notice (defaults are set in Settings). Green mea
 
 ### Fund requests (during the job)
 
-1. Operations creates a **fund request**: purpose, amount, payee, needed-by date, funding source (company funds or client deposit; a client deposit needs the deposit proof).
+1. Operations creates a **fund request**: purpose, amount, payee, needed-by date, always paid from company funds (no funding-source choice).
 2. The Manager **approves** it or returns it with a comment.
 3. Accounting **releases** the funds (cash, check or bank transfer, with reference).
 4. Operations pays, then **liquidates** with the official receipts and the actual amount spent. An excess is returned; a shortfall is reimbursed.
