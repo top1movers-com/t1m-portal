@@ -869,6 +869,18 @@ th[aria-sort="ascending"] .ds-icon { rotate: 180deg; }
 .ds-queue__empty .ds-icon { width: 20px; height: 20px; color: var(--t1m-success); }
 @media (max-width: 640px) { .ds-queue__item { grid-template-columns: 32px minmax(0, 1fr); } .ds-queue__icon { width: 32px; height: 32px; } .ds-queue__actions { grid-column: 2; } }
 
+/* ---------- Sub-heading inside a section, and a table total row ---------- */
+.ds-subhead { margin: var(--t1m-space-5) 0 var(--t1m-space-2); }
+.ds-subhead--first { margin-top: 0; }
+.ds-table tr.ds-tr--total td { background: var(--t1m-surface-muted); border-top: 1px solid var(--t1m-border); font-weight: var(--t1m-w-title); }
+
+/* ---------- Filter bar: dropdown filters always in ONE row, sharing the width equally ---------- */
+.ds-filterbar { display: flex; flex-wrap: nowrap; align-items: center; gap: var(--t1m-space-3); }
+.ds-filterbar > .ds-icon { flex: none; color: var(--t1m-ink-3); }
+.ds-filterbar > div { flex: 1 1 0; min-width: 0; }
+.ds-filterbar > .ds-btn { flex: none; }
+@media (max-width: 640px) { .ds-filterbar { flex-wrap: wrap; } .ds-filterbar > div { flex: 1 1 140px; } .ds-filterbar > .ds-icon { display: none; } }
+
 /* ---------- Filter chips (with counts) ---------- */
 .ds-chips { display: flex; gap: var(--t1m-space-2); flex-wrap: wrap; }
 .ds-chip { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: var(--t1m-radius-full); border: 1px solid var(--t1m-border); background: var(--t1m-surface); color: var(--t1m-ink-2); font: var(--t1m-w-control) var(--t1m-text-sm) var(--t1m-font-chrome); cursor: pointer; white-space: nowrap; transition: background var(--t1m-dur-fast) var(--t1m-ease), border-color var(--t1m-dur-fast) var(--t1m-ease), color var(--t1m-dur-fast) var(--t1m-ease); }

@@ -1,5 +1,5 @@
 /* ============================== PDF DOWNLOADS ==============================
-   Accounting can download a PDF for one fund request, one vendor bill, a job's bills, or a job's billing handover.
+   Accounting can download a PDF for one fund request, one vendor bill, a job's bills, or a job's Finance handover.
    The PDF is written here (no library): A4 pages, Helvetica, the Top1Movers logo, drawn with the portal's colours. */
 const PDF = { W:595, H:842, M:50, TOP:96, BOTTOM:54 };
 const PDF_C = { navy:'0.184 0.227 0.561', navyTint:'0.906 0.918 0.973', ink:'0.08 0.09 0.2', gray:'0.329 0.357 0.486', line:'0.84 0.85 0.91', red:'0.898 0.22 0.231', white:'1 1 1', zebra:'0.968 0.972 0.99',
@@ -171,24 +171,23 @@ function downloadBillsPdf(jobId){
 }
 function downloadBillingPdf(jobId){
   const j = jobById(jobId), rs = readinessStatus(j);
-  if(rs.key==='na') return denied('Billing readiness starts after delivery.');
-  const items = readinessItems(j), ch = chargesOf(j), total = sumOf(ch, c=>c.amount), i = inqById(j.inquiryId), v = i ? acceptedVersion(i) : null, quoted = v ? toPHP(v) : null;
-  const d = pdfDoc('Billing handover').title('Billing handover', j.id+'  |  '+custById(j.customerId).name, rs.label, rs.tone).amount('Charges to bill', money(total), plural(ch.length,'line'));
+  if(!canView('handover.view', j)) return denied();
+  if(rs.key==='na') return denied('The Finance handover starts after delivery.');
+  const items = readinessItems(j), ch = billLines(j), total = sumOf(ch, c=>c.amount);
+  const d = pdfDoc('Finance handover').title('Finance handover', j.id+'  |  '+custById(j.customerId).name, rs.label, rs.tone).amount('Revenue (what we keep)', money(jobRevenue(j)), 'total job amount '+money(jobTotal(j)));
   d.heading('Handover checklist');
   items.forEach(it=>d.check(it.label, it.ok, it.sub));
   if(j.handover){ d.heading('Handover'); const rows = [['Marked ready by', j.handover.readyBy+', '+j.handover.readyOn]]; if(j.handover.receivedOn) rows.push(['Received by Finance', j.handover.receivedBy+', '+j.handover.receivedOn]); if(j.handover.ref) rows.push(['Finance reference', j.handover.ref]); d.card(rows); }
-  d.heading('Charges to bill');
+  d.heading('How the numbers add up');
+  moneyBreakdown(j).forEach((r,x)=>d.row([(r.sign?r.sign+' ':r.total?'= ':'')+r.label+'\n'+r.sub, money(r.amount)].map((t,k)=>({ w:k?115:380, text:t, right:k===1, bold:k===0 && !!r.total })), r.total?{ total:true }:{ shade:x%2===1 }));
+  d.gap(8).heading('Lines on this job');
   if(ch.length){
     const W = [190, 75, 115, 115];
     d.row(['Charge','Type','Evidence','Amount'].map((t,k)=>({ w:W[k], text:t, right:k===3 })), { head:true });
     ch.forEach((c,x)=>d.row([c.desc+'\n'+c.by+', '+c.on, c.kind, c.file||'-', money(c.amount)].map((t,k)=>({ w:W[k], text:t, right:k===3, bold:k===0 })), { shade:x%2===1 }));
-    d.row([{ w:380, text:'Service fees' }, { w:115, text:money(sumOf(ch.filter(c=>c.kind===CHARGE_KINDS[0]), c=>c.amount)), right:true }], { shade:true });
-    d.row([{ w:380, text:'Paid at cost (costs paid for the client)' }, { w:115, text:money(sumOf(ch.filter(c=>c.kind!==CHARGE_KINDS[0]), c=>c.amount)), right:true }]);
-    d.row([{ w:380, text:'Total charges' }, { w:115, text:money(total), right:true }], { total:true });
-    if(quoted!=null) d.gap(12).card([['Accepted quote (v'+v.v+')', money(quoted)], ['Difference', money(total-quoted)+(total>=quoted?' (listed is above the quote)':' (listed is below the quote)')]]);
-  } else d.para('No charges listed yet.');
-  d.gap(12).para('Finance bills from this list in their own system. This page is a handover record, not an invoice.');
-  d.save(pdfStamp('Billing-'+j.id)+'.pdf');
+  } else d.para('Nothing recorded yet.');
+  d.gap(12).para('This page is a handover record for Finance, not an invoice.');
+  d.save(pdfStamp('Finance-handover-'+j.id)+'.pdf');
 }
 
 /* ---------- Job summary report: one page-set that tells the whole story of a job ---------- */
@@ -218,10 +217,11 @@ function downloadJobSummaryPdf(jobId){
       j.funds.forEach((f,k)=>d.row([f.id, f.purpose, money(f.amount), f.liq ? money(f.liq.actual) : '-', frLabel(f)].map((t,n)=>({ w:FW[n], text:String(t), right:n===2||n===3, bold:n===0 })), { shade:k%2===1 }));
       d.row([{ w:205, text:'Total' }, { w:100, text:money(sumOf(j.funds, f=>f.amount)), right:true }, { w:100, text:money(sumOf(j.funds, f=>f.liq ? f.liq.actual : 0)), right:true }, { w:90, text:'' }], { total:true });
     } else d.para('No fund requests.');
-    const ch = chargesOf(j), svc = sumOf(ch.filter(x=>x.kind===CHARGE_KINDS[0]), x=>x.amount), pass = sumOf(ch.filter(x=>x.kind===CHARGE_KINDS[1]), x=>x.amount), tot = svc+pass;
-    d.heading('Charges to bill');
-    if(ch.length){ const rows = [['Service fees', money(svc)], ['At-cost pass-throughs', money(pass)], ['Total charges', money(tot)]]; if(v) rows.push(['Accepted quote', money(toPHP(v))], ['Difference vs quote', money(tot-toPHP(v))]); d.card(rows); }
-    else d.para('No charges listed yet.');
+    if(canView('handover.view', j)){
+      d.heading('Money summary');
+      if(billLines(j).length) d.card(moneyBreakdown(j).map(r=>[r.label, money(r.amount)]));
+      else d.para('Nothing recorded yet.');
+    }
   }
   d.gap(8).para('A summary of this job as recorded in the portal. It is a record, not an invoice.');
   d.save(pdfStamp('Job-summary-'+j.id)+'.pdf');

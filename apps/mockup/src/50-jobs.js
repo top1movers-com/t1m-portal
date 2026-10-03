@@ -83,7 +83,7 @@ function createJob(i, v, opsByService, cargoType){
   logTo(i, 'Converted to job', j.id+' created. Operations: '+ops.join(', ')+'.');
   logTo(j, 'Job created', 'From '+i.id+' (accepted v'+v.v+', '+amountText(v)+'). Operations: '+ops.join(', ')+'. Tracking code '+j.trackingCode+'.');
   notify({ users:ops }, 'You were assigned to job '+j.id+' ('+custById(j.customerId).name+').', '#/jobs/'+j.id);
-  notify({ roles:['Accounting'] }, 'New job '+j.id+' ('+custById(j.customerId).name+'). Fund requests and billing will come through it.', '#/jobs/'+j.id);
+  notify({ roles:['Accounting'] }, 'New job '+j.id+' ('+custById(j.customerId).name+'). Fund requests and the Finance handover will come through it.', '#/jobs/'+j.id);
   return j;
 }
 function convertToJob(inqId, form){
@@ -112,7 +112,7 @@ function renderJobsList(){
   const rows = base.filter(j=>f[2](j) && (!STATE.jobService || j.services.includes(STATE.jobService)) &&
     (!q || [j.id, j.inquiryId, custById(j.customerId).name, j.refs.bl, j.refs.containers, j.trackingCode].some(x=>String(x||'').toLowerCase().includes(q)))).slice().reverse();
   const chip = ([k,l,fn])=>'<button class="ds-chip'+(k==='hold'?' ds-chip--danger':k==='attention'?' ds-chip--warning':'')+'" aria-pressed="'+(STATE.jobFilter===k)+'" onclick="STATE.jobFilter=\''+k+'\'; render()">'+l+'<span class="ds-chip__count">'+base.filter(fn).length+'</span></button>';
-  const bills = canView('money.view');
+  const bills = canView('handover.view');
   const body = rows.map(j=>{
     const c = custById(j.customerId), clk = worstClock(j);
     return '<tr data-href onclick="go(\'#/jobs/'+j.id+'\')"><td data-label="Job"><span class="ds-cell-name"><span class="ds-mono ds-cell-primary">'+j.id+'</span><span class="ds-cell-sub">'+esc(c.name)+(routeText(j.origin, j.destination)?' · '+esc(routeText(j.origin, j.destination)):'')+'</span></span></td>'+
@@ -120,14 +120,14 @@ function renderJobsList(){
       '<td data-label="Current step">'+stagePill(j)+'</td><td data-label="Health">'+healthPill(j)+'</td>'+
       '<td data-label="Free time">'+(clk?'<span class="'+(clockTone(clk)==='danger'?'ds-overdue':'ds-small')+'">'+icon('clock')+' '+esc(clockText(clk))+'</span>':'<span class="ds-muted3">—</span>')+'</td>'+
       '<td data-label="Next due">'+(()=>{ const di = j.status==='Active' ? dueInfo(currentMs(j)) : null; return di ? '<span class="'+(di.late?'ds-overdue':'ds-small')+'">'+(di.late?icon('alert')+' ':'')+esc(di.text)+'</span>' : '<span class="ds-muted3">—</span>'; })()+'</td>'+
-      (bills?'<td data-label="Billing">'+(readinessApplies(j)?readinessPill(j, true):'<span class="ds-muted3">—</span>')+'</td>':'')+'</tr>';
+      (bills?'<td data-label="Finance handover">'+(readinessApplies(j)?readinessPill(j, true):'<span class="ds-muted3">—</span>')+'</td>':'')+'</tr>';
   }).join('');
   return '<div class="ds-page-head"><div><h1>Jobs</h1><p class="ds-page-head__sub">'+(hasRole('Operations')&&!hasRole('Manager')?'Jobs you are assigned to. ':'')+'Where each job is, whether it is OK, and how much free time is left.</p></div></div>'+
     '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__body ds-stack--sm"><div class="ds-chips ds-chips--scroll">'+JOB_FILTERS.map(chip).join('')+'</div>'+
       '<div class="ds-row" style="flex-wrap:wrap"><div class="ds-search" style="flex:1;min-width:220px;max-width:420px">'+icon('search')+'<input class="ds-input" id="job-search" placeholder="Job, inquiry, customer, BL, container or tracking code" value="'+esc(STATE.jobQuery)+'" oninput="STATE.jobQuery=this.value; render()"></div>'+
       '<div style="width:220px">'+selectWrap('<select class="ds-select" id="job-svc" aria-label="Service" onchange="STATE.jobService=this.value; render()"><option value="">All services</option>'+options(SERVICE_ORDER.map(k=>({value:k,label:SERVICES[k].label})), STATE.jobService)+'</select>')+'</div>'+
       '<span class="ds-muted ds-small" style="margin-left:auto">'+plural(rows.length,'job')+'</span></div></div>'+
-    '<div class="ds-table-wrap"><table class="ds-table ds-table--stack" id="jobs-table"><thead><tr><th>Job</th><th>Services</th><th>Current step</th><th>Health</th><th>Free time</th><th>Next due</th>'+(bills?'<th>Billing</th>':'')+'</tr></thead><tbody>'+
+    '<div class="ds-table-wrap"><table class="ds-table ds-table--stack" id="jobs-table"><thead><tr><th>Job</th><th>Services</th><th>Current step</th><th>Health</th><th>Free time</th><th>Next due</th>'+(bills?'<th>Finance handover</th>':'')+'</tr></thead><tbody>'+
       (body || '<tr><td colspan="7">'+(base.length ? emptyState('search','No jobs match','Clear the search or pick another group.') : emptyState('box','No jobs yet','A job is created when a Manager converts a won inquiry.'))+'</td></tr>')+'</tbody></table></div></section>';
 }
 
@@ -135,10 +135,10 @@ function renderJobsList(){
 function jobNext(j){
   const id = j.id, mgrs = usersWithRole('Manager').map(u=>u.name);
   if(j.status==='Completed'){
-    const view = canView('money.view', j);
+    const view = canView('handover.view', j);
     return { tone:'done', icon:'check', eyebrow:'Completed', title:'Job completed',
-      text:'Confirmed by '+j.completed.by+' on '+j.completed.on+'.'+(view ? ' Billing: '+readinessStatus(j).label+'.' : ''), items:[],
-      primary: view ? act('Open billing',"goTab('"+id+"','billing')",'receipt') : null };
+      text:'Confirmed by '+j.completed.by+' on '+j.completed.on+'.'+(view ? ' Finance handover: '+readinessStatus(j).label+'.' : ''), items:[],
+      primary: view ? act('Open Finance handover',"goTab('"+id+"','billing')",'receipt') : null };
   }
   if(j.status==='For closing'){
     const mine = can('job.complete');
@@ -223,8 +223,8 @@ function factsPanel(j){
     f('Tracking code', '<span class="ds-mono">'+esc(j.trackingCode)+'</span> <a class="ds-link ds-xs" href="#/track/'+esc(j.trackingCode)+'" title="The page the client sees">'+icon('eye')+'Client view</a>', true)+
   '</dl>'+(can('job.update', j) && j.status!=='Completed' ? '<button class="ds-btn ds-btn--ghost ds-btn--sm" onclick="openRefs(\''+j.id+'\')">'+icon('file')+'Edit BL and container numbers</button>' : '')+'<p class="ds-muted ds-xs" style="margin-top:var(--t1m-space-2)">Give the client the tracking code. Job numbers alone do not open the tracking page.</p></div></section>';
 }
-const TAB_LABELS = { milestones:'Milestones', documents:'Documents', issues:'Exceptions', money:'Funds', billing:'Billing', history:'History' };
-function jobTabs(j){ const t = ['milestones','documents','issues']; if(canView('money.view', j)) t.push('money'); if(canView('money.view', j)) t.push('billing'); t.push('history'); return t; }
+const TAB_LABELS = { milestones:'Milestones', documents:'Documents', issues:'Exceptions', money:'Funds', billing:'Finance handover', history:'History' };
+function jobTabs(j){ const t = ['milestones','documents','issues']; if(canView('money.view', j)) t.push('money'); if(canView('handover.view', j)) t.push('billing'); t.push('history'); return t; }
 function tabCount(j, t){
   if(t==='documents'){ const n = pendingDocs(j).length; return n ? '<span class="ds-tab__count ds-tab__count--warning">'+n+'</span>' : ''; }
   if(t==='issues'){ if(openIssue(j)) return '<span class="ds-tab__count ds-tab__count--danger">1</span>'; const n = j.issues.filter(x=>x.status!=='Resolved').length; return n ? '<span class="ds-tab__count ds-tab__count--warning">'+n+'</span>' : ''; }

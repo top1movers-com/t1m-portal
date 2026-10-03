@@ -72,6 +72,6 @@ delayed coordination with Ops/Accounting, human errors (quoted vs. billed).
 
 ## Update 2026-10-03
 - The Finance tab was removed with the billing code. Tabs are now Sales & quotations, Operations and Team.
-- Operations tab additions (blueprint dashboard list): KPI tiles for Overdue steps and Missing documents; panels Overdue tasks (steps and corrective actions), Missing documents (pending or rejected, per job), Open exceptions (by category, with how many wait for approval) and Billing readiness (Not ready / Checklist complete / Ready for Finance / Received by Finance).
+- Operations tab additions (blueprint dashboard list): KPI tiles for Overdue steps and Missing documents; panels Overdue tasks (steps and corrective actions), Missing documents (pending or rejected, per job), Open exceptions (by category, with how many wait for approval) and Finance handover (Not ready / Checklist complete / Ready for Finance / Received by Finance).
 - Needs attention now also lists overdue steps, exceptions waiting for approval, overdue corrective actions and jobs whose billing checklist is complete.
 - "Export to Excel" on the dashboard downloads the current tab as CSV.

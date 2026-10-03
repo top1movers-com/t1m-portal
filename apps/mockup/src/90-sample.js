@@ -79,8 +79,7 @@ function loadSampleData(){
     x.status = 'Resolved'; x.review = { by:'Lorna Bautista', on:ago(9), decision:'Approved', comment:null }; x.action = { text:'File a damage claim with the carrier and credit the client', owner:'Mike Salazar', due:ago(6), done:{ by:'Mike Salazar', on:ago(7), note:'Claim filed; client credited', file:null } }; });
   fund(D, 'Rico Domingo', 'Shipping line local charges', 55000, 'Maersk Philippines', 'Verified', 18); fund(D, 'Jessa Aquino', 'Duties & taxes', 120000, 'Bureau of Customs', 'Verified', 15, 'cash');
   D.status = 'Completed'; D.completed = { by:'Lorna Bautista', on:ago(5) };
-  chargesOf(D).push(party({ desc:'Customs brokerage fee', amount:25000, kind:CHARGE_KINDS[0], file:null, by:'Paolo Reyes', on:ago(4) }), party({ desc:'Freight and handling', amount:210000, kind:CHARGE_KINDS[0], file:'rate-sheet.pdf', by:'Paolo Reyes', on:ago(4) }));
-  D.funds.forEach(f=>chargesOf(D).push(party({ desc:f.purpose+' · '+f.payee, amount:f.liq.actual, kind:CHARGE_KINDS[1], fundId:f.id, file:f.liq.receipts, by:'Paolo Reyes', on:ago(4) })));
+  chargesOf(D).push(party({ desc:'Extra storage days at the port', amount:8000, kind:CHARGE_KINDS[0], file:null, by:'Paolo Reyes', on:ago(4) }));
   D.handover = { readyBy:'Grace Tan', readyOn:ago(2) };
   logTo(D, 'Job completed', 'Confirmed by Lorna Bautista.'); logTo(D, 'Ready for Finance', 'Checklist complete.');
   notify({ roles:['Accounting'] }, 'Job '+D.id+' ('+tr.name+') is ready for Finance.', '#/jobs/'+D.id+'/billing');

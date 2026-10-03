@@ -58,11 +58,12 @@ The portal keeps each job's money trail. Taxes, invoices and the books stay in t
 7. "Receipts & quotations" is now **Quotations & bills**, optionally linked to a fund request.
 
 
-## Billing readiness and Finance handover (2026-10-03, blueprint 5.6)
-After delivery the job's Billing tab shows a CHECKLIST: delivery confirmed with proof, all documents received, exceptions resolved, every fund request closed, and charges to bill listed.
-- CHARGES TO BILL are plain lines (what, amount, type: Service fee or Pass-through at cost, optional evidence). Closed fund requests can be added at cost with one click. The tab compares the total with the accepted quote. Manager and Accounting add and remove charges until handover.
+## Finance handover (formerly "Billing readiness") (2026-10-03, blueprint 5.6)
+After delivery the job's Finance handover tab shows a CHECKLIST: delivery confirmed with proof, all documents received, exceptions resolved, every fund request closed, and charges to bill listed.
+- MONEY SUMMARY (2026-10-03). The accepted quotation is what the client agreed to pay and is the first, locked line, so nobody retypes it. Charges added by hand are optional EXTRAS for anything the quotation did not cover (plain lines: what, amount, optional evidence; Manager and Accounting add and remove them until handover). The tab explains the numbers: Accepted quotation + Extra charges = TOTAL JOB AMOUNT (what the client pays overall); minus PAID OUT FOR THE CLIENT (the verified fund requests: shipping line, duties, port charges, which pass through to others) = REVENUE (what we keep). The dashboard's Revenue per month uses that revenue figure. The checklist item "Amount of the job is recorded" is met automatically when an accepted quotation exists. Nothing here is a bill to the client; it is a record for Finance.
 - When every item is met a Manager or Accounting marks the job READY FOR FINANCE (Accounting is notified). Accounting then marks it RECEIVED BY FINANCE with an optional reference from their own accounting system. Charges are locked from handover.
-- Visible on the Jobs list (Billing column), the Billing tab count, Accounting's My Work, Managers' Needs attention and the Operations dashboard ("Billing readiness").
+- WHO SEES IT (2026-10-03): only Manager, Accounting and Admin (permission "See the Finance handover"). Operations and Sales do not see the tab, the Jobs list column, the dashboard panel or the revenue figures, because they show what the company keeps on each job. Operations still see the Funds tab for their own jobs.
+- Visible on the Jobs list (Finance handover column), the Finance handover tab count, Accounting's My Work, Managers' Needs attention and the Operations dashboard ("Finance handover").
 - Still out of scope: invoices, SOA, payments, withholding tax, receivables, profit and any ledger. Finance bills from the charges list in their own system.
 
 ### PDF downloads (2026-10-03)

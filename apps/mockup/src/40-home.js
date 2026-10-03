@@ -59,8 +59,8 @@ function acctWork(){
       if(frLate(f)) out.push({ tone:'warning', icon:'alert', title:'Receipts overdue from '+f.by+' · '+plural(frDaysOut(f),'day'), meta, href, why:money(f.amount)+' released '+f.release.on+' for '+f.purpose+'. Nothing to do yet; follow up with '+f.by+'.', whyTone:'warning', btn:{ label:'Open', js:"openFundDetail('"+j.id+"','"+f.id+"')" } });
     });
     const rs = readinessStatus(j), rmeta = [j.id, cname(j.customerId)], rhref = '#/jobs/'+j.id+'/billing';
-    if(rs.key==='ready') out.push({ tone:'brand', icon:'arrow-right', title:'Receive this job for billing', meta:rmeta, href:rhref, why:'Marked ready for Finance by '+j.handover.readyBy+' on '+j.handover.readyOn+'.', btn:{ label:'Open', js:"go('"+rhref+"')" } });
-    if(rs.key==='complete') out.push({ tone:'info', icon:'receipt', title:'Billing checklist complete', meta:rmeta, href:rhref, why:'Mark it ready for Finance.', btn:{ label:'Mark ready', js:"markReadyForFinance('"+j.id+"')" } });
+    if(rs.key==='ready') out.push({ tone:'brand', icon:'arrow-right', title:'Receive this job for the Finance handover', meta:rmeta, href:rhref, why:'Marked ready for Finance by '+j.handover.readyBy+' on '+j.handover.readyOn+'.', btn:{ label:'Open', js:"go('"+rhref+"')" } });
+    if(rs.key==='complete') out.push({ tone:'info', icon:'receipt', title:'Handover checklist complete', meta:rmeta, href:rhref, why:'Mark it ready for Finance.', btn:{ label:'Mark ready', js:"markReadyForFinance('"+j.id+"')" } });
   });
   return out.sort(byTone);
 }
@@ -105,7 +105,7 @@ function needsAttention(){
     j.funds.filter(f=>f.status==='For approval').forEach(f=>P(2, { tone:'warning', icon:'wallet', title:'Fund request '+money(f.amount)+' waiting for approval', meta:[f.id].concat(meta), why:f.purpose+' · needed by '+f.neededBy, href:href+'/money', btn: can('fund.approve') ? { label:'Review', js:"openReviewFund('"+j.id+"','"+f.id+"')" } : null }));
     if(j.status==='For closing') P(4, { tone:'brand', icon:'flag', title:'Job submitted for closing', meta:meta.concat([j.submitted.by]), href, btn: can('job.complete') ? { label:'Confirm', js:"openConfirmComplete('"+j.id+"')" } : null });
     j.issues.filter(x=>x.status==='For approval' || (x.status==='Returned' && x.holds)).forEach(x=>P(x.holds?1:2, { tone:x.holds?'danger':'warning', icon:x.holds?'lock':'alert', title:(x.holds?'On hold · ':'')+(x.status==='Returned'?'Exception sent back to '+x.by:'Exception waiting for approval')+': '+x.category, meta:meta.concat([x.by]), why:x.reason, whyTone:x.holds?'danger':null, href:href+'/issues', btn: x.status==='For approval' && can('exc.approve') ? { label:'Review', js:"openReviewException('"+j.id+"','"+x.id+"')" } : { label:'Open', js:"go('"+href+"/issues')" } }));
-    if(readinessStatus(j).key==='complete' && can('ready.mark')) P(7, { tone:'info', icon:'receipt', title:'Billing checklist complete: mark ready for Finance', meta, href:href+'/billing', btn:{ label:'Open', js:"go('"+href+"/billing')" } });
+    if(readinessStatus(j).key==='complete' && can('ready.mark')) P(7, { tone:'info', icon:'receipt', title:'Handover checklist complete: mark ready for Finance', meta, href:href+'/billing', btn:{ label:'Open', js:"go('"+href+"/billing')" } });
     const od = jobOverdue(j); if(od) P(5, { tone:'danger', icon:'clock', title:'Step overdue by '+plural(od.days,'day')+': '+od.m.name, meta:meta.concat([opsFor(j, od.m.svc).join(', ')]), why:od.m.phase+'. It was due '+od.m.due+'.', whyTone:'danger', href, btn:{ label:'Open', js:"go('"+href+"')" } });
     j.issues.filter(excActionLate).forEach(x=>P(6, { tone:'danger', icon:'alert', title:'Corrective action overdue by '+plural(-daysUntil(x.action.due),'day')+': '+x.category, meta:meta.concat([x.action.owner]), why:x.action.text, whyTone:'danger', href:href+'/issues', btn:{ label:'Open', js:"go('"+href+"/issues')" } }));
     jobClocks(j).filter(c=>c.state==='running' && c.left<=1).forEach(c=>P(5, { tone:c.left<=0?'danger':'warning', icon:'clock', title:c.label+': '+clockText(c), meta, why:'Fees ('+c.risk+') after '+c.lastFree+'.', whyTone:c.left<=0?'danger':'warning', href, btn:{ label:'Open', js:"go('"+href+"')" } }));
@@ -159,8 +159,8 @@ function monthlyRows(list, dateFn, valFn, fmt){
 function countBy(list, keyFn, labels){ const m = {}; list.forEach(x=>[].concat(keyFn(x)).forEach(k=>{ if(k) m[k] = (m[k]||0)+1; })); return (labels||Object.keys(m)).map(k=>({ label:k, value:m[k]||0, valueText:String(m[k]||0) })); }
 function isWon(i){ return i.closed==='won' || !!i.jobId; }
 
-/* Revenue = the service fees on jobs handed to Finance (pass-through costs paid for the client are not revenue), counted in the month of the handover. */
-const serviceFees = j=>sumOf(chargesOf(j).filter(c=>c.kind===CHARGE_KINDS[0]), c=>c.amount);
+/* Revenue = the accepted quotation plus extra service fees on jobs handed to Finance (pass-through costs are not revenue), counted in the month of the handover. */
+const serviceFees = j=>jobRevenue(j);
 function revenuePanel(){
   const billed = dashJobs().filter(j=>j.handover && j.handover.readyOn), rows = monthlyRows(billed, j=>j.handover.readyOn, serviceFees, v=>'₱'+Math.round(v).toLocaleString('en-PH'));
   const thisMonth = rows[rows.length-1].value, total = sumOf(rows, r=>r.value);
@@ -270,7 +270,7 @@ function kpi(ic, label, value, hint, tone, js){
 const DASH_TABS = { sales:'Sales & quotations', ops:'Operations', team:'Team' };
 function renderDashboard(){
   const q = needsAttention();
-  const sel = (id, label, key, opts)=>'<div style="min-width:180px">'+selectWrap('<select class="ds-select" id="'+id+'" aria-label="'+(label||'Date range')+'" onchange="STATE.'+key+'=this.value; render()">'+(label?'<option value="">'+label+'</option>':'')+options(opts, STATE[key])+'</select>')+'</div>';
+  const sel = (id, label, key, opts)=>'<div>'+selectWrap('<select class="ds-select" id="'+id+'" aria-label="'+(label||'Date range')+'" onchange="STATE.'+key+'=this.value; render()">'+(label?'<option value="">'+label+'</option>':'')+options(opts, STATE[key])+'</select>')+'</div>';
   const staff = USERS.filter(u=>u.roles.some(r=>['Sales','Operations'].includes(r))).map(u=>u.name);
   const body = { sales:salesTab, ops:opsTab, team:teamTab }[STATE.dashTab]();
   const empty = !INQUIRIES.length && !JOBS.length;
@@ -279,7 +279,7 @@ function renderDashboard(){
       '<button class="ds-btn ds-btn--secondary" id="dash-export" onclick="exportDashCSV()">'+icon('download')+'Export to Excel</button>'+(can('inquiry.create')?'<button class="ds-btn ds-btn--primary" onclick="openNewInquiry()">'+icon('plus')+'New inquiry</button>':'')+'</div></div>'+
     '<div class="ds-dash"><div class="ds-stack ds-dash__main">'+
     (empty ? '<div class="ds-alert ds-alert--info">'+icon('info')+'<div><strong>No data yet</strong>The figures below fill in as customers, inquiries and jobs are created in this session.<div class="ds-alert__actions"><button class="ds-btn ds-btn--secondary ds-btn--sm" id="load-sample" onclick="loadSampleData()">'+icon('download')+'Load sample data</button></div></div></div>' : '')+
-    '<section class="ds-panel ds-panel--elevated no-print"><div class="ds-panel__body"><div class="ds-row" style="flex-wrap:wrap">'+icon('filter')+
+    '<section class="ds-panel ds-panel--elevated no-print"><div class="ds-panel__body"><div class="ds-filterbar">'+icon('filter')+
       sel('dash-range','', 'dashRange', Object.keys(RANGES))+
       sel('dash-svc','All services','dashService', SERVICE_ORDER.map(k=>({value:k,label:SERVICES[k].label})))+
       sel('dash-scope','All scopes','dashScope', ['Domestic','International Import','International Export'])+

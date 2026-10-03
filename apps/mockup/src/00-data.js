@@ -2,7 +2,7 @@
    Only the demo USERS are seeded. Customers, inquiries, jobs and money start EMPTY and live in
    memory for this browser session: everything created while testing disappears on refresh.
    Requirements: docs/requirements/01–05. */
-/* Money scope: fund requests, receipts, vendor papers and a billing-readiness handover to Finance.
+/* Money scope: fund requests, receipts, vendor papers and a handover to Finance.
    No invoices, SOA, payments, tax or profit in the portal (see docs/requirements/03-accounting-billing.md). */
 let TODAY = (()=>{ const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); })(); /* a demo control can move it ahead */
 const REAL_TODAY = new Date(TODAY);
@@ -224,10 +224,10 @@ const SETTINGS = { stepDays:2, escalateDays:2, quoteValidityDays:15, awaitingCli
 const ROLES = ['Admin','Manager','Sales','Operations','Accounting'];
 const ROLE_BLURB = {
   Admin:'Full access: users, permissions, settings and every business action.',
-  Manager:'Creates customers and inquiries, assigns staff, approves quotes, money and billing.',
+  Manager:'Creates customers and inquiries, assigns staff, approves quotes, money and the Finance handover.',
   Sales:'Uploads quotations, sends them and records the client’s answer.',
   Operations:'Runs jobs: milestones, documents, issues, fund requests and receipts.',
-  Accounting:'Releases approved funds, checks receipts, keeps vendor papers and receives jobs for billing.'
+  Accounting:'Releases approved funds, checks receipts, keeps vendor papers and receives jobs for the Finance handover.'
 };
 const PERM_GROUPS = [
   { group:'Administration', items:[
@@ -260,6 +260,7 @@ const PERM_GROUPS = [
     ['fund.liquidate','Submit receipts', { Manager:'Y', Operations:'A' }],
     ['fund.verify','Check receipts', { Accounting:'Y' }],
     ['money.view','See fund requests, receipts, quotations and bills', { Manager:'Y', Operations:'A', Accounting:'Y' }],
+    ['handover.view','See the Finance handover (total job amount, paid out and revenue)', { Manager:'Y', Accounting:'Y' }],
     ['charge.edit','Add charges to bill (service fees and costs paid for the client)', { Manager:'Y', Accounting:'Y' }],
     ['ready.mark','Mark a job ready for Finance', { Manager:'Y', Accounting:'Y' }],
     ['ready.receive','Mark a job received by Finance', { Accounting:'Y' }],
