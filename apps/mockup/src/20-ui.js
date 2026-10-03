@@ -9,15 +9,11 @@ function servicesText(list){ return SERVICE_ORDER.filter(s=>list.includes(s)).ma
 function scopeText(x){ return x.scope==='International' ? 'International · '+x.direction : 'Domestic'; }
 function selectWrap(selectHtml){ return '<div class="ds-select-wrap">'+selectHtml+icon('chevron-down')+'</div>'; }
 function options(list, selected){ return list.map(o=>{ const v = typeof o==='string'?o:o.value, l = typeof o==='string'?o:o.label; return '<option value="'+esc(v)+'"'+(v===selected?' selected':'')+'>'+esc(l)+'</option>'; }).join(''); }
-function initials(name){ return name.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase(); }
 const AVATAR_STOPS = [['--t1m-navy-700','--t1m-navy-950'],['--t1m-navy-600','--t1m-navy-800'],['--t1m-navy-800','--t1m-navy-950'],['--t1m-navy-600','--t1m-navy-700'],['--t1m-navy-950','--t1m-navy-700'],['--t1m-navy-600','--t1m-navy-950'],['--t1m-navy-800','--t1m-navy-600']];
 function avatarBg(name){ let h = 0; for(const ch of String(name)) h = (h*31 + ch.charCodeAt(0))>>>0; const g = AVATAR_STOPS[h%AVATAR_STOPS.length]; return 'linear-gradient(135deg,var('+g[0]+'),var('+g[1]+'))'; }
 function avatar(name, sm){ return '<span class="ds-avatar'+(sm?' ds-avatar--sm':'')+'" style="background:'+avatarBg(name)+'" title="'+esc(name)+'">'+icon('user')+'</span>'; }
-function kv(label, value){ return '<div><span class="ds-label">'+esc(label)+'</span><div>'+value+'</div></div>'; }
 function plural(n, one, many){ return n+' '+(n===1?one:(many||one+'s')); }
 function emptyState(ic, title, text, actionHtml){ return '<div class="ds-empty">'+icon(ic)+'<h3>'+esc(title)+'</h3>'+(text?'<p>'+esc(text)+'</p>':'')+(actionHtml||'')+'</div>'; }
-function jobLink(id){ return '<a class="ds-mono ds-cell-primary" href="#/jobs/'+id+'" onclick="event.stopPropagation()">'+id+'</a>'; }
-function inqLink(id){ return '<a class="ds-mono ds-cell-primary" href="#/inquiries/'+id+'" onclick="event.stopPropagation()">'+id+'</a>'; }
 /* Check list of options (services, staff, roles). disabled: {value: reason}. */
 function checkList(name, opts, checked, disabled, onchange){
   disabled = disabled||{};
@@ -49,9 +45,10 @@ function pickMulti(id, li, ev){
   v.textContent = vals.length ? vals.join(', ') : el.dataset.placeholderText;
   vals.length ? v.removeAttribute('data-placeholder') : v.setAttribute('data-placeholder','');
   el.querySelector('[data-inputs]').innerHTML = vals.map(x=>'<input type="hidden" name="'+esc(el.dataset.name)+'" value="'+esc(x)+'">').join('');
+  clearFieldErrorIn(el);
 }
-function segControl(name, opts, value, onchange){ return '<fieldset class="ds-seg" aria-label="'+esc(name)+'">'+opts.map(o=>'<label><input type="radio" name="'+name+'" value="'+esc(o)+'"'+(o===value?' checked':'')+(onchange?' onchange="'+onchange+'"':'')+'>'+esc(o)+'</label>').join('')+'</fieldset>'; }
-function reasonFields(list, label, selected){ return '<div class="ds-field"><label for="rs-type">'+esc(label||'Reason')+'</label>'+selectWrap('<select class="ds-select" id="rs-type" name="reasonType">'+options(list, selected)+'</select>')+'</div>'+
+function segControl(name, opts, value, onchange, block){ return '<fieldset class="ds-seg'+(block?' ds-seg--block':'')+'" aria-label="'+esc(name)+'">'+opts.map(o=>'<label><input type="radio" name="'+name+'" value="'+esc(o)+'"'+(o===value?' checked':'')+(onchange?' onchange="'+onchange+'"':'')+'>'+esc(o)+'</label>').join('')+'</fieldset>'; }
+function reasonFields(list, label, selected){ return '<div class="ds-field"><label for="rs-type">'+esc(label||'Reason')+'</label>'+selectWrap('<select class="ds-select" id="rs-type" name="reasonType"><option value="">Select a reason</option>'+options(list, selected)+'</select>')+errorSlot('reasonType')+'</div>'+
   '<div class="ds-field"><label for="rs-comment">Comment</label><textarea class="ds-textarea" id="rs-comment" name="comment" style="min-height:72px" placeholder="Explain in a sentence or two"></textarea>'+errorSlot('comment')+'</div>'; }
 function dateField(id, name, label, value, opt){ return '<div class="ds-field"><label for="'+id+'">'+esc(label)+(opt?' <span class="ds-opt">optional</span>':'')+'</label><input class="ds-input" type="date" id="'+id+'" name="'+name+'" value="'+dmyToISO(value||'')+'">'+errorSlot(name)+'</div>'; }
 function moneyField(id, name, label, cur, value){ return '<div class="ds-field"><label for="'+id+'">'+esc(label)+'</label><div class="ds-input-group"><span class="ds-affix">'+(cur||'PHP')+'</span><input class="ds-input" id="'+id+'" name="'+name+'" type="number" step="0.01" min="0" placeholder="0.00"'+(value!=null?' value="'+value+'"':'')+'></div>'+errorSlot(name)+'</div>'; }
@@ -71,7 +68,7 @@ function uploadHtml(slotId, hint){
     '<input type="file" onchange="pickFile(\''+slotId+'\', this.files[0])" aria-label="Choose file"></div>'+
     '<button type="button" class="ds-link ds-xs" style="margin-top:6px" onclick="pickFile(\''+slotId+'\', {name:\'sample-'+slotId.toLowerCase()+'.pdf\'})">'+icon('file')+'Use a sample file (demo)</button>';
 }
-function pickFile(slotId, f){ if(!f) return; UPLOADS[slotId] = f.name; const el = document.querySelector('.ds-upload[data-upload-slot="'+slotId+'"]'); if(el){ const hint = el.dataset.hint||''; const next = el.nextElementSibling; if(next && next.classList.contains('ds-link')) next.remove(); el.outerHTML = uploadHtml(slotId, hint); } }
+function pickFile(slotId, f){ if(!f) return; UPLOADS[slotId] = f.name; const el = document.querySelector('.ds-upload[data-upload-slot="'+slotId+'"]'); if(el){ clearFieldErrorIn(el); const hint = el.dataset.hint||''; const next = el.nextElementSibling; if(next && next.classList.contains('ds-link')) next.remove(); el.outerHTML = uploadHtml(slotId, hint); } }
 function clearUpload(slotId){ delete UPLOADS[slotId]; const el = document.querySelector('.ds-upload[data-upload-slot="'+slotId+'"]'); if(el) el.outerHTML = uploadHtml(slotId, el.dataset.hint||''); }
 
 /* Field errors name the problem and the fix, under the field, not in a toast that vanishes. */
@@ -83,12 +80,14 @@ function fieldError(form, name, msg){
   if(el){ el.hidden = !msg; el.lastElementChild.textContent = msg||''; }
   return !!msg;
 }
-function formError(form, msg){
-  let el = form.querySelector('.ds-form-error');
-  if(!el){ el = document.createElement('div'); el.className = 'ds-alert ds-alert--danger ds-form-error ds-alert--enter'; form.prepend(el); }
-  el.innerHTML = icon('alert')+'<div><strong>'+esc(msg.title)+'</strong>'+esc(msg.text||'')+'</div>';
-  el.scrollIntoView({block:'nearest'});
+/* An error disappears as soon as the person changes the field it is about. */
+function clearFieldError(e){
+  const t = e.target, f = t && t.form; if(!f || !t.name) return;
+  const slot = f.querySelector('[data-error-for="'+t.name+'"]');
+  if(slot && !slot.hidden) fieldError(f, t.name, '');
 }
+document.addEventListener('input', clearFieldError); document.addEventListener('change', clearFieldError);
+function clearFieldErrorIn(el){ const fld = el && el.closest('.ds-field'); if(fld) fld.querySelectorAll('.ds-field__error').forEach(x=>{ x.hidden = true; }); }
 
 /* ============================== OVERLAYS ============================== */
 /* Drawer: record detail and quick edits slide in from the right (a bottom sheet on phones), so the
@@ -119,7 +118,7 @@ function openDrawer(o){
 let CONFIRM_OK = false;
 function needConfirm(title, text, label, again, danger){
   if(CONFIRM_OK){ CONFIRM_OK = false; return false; }
-  confirmAction(title, text, label, 'CONFIRM_OK = true; '+again, danger);
+  confirmAction(title, text, label, 'CONFIRM_OK = true; try { '+again+' } finally { CONFIRM_OK = false; }', danger);
   return true;
 }
 function confirmAction(title, text, label, js, danger, extraHtml){
@@ -207,6 +206,7 @@ function closeCmdk(){ const r=document.getElementById('cmdkRoot'); r.classList.r
 window.addEventListener('keydown', e=>{
   if((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); document.getElementById('cmdkRoot').classList.contains('open') ? closeCmdk() : openCmdk(); }
   else if(e.key==='Escape'){ closeDrawer(); closePopover(); closeAvatarMenu(); }
+  else if(e.key==='Enter' && e.target && e.target.matches && e.target.matches('tr[data-href]')){ e.preventDefault(); e.target.click(); }
   else if(e.key==='/' && !/INPUT|TEXTAREA|SELECT/.test((document.activeElement||{}).tagName||'') && CURRENT_USER){ e.preventDefault(); openCmdk(); }
 });
 
@@ -216,7 +216,7 @@ window.addEventListener('keydown', e=>{
    keeping focus and scroll when the route itself did not change. */
 const STATE = { jobFilter:'active', jobQuery:'', jobService:'', inqFilter:'open', inqQuery:'', inqService:'', inqScope:'', inqStaff:'', inqFrom:'', inqTo:'', customerQuery:'',
   auditQuery:'', auditUser:'', auditPreset:'all', auditStart:null, auditEnd:null, auditCalMonth:new Date(TODAY.getFullYear(),TODAY.getMonth(),1), auditPickerOpen:false, auditPickStart:null, auditPage:1, auditPageSize:25,
-  dashTab:'sales', dashRange:'All time', dashService:'', dashScope:'', dashCustomer:'', dashStaff:'', justNext:null, trackError:'', trackQuery:'', userQuery:'' };
+  dashTab:'sales', dashRange:'All time', dashService:'', dashScope:'', dashCustomer:'', dashStaff:'', justNext:null, trackError:'', trackQuery:'', userQuery:'', fundFilter:null, fundQuery:'' };
 function go(hash){ if(location.hash===hash) render(); else location.hash = hash; }
 function goTab(jobId, tab){ go('#/jobs/'+jobId+'/'+tab); setTimeout(()=>{ const t = document.getElementById('job-tabs'); if(t) t.scrollIntoView({behavior:'smooth', block:'start'}); }, 30); }
 window.addEventListener('hashchange', ()=>render());
@@ -224,12 +224,21 @@ window.addEventListener('hashchange', ()=>render());
 window.matchMedia('(max-width: 640px)').addEventListener('change', ()=>{ if(CURRENT_USER) render(); });
 window.addEventListener('DOMContentLoaded', ()=>{ if(!location.hash) location.hash='#/login'; render(); });
 
+/* Rows that open a record are reachable by keyboard; scrolling lists can be focused so the arrow keys work. */
+function enhanceA11y(root){
+  root.querySelectorAll('tr[data-href]').forEach(tr=>{ tr.tabIndex = 0; });
+  root.querySelectorAll('.ds-table-wrap').forEach(e=>{ if(e.scrollWidth>e.clientWidth+1){ e.tabIndex = 0; e.setAttribute('role','region'); e.setAttribute('aria-label','Table, scrolls sideways'); } });
+  root.querySelectorAll('input:not([type=hidden]):not([type=file]),select,textarea').forEach(el=>{
+    if(el.getAttribute('aria-label') || el.closest('label') || (el.id && root.querySelector('label[for="'+el.id+'"]'))) return;
+    const t = el.getAttribute('placeholder') || el.name; if(t) el.setAttribute('aria-label', t); });
+  root.querySelectorAll('.ds-scroll-list').forEach(e=>{ e.tabIndex = 0; e.setAttribute('role','region'); if(!e.getAttribute('aria-label')) e.setAttribute('aria-label','Scrollable list'); });
+}
 let LAST_HASH = null;
 function render(){
   const hash = (location.hash||'#/login').replace(/^#\//,'');
   let parts = hash.split('/').filter(Boolean);
   const root = document.getElementById('app');
-  closeDrawer(); closePopover(); closeAvatarMenu();
+  closeDrawer(); closePopover(); closeAvatarMenu(); runEscalations();
   const sameRoute = hash === LAST_HASH;
   const newSection = !LAST_HASH || LAST_HASH.split('/')[0] !== (parts[0]||'');
   LAST_HASH = hash;
@@ -248,6 +257,6 @@ function render(){
   if(focusId){ const el = document.getElementById(focusId); if(el && el.focus){ el.focus({preventScroll:true}); if(selStart!=null && el.setSelectionRange) try{ el.setSelectionRange(selStart, selStart); }catch(e){} } }
   window.scrollTo(0, sameRoute ? scrollY : 0);
   document.querySelectorAll('.ds-track [data-state="current"], .ds-track [data-state="blocked"]').forEach(cur=>{ const tr = cur.parentElement; tr.scrollLeft = cur.offsetLeft - tr.clientWidth/2 + cur.clientWidth/2; });
-  markRequired(root);
+  markRequired(root); enhanceA11y(root);
   STATE.justNext = null;
 }

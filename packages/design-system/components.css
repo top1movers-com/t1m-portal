@@ -175,6 +175,7 @@ a { color: var(--t1m-navy-700); text-underline-offset: 2px; }
 .ds-table td { height: var(--t1m-row-h); padding: 0 var(--t1m-space-3); white-space: nowrap; border-bottom: 1px solid var(--t1m-border); vertical-align: middle; transition: background var(--t1m-dur-fast) var(--t1m-ease); }
 .ds-table tbody tr:last-child td { border-bottom-color: transparent; }
 .ds-table tbody tr[data-href] { cursor: pointer; }
+.ds-table tbody tr[data-href]:focus-visible { outline: 2px solid var(--t1m-navy-700); outline-offset: -2px; }
 .ds-table td:first-child, .ds-table th:first-child { padding-left: var(--t1m-space-4); }
 /* Hover and selection are inset rounded highlights; neighbouring dividers fade out so the pill reads clean. */
 .ds-table tbody tr:hover td { background: var(--t1m-navy-50); border-bottom-color: transparent; }
@@ -1064,6 +1065,13 @@ th[aria-sort="ascending"] .ds-icon { rotate: 180deg; }
 .ds-facts--stacked dt { font-size: var(--t1m-text-xs); margin-top: var(--t1m-space-3); }
 .ds-facts--stacked dt:first-child { margin-top: 0; }
 .ds-facts--stacked dd { text-align: left; }
+.ds-facts--stacked > .ds-fact { margin-top: var(--t1m-space-3); }
+.ds-facts--stacked > .ds-fact:first-child { margin-top: 0; }
+.ds-facts--cols { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--t1m-space-4) var(--t1m-space-6); }
+.ds-facts--cols dt { font-size: var(--t1m-text-xs); }
+.ds-facts--cols dd { text-align: left; }
+.ds-facts--cols .ds-fact--wide { grid-column: 1 / -1; }
+@media (max-width: 640px) { .ds-facts--cols { grid-template-columns: minmax(0, 1fr); } }
 
 /* ---------- Lane colour on the "Lane assigned" step (Green / Yellow / Red) ---------- */
 .ds-track__step[data-lane="Green"] { color: var(--t1m-success); }
@@ -1140,3 +1148,16 @@ th[aria-sort="ascending"] .ds-icon { rotate: 180deg; }
 .ds-public__mark { position: absolute; right: var(--t1m-space-6); bottom: calc(var(--t1m-space-6) * -0.5); z-index: 0; font: 800 clamp(100px, 16vw, 200px)/1 var(--t1m-font-display); letter-spacing: -0.04em; color: transparent; -webkit-text-stroke: 2px color-mix(in srgb, var(--t1m-ink-inverse) 14%, transparent); user-select: none; pointer-events: none; }
 @media (max-width: 640px) { .ds-public__mark { display: none; } }
 @media (prefers-reduced-motion: reduce) { .ds-public__hero::before, .ds-public__hero::after { animation: none; } }
+
+/* Touch targets: these come last so they win over the base sizes above. */
+@media (max-width: 640px) {
+  .ds-chip { height: var(--t1m-control-h-touch); }
+  .ds-topbar-btn { width: var(--t1m-control-h-touch); height: var(--t1m-control-h-touch); }
+  .ds-avatar { width: var(--t1m-control-h-touch); height: var(--t1m-control-h-touch); }
+  .ds-menu__action { min-height: var(--t1m-control-h-touch); }
+}
+
+/* ---------- Segmented control, block variant (long labels: equal-width choices that fill the row and wrap neatly; stacked on phones) ---------- */
+.ds-seg--block { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; width: 100%; }
+.ds-seg--block label { height: auto; min-height: 40px; padding: var(--t1m-space-2) var(--t1m-space-3); justify-content: center; text-align: center; line-height: 1.25; }
+@media (max-width: 640px) { .ds-seg.ds-seg--block { display: grid; grid-auto-flow: row; grid-auto-columns: auto; } }

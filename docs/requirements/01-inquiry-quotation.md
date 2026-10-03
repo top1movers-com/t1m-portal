@@ -17,12 +17,12 @@ Status: AGREED — to be combined with later stages once all requirements are fi
    - If International Export: Importer Accreditation is disabled.
    - LTO Transactions and Warehousing are available in any scope.
    - The system generates a PROGRESS MAP from scope + direction + selected services.
-   - The request also records cargo, origin, destination, cargo type, notes and DELIVERY INSTRUCTIONS (optional; per shipment,
-     not per customer — moved off the customer form 2026-10-02). They carry into the job.
+   - The request also records the channel it was received through, cargo, optional consignee, origin, destination, cargo type, notes and DELIVERY INSTRUCTIONS (optional; per shipment, pre-filled from the customer's standing requirements). They carry into the job.
+   - The customer profile keeps CONSIGNEES, DELIVERY ADDRESSES (a new one typed on an inquiry is saved automatically) and standing REQUIREMENTS / delivery instructions (added 2026-10-03).
    - Work starts only after staff are assigned.
 3. Sales gets rates from carriers, prepares the quotation in their own format, uploads it + enters TOTAL AMOUNT + CURRENCY (required, added in Stage 5), and submits it for approval.
 4. The Manager approves, or returns it with a required comment. Returns are logged in VERSION HISTORY and go back to step 3.
-5. Sales sends the quote to the client through any channel and marks it as Sent, with PROOF it was sent (required; e.g. the sent email or chat screenshot).
+5. When the Manager approves, the system emails the quote to the client automatically (decided 2026-10-03; no manual "mark as sent" step). The email links to the client quote page, where the client can Accept, Renegotiate or Decline and must pick a reason from the list for the last two.
 6. Client outcome:
    - Accepted (with proof) → Manager acknowledges → Inquiry CLOSED → ready for Convert to Job.
    - Renegotiates / Rejects / Expires (reason + proof) → logged in VERSION HISTORY → back to step 3.
