@@ -44,8 +44,8 @@ function pickAccount(name){
   if(!u || !u.active){ showToast('That account is deactivated. An Admin can switch it back on.', 'danger', 'alert'); return; }
   closeAcctPicker(); signInAs(name);
 }
-function signInAs(name, route){ CURRENT_USER = userByName(name); go(route || '#/home'); }
-function signOut(){ CURRENT_USER = null; go('#/login'); }
+function signInAs(name, route){ CURRENT_USER = userByName(name); adminLog('Signed in', name+' signed in with Microsoft.', name); go(route || '#/home'); }
+function signOut(){ if(CURRENT_USER) adminLog('Signed out', CURRENT_USER.name+' signed out.', CURRENT_USER.name); CURRENT_USER = null; go('#/login'); }
 
 /* ============================== SHELL ============================== */
 function navItem(key, label, ic, parts, count, alert_, desktopOnly){
@@ -70,6 +70,7 @@ function renderShell(parts){
         (hasDash() && hasMyWork() ? navItem('mywork', navShortLabel('My work','My work'), 'tasks', parts, work, true) : '')+
         (canView('inquiry.view') ? navItem('inquiries', navShortLabel('Inquiries & quotes','Sales'), 'quote', parts, openInq) : '')+
         (canView('job.view') ? navItem('jobs', 'Jobs', 'box', parts, activeJobs) : '')+
+        (canView('money.view') ? navItem('funds', 'Funds', 'wallet', parts, fundsWaitingCount()) : '')+
         (canView('customer.edit') ? navItem('customers', 'Customers', 'building', parts, null, false, true) : '')+
         (adminGroup ? '<div class="ds-nav__group">Admin</div>' : '')+
         (can('users.manage') || can('perms.edit') ? navItem('users','Users & roles','users',parts,null,false,true) : '')+
@@ -79,9 +80,10 @@ function renderShell(parts){
     '</aside>'+
     '<header class="ds-topbar">'+
       '<a class="ds-topbar__brand" href="#/home" aria-label="Home"><img src="'+LOGO_SRC+'" alt="Top1Movers"></a>'+
-      '<div class="ds-search">'+icon('search')+'<input class="ds-input" id="top-search" placeholder="Search job, inquiry, customer, BL" readonly onclick="openCmdk()" onfocus="this.blur(); openCmdk()"><kbd class="ds-kbd">'+(navigator.platform.includes('Mac')?'⌘K':'Ctrl K')+'</kbd></div>'+
+      '<div class="ds-search">'+icon('search')+'<input class="ds-input" id="top-search" aria-label="Search" placeholder="Search job, inquiry, customer, BL" readonly onclick="openCmdk()" onfocus="this.blur(); openCmdk()"><kbd class="ds-kbd">'+(navigator.platform.includes('Mac')?'⌘K':'Ctrl K')+'</kbd></div>'+
       '<div class="ds-topbar__spacer"></div>'+
       '<button class="ds-topbar-btn ds-topbar-btn--phone" onclick="openCmdk()" aria-label="Search">'+icon('search')+'</button>'+
+      (TODAY.getTime()!==REAL_TODAY.getTime() ? '<span class="ds-mockbadge" title="The calendar was moved ahead for the demo">'+icon('calendar')+'Demo date '+esc(shortDate(todayDMY()))+'</span>' : '')+
       notificationsButton()+
       '<div class="ds-topbar__who"><strong>'+esc(CURRENT_USER.name)+'</strong><span>'+esc(rolesText())+'</span></div>'+
       avatarMenuHtml()+
@@ -100,6 +102,12 @@ function avatarMenuHtml(){
       '<div class="ds-menu__header"><strong>'+esc(CURRENT_USER.name)+'</strong><span>'+esc(rolesText())+'</span></div>'+
       phoneLinks+
       '<button class="ds-menu__action" onclick="closeAvatarMenu(); openAcctPicker()">'+icon('users')+'Switch person (demo)</button>'+
+      (!CUSTOMERS.length && !INQUIRIES.length && !JOBS.length ? '<button class="ds-menu__action" onclick="closeAvatarMenu(); loadSampleData()">'+icon('download')+'Demo: load sample data</button>' : '')+
+      '<div class="ds-menu__sep"></div>'+
+      '<button class="ds-menu__action" onclick="demoJump(1)">'+icon('calendar')+'Demo: jump ahead 1 day</button>'+
+      '<button class="ds-menu__action" onclick="demoJump(3)">'+icon('calendar')+'Demo: jump ahead 3 days</button>'+
+      '<button class="ds-menu__action" onclick="demoJump(7)">'+icon('calendar')+'Demo: jump ahead 7 days</button>'+
+      (TODAY.getTime()!==REAL_TODAY.getTime() ? '<button class="ds-menu__action" onclick="demoJump(0)">'+icon('refresh')+'Demo: back to today</button>' : '')+
       '<div class="ds-menu__sep"></div>'+
       '<button class="ds-menu__action ds-menu__action--danger" onclick="signOut()">'+icon('log-out')+'Sign out</button>'+
     '</div></div>';
@@ -127,15 +135,14 @@ function notificationsButton(){
 function openNotifications(){
   const list = myNotifs();
   const body = list.length ? '<ul class="ds-queue ds-panel">'+list.map((n,i)=>{ const unread = !n.readBy.includes(me());
-    return '<li class="ds-queue__item" data-tone="'+(unread?'brand':'')+'" style="--i:'+i+'"><span class="ds-queue__icon">'+icon(unread?'bell':'check')+'</span><div><div class="ds-queue__title">'+esc(n.text)+'</div><div class="ds-queue__meta"><span>'+esc(n.ts)+'</span>'+(unread?'<span class="ds-strong">New</span>':'')+'</div></div>'+'</li>'; }).join('')+'</ul>'
+    return '<li class="ds-queue__item" data-tone="'+(unread?'brand':'')+'" style="--i:'+i+'"><span class="ds-queue__icon">'+icon(unread?'bell':'check')+'</span><div style="min-width:0;cursor:'+(n.link?'pointer':'default')+'"'+(n.link?' role="button" tabindex="0" onclick="openNotif(\''+n.id+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){ event.preventDefault(); openNotif(\''+n.id+'\'); }"':'')+'><div class="ds-queue__title">'+esc(n.text)+'</div><div class="ds-queue__meta"><span>'+esc(n.ts)+'</span>'+(n.email?'<span>Emailed</span>':'')+(unread?'<span class="ds-strong">New</span>':'')+(n.email?'<button class="ds-btn ds-btn--ghost ds-btn--sm" onclick="event.stopPropagation(); openEmail(\''+n.email+'\')">'+icon('file')+'View email</button>':'')+'</div></div>'+'</li>'; }).join('')+'</ul>'
     : emptyState('bell','No notifications','Assignments, approvals and client answers that involve you appear here.');
   openDrawer({ title:'Notifications', sub:'In-app now; also sent by email in the real build.', body,
     foot: list.length ? '<button class="ds-btn ds-btn--primary" onclick="closeDrawer()">Close</button>' : null });
   list.forEach(n=>{ if(!n.readBy.includes(me())) n.readBy.push(me()); });
   const bell = document.getElementById('bell'); if(bell) bell.outerHTML = notificationsButton();
 }
-function openNotif(id){ const n = NOTIFS.find(x=>x.id===id); if(!n.readBy.includes(me())) n.readBy.push(me()); closeDrawer(); go(n.link); }
-function markAllRead(){ myNotifs().forEach(n=>{ if(!n.readBy.includes(me())) n.readBy.push(me()); }); closeDrawer(); render(); }
+function openNotif(id){ const n = NOTIFS.find(x=>x.id===id); if(!n || !n.link) return; closeDrawer(); go(n.link); }
 
 /* ============================== PAGE ROUTER ============================== */
 function pageFor(parts){
@@ -144,6 +151,7 @@ function pageFor(parts){
     case 'home': return hasDash() ? renderDashboard() : renderMyWork();
     case 'mywork': return hasMyWork() ? renderMyWork() : accessDenied('My work');
     case 'jobs': return canView('job.view') ? (id ? renderJob(id, sub) : renderJobsList()) : accessDenied('Jobs');
+    case 'funds': return canView('money.view') ? renderFunds() : accessDenied('Funds');
     case 'inquiries': return canView('inquiry.view') ? (id ? renderInquiry(id) : renderInquiries()) : accessDenied('Inquiries & quotes');
     case 'customers': return canView('customer.edit') ? (id ? renderCustomer(id) : renderCustomers()) : accessDenied('Customers');
     case 'users': return can('users.manage') || can('perms.edit') ? renderUsers() : accessDenied('Users & roles');

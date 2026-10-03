@@ -33,12 +33,12 @@ const LEVEL_TEXT = { Y:'Yes', A:'Assigned only', V:'View', VA:'View assigned', V
 function permMatrixHtml(){
   const edit = can('perms.edit');
   const body = PERM_GROUPS.map(g=>'<tr><td colspan="'+(ROLES.length+1)+'" class="ds-label" style="padding-top:var(--t1m-space-4)">'+esc(g.group)+'</td></tr>'+g.items.map(([key,label])=>'<tr><td data-label="Permission" style="white-space:normal">'+esc(label)+'</td>'+ROLES.map(r=>{
-    const lv = PERM[key][r], locked = r==='Admin' && ['users.manage','perms.edit'].includes(key);
-    const box = edit ? '<label class="ds-check" style="justify-content:center" title="'+esc(locked?'Locked so the Admin can never lock themselves out':(lv?'Untick to remove':'Tick to grant'))+'"><input type="checkbox" '+(lv?'checked ':'')+(locked?'disabled ':'')+'onchange="togglePerm(\''+key+'\',\''+r+'\')" aria-label="'+esc(r+': '+label)+'"></label>'
+    const lv = PERM[key][r], locked = r==='Admin';
+    const box = edit ? '<label class="ds-check" style="justify-content:center" title="'+esc(locked?'Admin always has full access':(lv?'Untick to remove':'Tick to grant'))+'"><input type="checkbox" '+(lv?'checked ':'')+(locked?'disabled ':'')+'onchange="togglePerm(\''+key+'\',\''+r+'\')" aria-label="'+esc(r+': '+label)+'"></label>'
       : (lv?'<span style="color:var(--t1m-success)">'+icon('check')+'</span>':'<span class="ds-muted3">—</span>');
     return '<td data-label="'+esc(r)+'" style="text-align:center">'+box+(lv && lv!=='Y'?'<div class="ds-muted ds-xs">'+esc(LEVEL_TEXT[lv])+'</div>':'')+'</td>'; }).join('')+'</tr>').join('')).join('');
   return '<section class="ds-panel ds-panel--elevated" id="perm-matrix"><div class="ds-panel__head"><h2>'+icon('shield')+'Permission matrix</h2><span class="ds-panel__hint">'+(edit?'Admin can tick or untick · changes apply immediately':'read only')+'</span></div>'+
-    '<div class="ds-panel__body ds-small ds-muted">A person gets the best level any of their roles has. “Assigned only” means records they are assigned to. Money is split on purpose: a Manager approves, Accounting releases. Someone holding both roles can do both, and both actions are logged under their name.</div>'+
+    '<div class="ds-panel__body ds-small ds-muted">Admin has full access to everything, so that column is locked. A person gets the best level any of their roles has. “Assigned only” means records they are assigned to. Money is split on purpose: a Manager approves, Accounting releases. Someone holding both roles can do both, and both actions are logged under their name.</div>'+
     '<div class="ds-table-wrap"><table class="ds-table ds-table--compact ds-table--stack"><thead><tr><th>Permission</th>'+ROLES.map(r=>'<th style="text-align:center">'+esc(r)+'</th>').join('')+'</tr></thead><tbody>'+body+'</tbody></table></div></section>';
 }
 function togglePerm(key, r){
@@ -88,7 +88,7 @@ function toggleUser(id){
   if(!u.active){ u.active = true; u.pendingDeactivation = null; adminLog('User reactivated', u.name+' can sign in again.', u.name); showToast(u.name+' is active again.', 'success', 'check'); render(); return; }
   if(u.roles.includes('Admin') && USERS.filter(x=>x.active && x.roles.includes('Admin')).length===1){ showToast('There must be at least one active Admin.', 'danger', 'alert'); render(); return; }
   const n = workCount(openWorkOf(u.name));
-  if(!n){ deactivate(u); return; }
+  if(!n){ render(); confirmAction('Deactivate '+u.name+'?', 'They can no longer sign in. Their history stays in the audit log.', 'Deactivate', "deactivate(USERS.find(x=>x.id==='"+id+"'))", true); return; }
   if(can('inquiry.create')){ render(); setTimeout(()=>openHandover(id), 0); return; }
   u.pendingDeactivation = { by:me(), on:todayDMY() };
   adminLog('Deactivation requested', u.name+' has '+plural(n,'open item')+'. Waiting for a Manager to reassign them.', u.name);
@@ -127,18 +127,19 @@ function saveHandover(id, form){
 const SETTING_FIELDS = [
   ['quoteValidityDays','Quote validity (days)','Default “valid until” when sales uploads a quote.'],
   ['awaitingClientDays','Awaiting-client alert (days)','A sent quote with no answer for this long shows on the dashboard.'],
-  ['reminderEveryDays','Follow-up reminder (every N days)','Email reminder to inquiry members while awaiting the client. Planned for the real build.'],
-  ['unliquidatedDays','Liquidation due (days)','Released funds not liquidated after this many days are flagged.'],
+  ['stepDays','Days allowed per step','Each step is due this many days after the one before it. A few steps, such as ocean transit, have their own allowance.'],
+  ['escalateDays','Escalate to a Manager after (days overdue)','The owner is emailed when a step becomes overdue; a Manager is emailed after this many days.'],
+  ['reminderEveryDays','Follow-up reminder (every N days)','Automatic email to the assigned Sales staff while a quote is waiting for the client.'],
+  ['unliquidatedDays','Receipts due (days)','Released funds without receipts after this many days are flagged as overdue.'],
   ['portFreeDays','Default port free days','Pre-filled when a job is created; Ops can change it per job.'],
-  ['containerFreeDays','Default container free days (FCL)','Pre-filled when a job is created; Ops can change it per job.'],
-  ['paymentTermsDays','Payment terms (days)','Default SOA due date.']
+  ['containerFreeDays','Default container free days (FCL)','Pre-filled when a job is created; Ops can change it per job.']
 ];
 function renderSettings(){
   const fields = SETTING_FIELDS.map(([k,l,h])=>'<div class="ds-field"><label for="set-'+k+'">'+esc(l)+'</label><input class="ds-input" style="max-width:160px" type="number" min="0" id="set-'+k+'" name="'+k+'" value="'+SETTINGS[k]+'"><p class="ds-field__hint">'+esc(h)+'</p></div>').join('');
   const docs = Object.keys(DOC_TEMPLATES).map(k=>'<div class="ds-panel" style="margin-bottom:var(--t1m-space-3)"><div class="ds-panel__head"><h3>'+esc(DOC_TEMPLATE_LABEL[k])+'</h3></div><div class="ds-panel__body ds-stack--sm">'+
     DOC_TEMPLATES[k].map((d,x)=>'<div class="ds-row--between"><span>'+icon('file')+' '+esc(d)+'</span><button class="ds-btn ds-btn--ghost ds-btn--sm" onclick="removeDocTemplate(\''+k+'\','+x+')" aria-label="Remove '+esc(d)+'">'+icon('x')+'</button></div>').join('')+
     '<form class="ds-row" onsubmit="event.preventDefault(); addDocTemplate(\''+k+'\', this)"><input class="ds-input" name="doc" placeholder="Add a document" style="max-width:280px"><button class="ds-btn ds-btn--secondary ds-btn--sm" type="submit">'+icon('plus')+'Add</button></form></div></div>').join('');
-  const tracks = [['Domestic',null],['International','Import'],['International','Export']].map(([s,d])=>'<div class="ds-label" style="margin-top:var(--t1m-space-5)">'+esc(s+(d?' · '+d:''))+'</div>'+progressPreview(SERVICE_ORDER.filter(k=>serviceAllowed(k,s,d)), s, d, 'FCL')).join('');
+  const tracks = [['Domestic',null],['International','Import'],['International','Export']].map(([s,d])=>'<div class="ds-label" style="margin-top:var(--t1m-space-5)">'+esc(s+(d?' · '+d:''))+'</div>'+progressPreview(SERVICE_ORDER.filter(k=>serviceAllowed(k,s,d)), s, d, 'FCL', null, true)).join('');
   return '<div class="ds-page-head"><div><h1>Settings</h1><p class="ds-page-head__sub">Defaults, document checklists and service tracks. Changes apply to new records.</p></div></div>'+
     '<div class="ds-stack"><section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h2>'+icon('settings')+'Defaults</h2></div><div class="ds-panel__body"><form class="ds-grid-2" id="settings-form" onsubmit="event.preventDefault(); saveSettings(this)">'+fields+'<div><button class="ds-btn ds-btn--primary" type="submit">'+icon('check')+'Save defaults</button></div></form></div></section>'+
     '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h2>'+icon('file')+'Document checklists</h2><span class="ds-panel__hint">per service · used when a job is created</span></div><div class="ds-panel__body">'+docs+'</div></section>'+
@@ -215,7 +216,6 @@ function renderAudit(){
 /* ============================== CLIENT TRACKING (public, no login) ==============================
    Opened only with the job's random tracking code, never a guessable job number. Shows the
    service tracks in plain words; never money, staff, documents or internal issue details. */
-const CLIENT_TRACK = { accreditation:'Importer accreditation', freight:'Freight', customs:'Customs clearance', trucking:'Delivery', warehousing:'Warehousing', lto:'LTO registration' };
 function findByCode(code){ const c = String(code||'').trim().toUpperCase(); return c ? JOBS.find(j=>j.trackingCode===c) || null : null; }
 function trackLookup(form){
   const q = String(new FormData(form).get('q')||'').trim(), j = findByCode(q);

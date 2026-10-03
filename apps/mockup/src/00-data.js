@@ -2,13 +2,10 @@
    Only the demo USERS are seeded. Customers, inquiries, jobs and money start EMPTY and live in
    memory for this browser session: everything created while testing disappears on refresh.
    Requirements: docs/requirements/01–05. */
-/* Finance scope: Accounting's part ends when the SOA is sent. No Finance dashboard, no payment tracking.
-   Set to false to bring all of that back. Ledger: docs/requirements/finance-scope-removal-ledger.md */
-const FINANCE_SOA_ONLY = true;
-/* Accounting is limited to: take receipts or quotations, approve fund release, review liquidations. No billing, SOA, payments or profit in this portal (integrated later).
-   Set to false to bring billing back. Ledger: docs/requirements/finance-scope-removal-ledger.md */
-const ACCOUNTING_BASIC = true;
-const TODAY = (()=>{ const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); })();
+/* Money scope: fund requests, receipts, vendor papers and a billing-readiness handover to Finance.
+   No invoices, SOA, payments, tax or profit in the portal (see docs/requirements/03-accounting-billing.md). */
+let TODAY = (()=>{ const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); })(); /* a demo control can move it ahead */
+const REAL_TODAY = new Date(TODAY);
 
 /* Dates are stored as "05 Oct 2026" strings, the way staff write them. */
 const MONTHS = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
@@ -47,11 +44,6 @@ function serviceAllowed(key, scope, direction){
   if(direction==='Export') return key!=='accreditation';
   return true;
 }
-function serviceBlockReason(key, scope, direction){
-  if(scope==='Domestic' && ['customs','accreditation'].includes(key)) return 'Not used for domestic shipments';
-  if(direction==='Export' && key==='accreditation') return 'Importers only';
-  return '';
-}
 const TRUCK_TYPES = ['Wing van','Closed van','Refrigerated van','4-wheeler','6-wheeler','10-wheeler','Flatbed','Boom truck','Tractor head with trailer'];
 const CARGO_TYPES = ['FCL','LCL','RoRo','Air','Bulk','Breakbulk','Land (truck)'];
 const CARGO_TYPE_SHORT = { 'FCL':'Full container load', 'LCL':'Shared container', 'RoRo':'Drive-on vehicles', 'Air':'By plane', 'Bulk':'Loose goods in the hold', 'Breakbulk':'Oversized, piece by piece', 'Land (truck)':'Road only' };
@@ -65,7 +57,6 @@ const CARGO_TYPE_INFO = {
   'Land (truck)':'Moved by road only, with no sea or air leg.'
 };
 const CHANNELS = ['Email','Viber','WhatsApp','Phone call','Text message','Walk-in'];
-const CURRENCIES = ['PHP','USD'];
 const USD_PHP = 56; /* mock rate, used only to compare quoted vs billed in reports */
 
 /* ============================== THE JOB PLAN (progress map) ==============================
@@ -226,17 +217,17 @@ const LANE_MEANING = { Green:'Released with no inspection (fastest).', Yellow:'B
 const PAY_MODES = ['Cash','Check','Bank transfer'];
 
 /* ============================== SETTINGS (Admin + Manager) ============================== */
-const SETTINGS = { quoteValidityDays:15, awaitingClientDays:5, reminderEveryDays:2, unliquidatedDays:5, portFreeDays:5, containerFreeDays:7, paymentTermsDays:30 };
+const SETTINGS = { stepDays:2, escalateDays:2, quoteValidityDays:15, awaitingClientDays:5, reminderEveryDays:2, unliquidatedDays:5, portFreeDays:5, containerFreeDays:7 };
 
 /* ============================== ROLES & PERMISSIONS ==============================
    Levels: Y = can do · A = assigned records only · V = view only · VA = view assigned · VL = view linked. */
 const ROLES = ['Admin','Manager','Sales','Operations','Accounting'];
 const ROLE_BLURB = {
-  Admin:'Users, permissions and settings. Sees dashboards.',
+  Admin:'Full access: users, permissions, settings and every business action.',
   Manager:'Creates customers and inquiries, assigns staff, approves quotes, money and billing.',
   Sales:'Uploads quotations, sends them and records the client’s answer.',
-  Operations:'Runs jobs: milestones, documents, issues, fund requests and liquidation.',
-  Accounting: ACCOUNTING_BASIC ? 'Takes receipts and quotations, approves fund release and reviews liquidations.' : FINANCE_SOA_ONLY ? 'Releases funds, verifies liquidation, uploads the SOA and sends it to the client.' : 'Releases funds, verifies liquidation, bills the client and records payments.'
+  Operations:'Runs jobs: milestones, documents, issues, fund requests and receipts.',
+  Accounting:'Releases approved funds, checks receipts, keeps vendor papers and receives jobs for billing.'
 };
 const PERM_GROUPS = [
   { group:'Administration', items:[
@@ -254,33 +245,33 @@ const PERM_GROUPS = [
     ['inquiry.close','Acknowledge acceptance / close inquiry', { Manager:'Y' }] ]},
   { group:'Job', items:[
     ['job.convert','Convert to job, assign Ops', { Manager:'Y' }],
-    ['job.view','View job', { Manager:'Y', Operations:'A', Accounting:'V' }],
+    ['job.view','View job', { Manager:'Y', Sales:'VA', Operations:'A', Accounting:'V' }],
     ['job.update','Update milestones, upload documents', { Manager:'Y', Operations:'A' }],
-    ['job.issue','Flag / resolve issue', { Manager:'Y', Operations:'A' }],
+    ['job.issue','Raise an exception (Operations) and mark corrective actions done', { Manager:'Y', Operations:'A' }],
+    ['exc.approve','Approve or send back exceptions, assign the corrective action', { Manager:'Y' }],
+    ['doc.review','Review documents (accept or reject with a reason)', { Manager:'Y' }],
     ['job.freeDays','Set free days', { Manager:'Y', Operations:'A' }],
     ['job.submitClose','Submit job for closing', { Manager:'Y', Operations:'A' }],
     ['job.complete','Confirm job completed', { Manager:'Y' }] ]},
   { group:'Money', items:[
     ['fund.request','Create fund request', { Manager:'Y', Operations:'A' }],
     ['fund.approve','Approve / return fund request', { Manager:'Y' }],
-    ['fund.release', ACCOUNTING_BASIC ? 'Approve fund release' : 'Release funds', { Accounting:'Y' }],
-    ['fund.liquidate','Liquidate (upload receipts)', { Manager:'Y', Operations:'A' }],
-    ['fund.verify', ACCOUNTING_BASIC ? 'Review liquidation' : 'Verify liquidation', { Accounting:'Y' }],
-    ['money.view','See fund requests, costs, vendor bills', { Manager:'Y', Operations:'A', Accounting:'Y' }],
-    ['bill.submit','Upload SOA + submit for approval', { Accounting:'Y' }],
-    ['bill.approve','Approve / return billing', { Manager:'Y' }],
-    ['bill.send', FINANCE_SOA_ONLY ? 'Send the SOA to the client' : 'Send billing, record payments', { Accounting:'Y' }],
-    ['bill.view','See billing and payments', { Manager:'Y', Accounting:'Y' }],
-    ['vendor.record', ACCOUNTING_BASIC ? 'Record receipts and quotations' : 'Record vendor bills', { Accounting:'Y' }],
-    ['profit.view','View job profit', { Manager:'Y' }] ]},
+    ['fund.release','Release funds', { Accounting:'Y' }],
+    ['fund.liquidate','Submit receipts', { Manager:'Y', Operations:'A' }],
+    ['fund.verify','Check receipts', { Accounting:'Y' }],
+    ['money.view','See fund requests, receipts, quotations and bills', { Manager:'Y', Operations:'A', Accounting:'Y' }],
+    ['charge.edit','Add charges to bill (service fees and costs paid for the client)', { Manager:'Y', Accounting:'Y' }],
+    ['ready.mark','Mark a job ready for Finance', { Manager:'Y', Accounting:'Y' }],
+    ['ready.receive','Mark a job received by Finance', { Accounting:'Y' }],
+    ['vendor.record','Record quotations and bills', { Accounting:'Y' }] ]},
   { group:'Reports', items:[
-    ['dash.view', ACCOUNTING_BASIC ? 'View dashboards / analytics' : 'View dashboards / analytics / job profit', { Admin:'Y', Manager:'Y' }],
+    ['dash.view','View dashboards / analytics', { Admin:'Y', Manager:'Y' }],
     ['mywork.view','“My Work” home page (to-do lists)', { Sales:'Y', Operations:'Y', Accounting:'Y' }] ]}
 ];
-if(ACCOUNTING_BASIC) PERM_GROUPS.forEach(g=>{ g.items = g.items.filter(r=>!/^(bill|profit)\./.test(r[0])); });
 /* The live matrix. DEFAULT keeps the original level so a re-ticked box restores it. */
 const PERM = {}, PERM_DEFAULT = {}, PERM_LABEL = {};
-PERM_GROUPS.forEach(g=>g.items.forEach(([key,label,lv])=>{ PERM_LABEL[key] = label; PERM_DEFAULT[key] = {}; PERM[key] = {}; ROLES.forEach(r=>{ PERM_DEFAULT[key][r] = lv[r]||''; PERM[key][r] = lv[r]||''; }); }));
+/* Admin has full access to everything (decided 2026-10-03), so every Admin cell is Yes and locked. */
+PERM_GROUPS.forEach(g=>g.items.forEach(([key,label,lv])=>{ PERM_LABEL[key] = label; PERM_DEFAULT[key] = {}; PERM[key] = {}; ROLES.forEach(r=>{ const v = r==='Admin' ? 'Y' : (lv[r]||''); PERM_DEFAULT[key][r] = v; PERM[key][r] = v; }); }));
 
 /* ============================== DEMO USERS ==============================
    Many people so the demo feels real. Two founders hold several roles. Names are illustrative. */
@@ -311,7 +302,7 @@ let JOBS = [];
 let NOTIFS = [];        // { id, ts, to:{roles:[], users:[]}, text, link, readBy:[] }
 let ADMIN_LOG = [];     // user / permission / settings events for the audit log
 let INTAKE = [];        // "report an inquiry to the manager" notes from staff
-const SEQ = { cust:0, inq:0, job:0, fr:0, vb:0, pay:0, issue:0, doc:0, notif:0, intake:0 };
+const SEQ = { email:0, party:0, cust:0, inq:0, job:0, fr:0, vb:0, pay:0, issue:0, doc:0, notif:0, intake:0 };
 const YEAR = TODAY.getFullYear();
 function nextId(kind){
   SEQ[kind]++;

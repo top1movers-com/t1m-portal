@@ -22,7 +22,6 @@ function salesWork(){
     if(['preparing','revise','expired'].includes(s.key)) out.push({ tone: s.key==='preparing'?'info':'warning', icon:'upload', title:'Upload quotation v'+(v?v.v+1:1), meta, href,
       why: s.key==='preparing' ? 'New inquiry assigned to you.' : s.key==='expired' ? 'v'+v.v+' expired on '+v.validUntil+'.' : REVISE_LABEL[v.status]+': '+((v.review&&v.review.decision==='Returned')?v.review.reasonType:(v.outcome?v.outcome.reasonType:'')),
       whyTone: s.key==='preparing'?null:'warning', btn:{ label:'Upload', js: s.key==='expired' ? "openUploadQuote('"+i.id+"',true)" : "openUploadQuote('"+i.id+"')" } });
-    if(s.key==='ready') out.push({ tone:'brand', icon:'arrow-right', title:'Send v'+v.v+' to the client', meta, href, why:'Approved by '+v.review.by+'.', btn:{ label:'Mark as sent', js:"openMarkSent('"+i.id+"')" } });
     if(s.key==='awaiting'){ const d = awaitingDays(i), late = d>=SETTINGS.awaitingClientDays;
       out.push({ tone: late?'warning':'info', icon:'clock', title:'Follow up: awaiting client · '+plural(d,'day'), meta, href, why:'Sent '+v.sent.on+' via '+v.sent.channel+'. Valid until '+v.validUntil+'.', whyTone: late?'warning':null, btn:{ label:'Record response', js:"openClientOutcome('"+i.id+"')" } }); }
   });
@@ -32,19 +31,21 @@ function opsWork(){
   const out = [];
   JOBS.filter(j=>j.ops.includes(me()) && j.status!=='Completed').forEach(j=>{
     const meta = [j.id, cname(j.customerId), servicesText(j.services)], href = '#/jobs/'+j.id, iss = openIssue(j);
+    j.issues.filter(x=>excActionOpen(x) && x.action.owner===me()).forEach(x=>out.push({ tone: excActionLate(x)?'danger':'info', icon:'flag', title:'Corrective action: '+x.action.text, meta, href, why:(excActionLate(x)?'Overdue by '+plural(-daysUntil(x.action.due),'day')+'. ':'Due '+x.action.due+'. ')+x.category+'.', whyTone: excActionLate(x)?'danger':null, btn:{ label:'Mark done', js:"openCompleteAction('"+j.id+"','"+x.id+"')" } }));
+    j.docs.filter(d=>d.status==='Rejected' && opsFor(j,d.svc).includes(me())).forEach(d=>out.push({ tone:'warning', icon:'file', title:'Replace rejected document: '+d.name, meta, href:href+'/documents', why:d.review.reason, whyTone:'warning', btn:{ label:'Upload', js:"openUploadDoc('"+j.id+"','"+d.id+"')" } }));
     if(j.status==='For closing') return;
-    if(iss) out.push({ tone:'danger', icon:'lock', title:'On hold: '+iss.reason, meta, href, why:'Resolve it so the job can move again.', whyTone:'danger', btn:{ label:'Resolve', js:"openResolveIssue('"+j.id+"','"+iss.id+"')" } });
+    if(iss) out.push({ tone:'danger', icon:'lock', title:'On hold: '+iss.category, meta, href, why: iss.status==='Returned' ? 'Sent back by '+iss.review.by+': '+iss.review.comment : 'Waiting for a Manager to approve it.', whyTone:'danger', btn: iss.status==='Returned' ? { label:'Edit & resubmit', js:"openFlagException('"+j.id+"','"+iss.id+"')" } : { label:'Open', js:"go('"+href+"/issues')" } });
     else { const k = nextMsIndex(j);
-      if(k>=0) out.push({ tone:'info', icon:SERVICES[j.ms[k].svc].icon, title:'Next: '+j.ms[k].name, meta, href, why:j.ms[k].phase+(pendingDocs(j).length?' · '+plural(pendingDocs(j).length,'document')+' still pending':''), btn:{ label:'Mark done', js:"openMilestone('"+j.id+"',"+k+")" } });
+      if(k>=0) out.push({ tone:dueTone(j.ms[k]), icon:SERVICES[j.ms[k].svc].icon, title:'Next: '+j.ms[k].name, meta, href, why:j.ms[k].phase+dueSuffix(j.ms[k])+(pendingDocs(j).length?' · '+plural(pendingDocs(j).length,'document')+' still pending':''), whyTone:dueTone(j.ms[k])==='info'?null:dueTone(j.ms[k]), btn:{ label:'Mark done', js:"openMilestone('"+j.id+"',"+k+")" } });
       else out.push({ tone: closingGate(j).every(g=>g.ok)?'brand':'warning', icon:'flag', title: closingGate(j).every(g=>g.ok)?'Submit for closing':'Finish the closing checklist', meta, href, why:closingGate(j).filter(g=>!g.ok).map(g=>g.label+': '+g.sub).join(' · ')||'Everything is done.', btn: closingGate(j).every(g=>g.ok)?{ label:'Submit', js:"submitForClosing('"+j.id+"')" }:{ label:'Open', js:"goTab('"+j.id+"','documents')" } }); }
     jobClocks(j).filter(c=>c.state==='running' && c.left<=3).forEach(c=>out.push({ tone:c.left<=0?'danger':'warning', icon:'clock', title:c.label+': '+clockText(c), meta, href, why:'Fees ('+c.risk+') start after '+c.lastFree+'. Stops at '+c.ends+'.', whyTone:c.left<=0?'danger':'warning', btn:{ label:'Open', js:"go('"+href+"')" } }));
     if(clockApplies(j) && j.free && j.free.portDays==null) out.push({ tone:'warning', icon:'clock', title:'Set free days', meta, href, btn:{ label:'Set', js:"openFreeDays('"+j.id+"')" } });
   });
   JOBS.filter(j=>j.ops.includes(me())).forEach(j=>j.funds.forEach(f=>{
     const meta = [f.id, j.id, cname(j.customerId)], href = '#/jobs/'+j.id+'/money';
-    if(f.status==='Returned' && f.by===me()) out.push({ tone:'warning', icon:'refresh', title:'Fund request returned: '+f.purpose, meta, href, why:f.review.comment, whyTone:'warning', btn:{ label:'Edit & resubmit', js:"openFundRequest('"+j.id+"','"+f.id+"')" } });
+    if(f.status==='Returned' && f.by===me()) out.push({ tone:'warning', icon:'refresh', title:'Fund request sent back: '+f.purpose, meta, href, why:f.review.comment, whyTone:'warning', btn:{ label:'Edit & resubmit', js:"openFundRequest('"+j.id+"','"+f.id+"')" } });
     if(f.status==='Released'){ const d = daysBetween(f.release.on, todayDMY()), late = d>SETTINGS.unliquidatedDays;
-      out.push({ tone: late?'warning':'info', icon:'receipt', title:'Liquidate '+money(f.amount)+' ('+f.purpose+')', meta, href, why:'Released '+f.release.on+' · '+plural(d,'day')+' ago'+(late?'. Overdue for liquidation.':'.'), whyTone: late?'warning':null, btn:{ label:'Liquidate', js:"openLiquidate('"+j.id+"','"+f.id+"')" } }); }
+      out.push({ tone: late?'warning':'info', icon:'receipt', title:'Submit receipts for '+money(f.amount)+' ('+f.purpose+')', meta, href, why:(f.liqBack?'Sent back by '+f.liqBack.by+': '+f.liqBack.comment+' · ':'')+'Released '+f.release.on+' · '+plural(d,'day')+' ago'+(late?'. Receipts are overdue.':'.'), whyTone: late||f.liqBack?'warning':null, btn:{ label:'Submit receipts', js:"openLiquidate('"+j.id+"','"+f.id+"')" } }); }
   }));
   return out.sort(byTone);
 }
@@ -53,15 +54,13 @@ function acctWork(){
   JOBS.forEach(j=>{
     j.funds.forEach(f=>{
       const meta = [f.id, j.id, cname(j.customerId)], href = '#/jobs/'+j.id+'/money';
-      if(f.status==='Approved') out.push({ tone:'brand', icon:'arrow-out', title:'Release '+money(f.amount)+' to '+f.payee, meta, href, why:f.purpose+' · needed by '+f.neededBy+' · approved by '+f.review.by, whyTone: daysUntil(f.neededBy)<=0?'warning':null, btn:{ label:'Release', js:"openReleaseFund('"+j.id+"','"+f.id+"')" } });
-      if(f.status==='Liquidated') out.push({ tone:'info', icon:'check', title:'Verify liquidation: '+money(f.liq.actual), meta, href, why:'Released '+money(f.amount)+' · '+f.purpose, btn:{ label:'Verify', js:"openVerify('"+j.id+"','"+f.id+"')" } });
+      if(f.status==='Approved') out.push({ tone:'brand', icon:'arrow-out', title:'Release '+money(f.amount)+(frDirect(f)?' to '+f.payee:' to '+f.by+' (they hold it)'), meta, href, why:f.purpose+' · '+(frDirect(f)?'Accounting pays the vendor':'staff gets the money')+' · needed by '+f.neededBy+' · approved by '+f.review.by, whyTone: daysUntil(f.neededBy)<=0?'warning':null, btn:{ label:'Release', js:"openReleaseFund('"+j.id+"','"+f.id+"')" } });
+      if(f.status==='Liquidated') out.push({ tone:'info', icon:'check', title:'Check receipts: '+money(f.liq.actual)+' spent', meta, href, why:'Released '+money(f.amount)+' · '+f.purpose+' · submitted by '+f.liq.by, btn:{ label:'Check receipts', js:"openVerify('"+j.id+"','"+f.id+"')" } });
+      if(frLate(f)) out.push({ tone:'warning', icon:'alert', title:'Receipts overdue from '+f.by+' · '+plural(frDaysOut(f),'day'), meta, href, why:money(f.amount)+' released '+f.release.on+' for '+f.purpose+'. Nothing to do yet; follow up with '+f.by+'.', whyTone:'warning', btn:{ label:'Open', js:"openFundDetail('"+j.id+"','"+f.id+"')" } });
     });
-    if(ACCOUNTING_BASIC) return;
-    const bs = billingStatus(j).key, meta = [j.id, cname(j.customerId)], href = '#/jobs/'+j.id+'/money';
-    if(bs==='tobill') out.push({ tone:'brand', icon:'receipt', title:'Ready to bill', meta, href, why:'Completed '+j.completed.on+' · pass-through on file '+money(reimbursable(j)), btn:{ label:'Upload SOA', js:"openUploadSOA('"+j.id+"')" } });
-    if(bs==='returned') out.push({ tone:'warning', icon:'refresh', title:'SOA returned: '+latestBill(j).review.reasonType, meta, href, why:latestBill(j).review.comment, whyTone:'warning', btn:{ label:'Upload revised', js:"openUploadSOA('"+j.id+"')" } });
-    if(bs==='ready') out.push({ tone:'brand', icon:'arrow-right', title:'Send the approved SOA', meta, href, btn:{ label:'Mark as sent', js:"openSendBill('"+j.id+"')" } });
-    if(bs==='overdue') out.push({ tone:'danger', icon:'alert', title:'Overdue: '+money(latestBill(j).amount-paidTotal(j))+' unpaid', meta, href, why:'Due '+latestBill(j).dueDate+'.', whyTone:'danger', btn:{ label:'Record payment', js:"openPayment('"+j.id+"')" } });
+    const rs = readinessStatus(j), rmeta = [j.id, cname(j.customerId)], rhref = '#/jobs/'+j.id+'/billing';
+    if(rs.key==='ready') out.push({ tone:'brand', icon:'arrow-right', title:'Receive this job for billing', meta:rmeta, href:rhref, why:'Marked ready for Finance by '+j.handover.readyBy+' on '+j.handover.readyOn+'.', btn:{ label:'Open', js:"go('"+rhref+"')" } });
+    if(rs.key==='complete') out.push({ tone:'info', icon:'receipt', title:'Billing checklist complete', meta:rmeta, href:rhref, why:'Mark it ready for Finance.', btn:{ label:'Mark ready', js:"markReadyForFinance('"+j.id+"')" } });
   });
   return out.sort(byTone);
 }
@@ -69,7 +68,7 @@ function myWorkSections(){
   const s = [];
   if(hasRole('Sales')) s.push({ key:'sales', title:'Inquiries & quotes', icon:'quote', items:salesWork(), empty:'Nothing waiting on you. New inquiries appear here when a manager assigns you.' });
   if(hasRole('Operations')) s.push({ key:'ops', title:'Jobs', icon:'box', items:opsWork(), empty:'No job steps waiting on you.' });
-  if(hasRole('Accounting')) s.push({ key:'acct', title:'Money', icon:'wallet', items:acctWork(), empty:'No fund releases to approve or liquidations to review.' });
+  if(hasRole('Accounting')) s.push({ key:'acct', title:'Funds', icon:'wallet', items:acctWork(), empty:'Nothing to release, check or receive right now.' });
   return s;
 }
 function myWorkCount(){ return hasMyWork() ? sumOf(myWorkSections(), s=>s.items.length) : 0; }
@@ -104,12 +103,13 @@ function needsAttention(){
   JOBS.forEach(j=>{
     const meta = [j.id, cname(j.customerId)], href = '#/jobs/'+j.id, iss = openIssue(j);
     j.funds.filter(f=>f.status==='For approval').forEach(f=>P(2, { tone:'warning', icon:'wallet', title:'Fund request '+money(f.amount)+' waiting for approval', meta:[f.id].concat(meta), why:f.purpose+' · needed by '+f.neededBy, href:href+'/money', btn: can('fund.approve') ? { label:'Review', js:"openReviewFund('"+j.id+"','"+f.id+"')" } : null }));
-    if(billingStatus(j).key==='approval') P(2, { tone:'warning', icon:'receipt', title:'SOA v'+latestBill(j).v+' waiting for approval · '+money(latestBill(j).amount), meta, href:href+'/money', btn: can('bill.approve') ? { label:'Review', js:"openReviewBill('"+j.id+"')" } : null });
     if(j.status==='For closing') P(4, { tone:'brand', icon:'flag', title:'Job submitted for closing', meta:meta.concat([j.submitted.by]), href, btn: can('job.complete') ? { label:'Confirm', js:"openConfirmComplete('"+j.id+"')" } : null });
-    if(iss && j.status!=='Completed') P(1, { tone:'danger', icon:'lock', title:'On hold: '+iss.reason, meta:meta.concat([iss.by]), whyTone:'danger', href, btn:{ label:'Open', js:"go('"+href+"/issues')" } });
+    j.issues.filter(x=>x.status==='For approval' || (x.status==='Returned' && x.holds)).forEach(x=>P(x.holds?1:2, { tone:x.holds?'danger':'warning', icon:x.holds?'lock':'alert', title:(x.holds?'On hold · ':'')+(x.status==='Returned'?'Exception sent back to '+x.by:'Exception waiting for approval')+': '+x.category, meta:meta.concat([x.by]), why:x.reason, whyTone:x.holds?'danger':null, href:href+'/issues', btn: x.status==='For approval' && can('exc.approve') ? { label:'Review', js:"openReviewException('"+j.id+"','"+x.id+"')" } : { label:'Open', js:"go('"+href+"/issues')" } }));
+    if(readinessStatus(j).key==='complete' && can('ready.mark')) P(7, { tone:'info', icon:'receipt', title:'Billing checklist complete: mark ready for Finance', meta, href:href+'/billing', btn:{ label:'Open', js:"go('"+href+"/billing')" } });
+    const od = jobOverdue(j); if(od) P(5, { tone:'danger', icon:'clock', title:'Step overdue by '+plural(od.days,'day')+': '+od.m.name, meta:meta.concat([opsFor(j, od.m.svc).join(', ')]), why:od.m.phase+'. It was due '+od.m.due+'.', whyTone:'danger', href, btn:{ label:'Open', js:"go('"+href+"')" } });
+    j.issues.filter(excActionLate).forEach(x=>P(6, { tone:'danger', icon:'alert', title:'Corrective action overdue by '+plural(-daysUntil(x.action.due),'day')+': '+x.category, meta:meta.concat([x.action.owner]), why:x.action.text, whyTone:'danger', href:href+'/issues', btn:{ label:'Open', js:"go('"+href+"/issues')" } }));
     jobClocks(j).filter(c=>c.state==='running' && c.left<=1).forEach(c=>P(5, { tone:c.left<=0?'danger':'warning', icon:'clock', title:c.label+': '+clockText(c), meta, why:'Fees ('+c.risk+') after '+c.lastFree+'.', whyTone:c.left<=0?'danger':'warning', href, btn:{ label:'Open', js:"go('"+href+"')" } }));
-    if(billingStatus(j).key==='overdue') P(6, { tone:'danger', icon:'alert', title:'Billing overdue: '+money(latestBill(j).amount-paidTotal(j))+' unpaid', meta, why:'Due '+latestBill(j).dueDate+'.', whyTone:'danger', href:href+'/money', btn:{ label:'Open', js:"go('"+href+"/money')" } });
-    j.funds.filter(f=>f.status==='Released' && daysBetween(f.release.on, todayDMY())>SETTINGS.unliquidatedDays).forEach(f=>P(7, { tone:'warning', icon:'receipt', title:'Cash advance not liquidated · '+plural(daysBetween(f.release.on, todayDMY()),'day'), meta:[f.id].concat(meta), why:money(f.amount)+' released '+f.release.on+' to '+f.by+'.', href:href+'/money', btn:{ label:'Open', js:"go('"+href+"/money')" } }));
+    j.funds.filter(f=>f.status==='Released' && daysBetween(f.release.on, todayDMY())>SETTINGS.unliquidatedDays).forEach(f=>P(7, { tone:'warning', icon:'receipt', title:'Receipts overdue · '+plural(daysBetween(f.release.on, todayDMY()),'day'), meta:[f.id].concat(meta), why:money(f.amount)+' released '+f.release.on+'. Waiting on '+f.by+'.', href:href+'/money', btn:{ label:'Open', js:"go('"+href+"/money')" } }));
   });
   return q.sort((a,b)=>a.p-b.p || byTone(a,b));
 }
@@ -140,7 +140,6 @@ function monthlyRows(list, dateFn, valFn, fmt){
 }
 function countBy(list, keyFn, labels){ const m = {}; list.forEach(x=>[].concat(keyFn(x)).forEach(k=>{ if(k) m[k] = (m[k]||0)+1; })); return (labels||Object.keys(m)).map(k=>({ label:k, value:m[k]||0, valueText:String(m[k]||0) })); }
 function isWon(i){ return i.closed==='won' || !!i.jobId; }
-function firstSent(i){ const v = i.versions.find(x=>x.sent); return v ? v.sent.on : null; }
 
 function salesTab(){
   const inq = dashInq(), won = inq.filter(isWon), lost = inq.filter(i=>i.closed==='lost'), decided = won.length + lost.length;
@@ -150,7 +149,7 @@ function salesTab(){
   const awaiting = inq.filter(i=>key(i)==='awaiting');
   const stand = [
     ['Preparing the quote', inq.filter(i=>['preparing','revise','expired'].includes(key(i))).length],
-    ['Waiting for manager approval', inq.filter(i=>['approval','ready'].includes(key(i))).length],
+    ['Waiting for manager approval', inq.filter(i=>key(i)==='approval').length],
     ['Waiting for the client', awaiting.length],
     ['Accepted, to be closed', inq.filter(i=>key(i)==='accepted').length],
     ['Won', won.length],
@@ -189,7 +188,9 @@ function opsTab(){
   const within = stopped.filter(c=>!c.over).length, over = sumOf(stopped, c=>c.over);
   return '<div class="ds-stack"><div class="ds-kpis">'+
       kpi('box','Active jobs', active.length, 'not yet completed', null, "STATE.jobFilter='active'; go('#/jobs')")+
-      kpi('lock','On hold', held.length, 'open issue', held.length?'danger':null, "STATE.jobFilter='hold'; go('#/jobs')")+
+      kpi('lock','On hold', held.length, 'waiting for an exception to be approved', held.length?'danger':null, "STATE.jobFilter='hold'; go('#/jobs')")+
+      kpi('clock','Overdue steps', active.filter(jobOverdue).length, 'past their due date', active.filter(jobOverdue).length?'warning':null, "STATE.jobFilter='overdue'; go('#/jobs')")+
+      kpi('file','Missing documents', sumOf(active, j=>pendingDocs(j).length), 'pending or rejected', sumOf(active, j=>pendingDocs(j).length)?'warning':null, "STATE.jobFilter='active'; go('#/jobs')")+
       kpi('shield','Customs release time', fmtAvg(release,'days'), 'arrived → BOC released', null, "go('#/jobs')")+
       kpi('check','Job cycle time', fmtAvg(cycle,'days'), 'created → completed', null, "STATE.jobFilter='completed'; go('#/jobs')")+
     '</div>'+
@@ -201,34 +202,19 @@ function opsTab(){
       panel('Free-time performance','clock', stopped.length ? '<div class="ds-stats">'+stat('Released within free time', Math.round(within/stopped.length*100)+'%', false, within+' of '+stopped.length+' jobs')+stat('Total days over', String(over), over>0, 'storage + demurrage days')+'</div>' : '<p class="ds-muted ds-small">No port clocks have stopped yet.</p>')+
       panel('Jobs completed by month','calendar', barRows(monthlyRows(done, j=>j.completed.on)), null, 'last 6 months')+
     '</div>'+
+    opsExtraPanels(active, jobs)+
     (held.length ? panel('On hold now','lock', '<ul class="ds-gate">'+held.map(j=>gateItemHtml({ label:j.id+' · '+cname(j.customerId), sub:openIssue(j).reason, met:false, blocked:true, act:act('Open',"go('#/jobs/"+j.id+"/issues')",'arrow-right') })).join('')+'</ul>') : '')+
   '</div>';
 }
-function financeTab(){
-  const jobs = dashJobs(), sent = jobs.filter(j=>latestBill(j) && latestBill(j).status==='Sent');
-  const billed = sumOf(jobs, billedAmount), collected = sumOf(jobs, j=>j.billing?sumOf(j.billing.payments, p=>p.amount):0), wht = sumOf(jobs, j=>j.billing?sumOf(j.billing.payments, p=>p.wht||0):0);
-  const outstanding = sumOf(sent, j=>Math.max(0, latestBill(j).amount - paidTotal(j)));
-  const buckets = [['0–30 days',0,30],['31–60 days',31,60],['61–90 days',61,90],['90+ days',91,1e9]];
-  const aging = buckets.map(([l,a,b])=>{ const v = sumOf(sent.filter(j=>{ const d = daysBetween(latestBill(j).sent.on, todayDMY()); return d>=a && d<=b; }), j=>Math.max(0, latestBill(j).amount-paidTotal(j))); return { label:l, value:v, valueText:moneyShort(v), tip:l+': '+money(v) }; });
-  const adv = [].concat(...jobs.map(j=>j.funds.filter(f=>f.status==='Released')));
-  const advRows = [['0–'+SETTINGS.unliquidatedDays+' days',0,SETTINGS.unliquidatedDays],['Over '+SETTINGS.unliquidatedDays+' days',SETTINGS.unliquidatedDays+1,1e9]].map(([l,a,b])=>{ const v = sumOf(adv.filter(f=>{ const d = daysBetween(f.release.on, todayDMY()); return d>=a && d<=b; }), f=>f.amount); return { label:l, value:v, valueText:moneyShort(v), tone: a>0?'warning':null }; });
-  const done = jobs.filter(j=>billedAmount(j));
-  const profitBlock = can('profit.view') ? '<div class="ds-grid-2">'+
-      panel('Job profit by service','chart', barRows(SERVICE_ORDER.map(s=>{ const v = sumOf(done.filter(j=>j.services.includes(s)), j=>jobProfit(j).profit); return { label:SERVICES[s].short, value:Math.max(0,v), valueText:moneyShort(v) }; }), { wide:true, empty:'No billed jobs yet.' }), 'A job with several services counts toward each of them.')+
-      panel('Job profit by month','calendar', barRows(monthlyRows(done, j=>j.completed.on, j=>Math.max(0,jobProfit(j).profit), moneyShort), { wide:true }), null, 'by completion month')+
-    '</div>'+
-    '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h2>'+icon('receipt')+'Quoted vs. billed, and profit per job</h2><span class="ds-panel__hint">Manager only</span></div>'+(done.length ? '<div class="ds-table-wrap"><table class="ds-table ds-table--compact ds-table--stack"><thead><tr><th>Job</th><th class="ds-num">Quoted</th><th class="ds-num">Billed</th><th class="ds-num">Difference</th><th class="ds-num">Profit</th></tr></thead><tbody>'+
-      done.map(j=>{ const i = inqById(j.inquiryId), q = toPHP(acceptedVersion(i)), p = jobProfit(j); return '<tr data-href onclick="go(\'#/jobs/'+j.id+'/money\')"><td data-label="Job"><span class="ds-cell-name"><span class="ds-mono ds-cell-primary">'+j.id+'</span><span class="ds-cell-sub">'+esc(cname(j.customerId))+'</span></span></td><td data-label="Quoted" class="ds-num">'+money(q)+'</td><td data-label="Billed" class="ds-num">'+money(p.billed)+'</td><td data-label="Difference" class="ds-num'+(p.billed-q<0?' ds-overdue':'')+'">'+money(p.billed-q)+'</td><td data-label="Profit" class="ds-num'+(p.profit<0?' ds-overdue':'')+'">'+money(p.profit)+' <span class="ds-muted ds-xs">'+p.pct.toFixed(1)+'%</span></td></tr>'; }).join('')+'</tbody></table></div>' : '<div class="ds-panel__body ds-muted ds-small">No billed jobs yet.</div>')+'</section>' : '';
-  return '<div class="ds-stack"><div class="ds-kpis">'+
-      kpi('receipt','Billed', moneyShort(billed), 'approved Statements of Account', null, "STATE.jobFilter='completed'; go('#/jobs')")+
-      kpi('arrow-in','Collected', moneyShort(collected), 'payments recorded', null, "STATE.jobFilter='completed'; go('#/jobs')")+
-      kpi('alert','Outstanding', moneyShort(outstanding), plural(sent.filter(j=>billingStatus(j).key==='overdue').length,'job')+' overdue', outstanding?'warning':null, "STATE.jobFilter='completed'; go('#/jobs')")+
-      kpi('file','Withholding tax', moneyShort(wht), 'match against BIR 2307 forms', null, "STATE.jobFilter='completed'; go('#/jobs')")+
-    '</div>'+
-    '<div class="ds-grid-2">'+
-      panel('Receivables aging','clock', barRows(aging, { wide:true, empty:'Nothing unpaid.' }), 'Unpaid balances by how long ago the SOA was sent.')+
-      panel('Unliquidated cash advances','wallet', barRows(advRows, { wide:true, empty:'No released funds waiting for liquidation.' }), 'Released fund requests not yet liquidated with receipts.')+
-    '</div>'+profitBlock+'</div>';
+function opsExtraPanels(active, jobs){
+  const late = active.map(j=>({ j, od:jobOverdue(j) })).filter(x=>x.od), acts = [].concat(...active.map(j=>j.issues.filter(excActionLate).map(x=>({ j, x }))));
+  const overdueHtml = (late.length || acts.length) ? '<ul class="ds-gate">'+late.map(({j,od})=>gateItemHtml({ label:j.id+' · '+cname(j.customerId), sub:od.m.name+' · overdue by '+plural(od.days,'day')+' · '+opsFor(j, od.m.svc).join(', '), met:false, blocked:true, overdue:true, act:act('Open',"go('#/jobs/"+j.id+"')",'arrow-right') })).join('')+
+    acts.map(({j,x})=>gateItemHtml({ label:j.id+' · corrective action', sub:x.action.text+' · '+x.action.owner+' · overdue by '+plural(-daysUntil(x.action.due),'day'), met:false, blocked:true, overdue:true, act:act('Open',"go('#/jobs/"+j.id+"/issues')",'arrow-right') })).join('')+'</ul>' : '<p class="ds-muted ds-small">Nothing is overdue.</p>';
+  const missing = active.map(j=>({ j, docs:pendingDocs(j) })).filter(x=>x.docs.length).sort((a,b)=>b.docs.filter(d=>d.status==='Rejected').length - a.docs.filter(d=>d.status==='Rejected').length).slice(0,8);
+  const missHtml = missing.length ? '<ul class="ds-gate">'+missing.map(({j,docs})=>gateItemHtml({ label:j.id+' · '+cname(j.customerId), sub:docs.map(d=>d.name+(d.status==='Rejected'?' (rejected)':'')).join(', '), met:false, act:act('Open',"goTab('"+j.id+"','documents')",'file') })).join('')+'</ul>' : '<p class="ds-muted ds-small">No documents are missing.</p>';
+  const exc = [].concat(...active.map(j=>j.issues.filter(x=>x.status!=='Resolved')));
+  return '<div class="ds-grid-2">'+panel('Overdue tasks','clock', overdueHtml, 'Steps and corrective actions past their due date. The owner is emailed, then a Manager.')+panel('Missing documents','file', missHtml, 'Pending or rejected documents on active jobs.')+'</div>'+
+    '<div class="ds-grid-2">'+panel('Open exceptions','flag', barRows(countBy(exc, x=>x.category, EXC_CATEGORIES), { empty:'No open exceptions.' }), exc.filter(x=>x.status==='For approval'||x.status==='Returned').length+' waiting for approval · '+exc.filter(excActionOpen).length+' with a corrective action in progress.')+billingPanel(jobs)+'</div>';
 }
 function teamTab(){
   const staff = USERS.filter(u=>u.active && u.roles.some(r=>['Sales','Operations','Accounting'].includes(r)) && (!STATE.dashStaff || u.name===STATE.dashStaff));
@@ -238,7 +224,7 @@ function teamTab(){
     fr: sumOf(JOBS, j=>j.funds.filter(f=>f.by===u.name && f.status!=='Verified').length) })).filter(r=>r.inq||r.jobs||r.fr||!STATE.dashStaff);
   const inq = dashInq(), jobs = dashJobs();
   const sales = USERS.filter(u=>u.roles.includes('Sales')).map(u=>{ const mine = inq.filter(i=>i.staff.includes(u.name)), w = mine.filter(isWon).length, l = mine.filter(i=>i.closed==='lost').length;
-    return { u, n:mine.length, rate: w+l ? Math.round(w/(w+l)*100)+'%' : '—', billed: sumOf(jobs.filter(j=>j.sales.includes(u.name)), billedAmount) }; }).filter(r=>r.n);
+    return { u, n:mine.length, rate: w+l ? Math.round(w/(w+l)*100)+'%' : '—' }; }).filter(r=>r.n);
   const ops = USERS.filter(u=>u.roles.includes('Operations')).map(u=>{ const mine = jobs.filter(j=>j.ops.includes(u.name)); return { u, n:mine.length, cyc: avg(mine.filter(j=>j.completed).map(j=>daysBetween(j.createdOn, j.completed.on))) }; }).filter(r=>r.n);
   const tbl = (head, body, empty)=>body ? '<div class="ds-table-wrap"><table class="ds-table ds-table--compact ds-table--stack"><thead><tr>'+head+'</tr></thead><tbody>'+body+'</tbody></table></div>' : '<div class="ds-panel__body ds-muted ds-small">'+esc(empty)+'</div>';
   return '<div class="ds-stack">'+
@@ -247,7 +233,7 @@ function teamTab(){
         rows.filter(r=>r.inq||r.jobs||r.fr).map(r=>'<tr><td data-label="Person"><span class="ds-row ds-row--tight">'+avatar(r.u.name,true)+esc(r.u.name)+'</span></td><td data-label="Roles">'+esc(rolesText(r.u))+'</td><td data-label="Inquiries" class="ds-num">'+r.inq+'</td><td data-label="Jobs" class="ds-num">'+r.jobs+'</td><td data-label="Fund requests" class="ds-num">'+r.fr+'</td></tr>').join(''), 'Nobody has open work yet.')+'</section>'+
     '<div class="ds-grid-2">'+
       '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h2>'+icon('quote')+'Sales per person</h2></div>'+
-        tbl('<th>Person</th><th class="ds-num">Inquiries</th><th class="ds-num">Win rate</th><th class="ds-num">Billed</th>', sales.map(r=>'<tr><td data-label="Person">'+esc(r.u.name)+'</td><td data-label="Inquiries" class="ds-num">'+r.n+'</td><td data-label="Win rate" class="ds-num">'+r.rate+'</td><td data-label="Billed" class="ds-num">'+money(r.billed)+'</td></tr>').join(''), 'No inquiries in this range.')+'</section>'+
+        tbl('<th>Person</th><th class="ds-num">Inquiries</th><th class="ds-num">Win rate</th>', sales.map(r=>'<tr><td data-label="Person">'+esc(r.u.name)+'</td><td data-label="Inquiries" class="ds-num">'+r.n+'</td><td data-label="Win rate" class="ds-num">'+r.rate+'</td></tr>').join(''), 'No inquiries in this range.')+'</section>'+
       '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h2>'+icon('box')+'Operations per person</h2></div>'+
         tbl('<th>Person</th><th class="ds-num">Jobs handled</th><th class="ds-num">Avg cycle time</th>', ops.map(r=>'<tr><td data-label="Person">'+esc(r.u.name)+'</td><td data-label="Jobs" class="ds-num">'+r.n+'</td><td data-label="Cycle time" class="ds-num">'+fmtAvg(r.cyc,'days')+'</td></tr>').join(''), 'No jobs in this range.')+'</section>'+
     '</div></div>';
@@ -255,20 +241,20 @@ function teamTab(){
 function kpi(ic, label, value, hint, tone, js){
   return '<button class="ds-kpi'+(tone?' ds-kpi--'+tone:'')+'" onclick="'+js+'"><span class="ds-kpi__icon">'+icon(ic)+'</span><span class="ds-kpi__label">'+esc(label)+'</span><span class="ds-kpi__value">'+value+'</span><span class="ds-kpi__hint">'+esc(hint)+'</span></button>';
 }
-const DASH_TABS = Object.assign({ sales:'Sales & quotations', ops:'Operations' }, FINANCE_SOA_ONLY ? {} : { finance:'Finance' }, { team:'Team' });
+const DASH_TABS = { sales:'Sales & quotations', ops:'Operations', team:'Team' };
 function renderDashboard(){
   const q = needsAttention();
-  const sel = (id, label, key, opts)=>'<div style="min-width:180px">'+selectWrap('<select class="ds-select" id="'+id+'" aria-label="'+label+'" onchange="STATE.'+key+'=this.value; render()">'+(label?'<option value="">'+label+'</option>':'')+options(opts, STATE[key])+'</select>')+'</div>';
+  const sel = (id, label, key, opts)=>'<div style="min-width:180px">'+selectWrap('<select class="ds-select" id="'+id+'" aria-label="'+(label||'Date range')+'" onchange="STATE.'+key+'=this.value; render()">'+(label?'<option value="">'+label+'</option>':'')+options(opts, STATE[key])+'</select>')+'</div>';
   const staff = USERS.filter(u=>u.roles.some(r=>['Sales','Operations'].includes(r))).map(u=>u.name);
-  const body = { sales:salesTab, ops:opsTab, finance:financeTab, team:teamTab }[STATE.dashTab]();
+  const body = { sales:salesTab, ops:opsTab, team:teamTab }[STATE.dashTab]();
   const empty = !INQUIRIES.length && !JOBS.length;
   return '<div class="ds-page-head"><div class="ds-hello"><h1>'+esc(greeting())+'</h1><p>'+esc(todayLong())+'. <strong>'+plural(q.length,'item')+'</strong> need'+(q.length===1?'s':'')+' attention.</p></div>'+
       '<div class="ds-page-head__actions no-print">'+
-      (can('inquiry.create')?'<button class="ds-btn ds-btn--primary" onclick="openNewInquiry()">'+icon('plus')+'New inquiry</button>':'')+'</div></div>'+
+      '<button class="ds-btn ds-btn--secondary" id="dash-export" onclick="exportDashCSV()">'+icon('download')+'Export to Excel</button>'+(can('inquiry.create')?'<button class="ds-btn ds-btn--primary" onclick="openNewInquiry()">'+icon('plus')+'New inquiry</button>':'')+'</div></div>'+
     '<div class="ds-stack">'+
     '<section class="ds-panel ds-panel--elevated" id="needs-attention"><div class="ds-panel__head"><h2>'+icon('flag')+'Needs attention</h2><span class="ds-panel__hint">most urgent first · each row opens the record</span></div>'+
-      queueHtml(q, 'Nothing needs you right now. Approvals, holds and free-time alerts appear here.'+(FINANCE_SOA_ONLY?'':' Overdue bills too.'))+'</section>'+
-    (empty ? '<div class="ds-alert ds-alert--info">'+icon('info')+'<div><strong>No data yet</strong>The figures below fill in as customers, inquiries and jobs are created in this session.</div></div>' : '')+
+      queueHtml(q, 'Nothing needs you right now. Approvals, holds, overdue steps and free-time alerts appear here.')+'</section>'+
+    (empty ? '<div class="ds-alert ds-alert--info">'+icon('info')+'<div><strong>No data yet</strong>The figures below fill in as customers, inquiries and jobs are created in this session.<div class="ds-alert__actions"><button class="ds-btn ds-btn--secondary ds-btn--sm" id="load-sample" onclick="loadSampleData()">'+icon('download')+'Load sample data</button></div></div></div>' : '')+
     '<section class="ds-panel ds-panel--elevated no-print"><div class="ds-panel__body"><div class="ds-row" style="flex-wrap:wrap">'+icon('filter')+
       sel('dash-range','', 'dashRange', Object.keys(RANGES))+
       sel('dash-svc','All services','dashService', SERVICE_ORDER.map(k=>({value:k,label:SERVICES[k].label})))+
@@ -287,8 +273,6 @@ function exportDashCSV(){
     rows = dashInq().map(i=>{ const v = latestV(i); return [i.id, i.createdOn, cname(i.customerId), scopeText(i), servicesText(i.services), i.staff.join('; '), v?'v'+v.v:'', v?v.amount:'', v?v.currency:'', inqStatus(i).label, i.lostReason?i.lostReason.type:'']; }); }
   else if(STATE.dashTab==='ops'){ head = ['Job','Created','Customer','Scope','Services','Operations','Current step','Health','Lane','Completed'];
     rows = dashJobs().map(j=>[j.id, j.createdOn, cname(j.customerId), scopeText(j), servicesText(j.services), j.ops.join('; '), stageText(j), jobHealth(j).label, laneOf(j)||'', j.completed?j.completed.on:'']); }
-  else if(STATE.dashTab==='finance'){ head = ['Job','Customer','Billing status','Billed','Received','Withholding','Pass-through']+(can('profit.view')?',Own costs,Profit'.split(',').slice(1):[]);
-    rows = dashJobs().map(j=>{ const p = jobProfit(j); return [j.id, cname(j.customerId), billingStatus(j).label, p.billed, j.billing?sumOf(j.billing.payments,x=>x.amount):0, j.billing?sumOf(j.billing.payments,x=>x.wht||0):0, p.reimb].concat(can('profit.view')?[p.own, p.profit]:[]); }); }
   else { head = ['Person','Roles','Open inquiries','Open jobs','Open fund requests'];
     rows = USERS.filter(u=>u.active).map(u=>[u.name, rolesText(u), INQUIRIES.filter(i=>i.staff.includes(u.name) && OPEN_INQ.includes(inqStatus(i).key)).length, JOBS.filter(j=>j.ops.includes(u.name) && j.status!=='Completed').length, sumOf(JOBS, j=>j.funds.filter(f=>f.by===u.name && f.status!=='Verified').length)]); }
   const csv = [head].concat(rows).map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\r\n');

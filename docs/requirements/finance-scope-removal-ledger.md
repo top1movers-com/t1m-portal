@@ -52,3 +52,10 @@ Accounting only: takes receipts or quotations, approves fund release, reviews li
 - Money tab renamed **Funds**; "Vendor bills" renamed **Receipts & quotations** (no totals).
 - Accounting wording: "Approve release" (was Release funds), "Review liquidation" (was Verify liquidation).
 - Kept: fund requests (amounts are needed for release approval), the Duties paid / Port charges gates.
+
+## G. Funds made simple (2026-10-03)
+Wording and flow cleanup on top of F; no billing was restored. See "Funds made simple" in `03-accounting-billing.md`. Stored status keys are unchanged (`For approval`, `Returned`, `Approved`, `Released`, `Liquidated`, `Verified`); only the labels people see changed (see `FR_LABEL` in `src/10-rules.js`).
+
+
+## H. Billing code deleted (2026-10-03)
+The `FINANCE_SOA_ONLY` and `ACCOUNTING_BASIC` switches and everything they guarded (SOA upload, approval, send, payment recording, job profit, reimbursable summary, Finance dashboard tab, `bill.*` and `profit.*` permissions) were deleted from `apps/mockup/src`, not just hidden. It remains in git history before that cleanup. Its replacement is the billing-readiness handover (`53-readiness.js`, see 03-accounting-billing.md).

@@ -8,7 +8,6 @@ const INQ_FILTERS = [
   ['preparing','Preparing', i=>inqStatus(i).key==='preparing'],
   ['approval','For approval', i=>inqStatus(i).key==='approval'],
   ['revise','Revision needed', i=>['revise','expired'].includes(inqStatus(i).key)],
-  ['ready','Ready to send', i=>inqStatus(i).key==='ready'],
   ['awaiting','Awaiting client', i=>inqStatus(i).key==='awaiting'],
   ['accepted','Accepted / won', i=>['accepted','won'].includes(inqStatus(i).key)],
   ['converted','Converted', i=>inqStatus(i).key==='converted'],
@@ -53,7 +52,7 @@ function renderInquiries(){
       '<div class="ds-row" style="flex-wrap:wrap"><div class="ds-search" style="flex:1;min-width:220px;max-width:340px">'+icon('search')+'<input class="ds-input" id="inq-search" placeholder="Client name or inquiry no." value="'+esc(STATE.inqQuery)+'" oninput="STATE.inqQuery=this.value; render()"></div>'+
         sel('inq-svc','All services','inqService', SERVICE_ORDER.map(k=>({value:k,label:SERVICES[k].label})))+
         sel('inq-scope','All scopes','inqScope', ['Domestic','International Import','International Export'])+
-        sel('inq-staff','All staff','inqStaff', staff)+
+        sel('inq-fstaff','All staff','inqStaff', staff)+
         '<label class="ds-small ds-muted" for="inq-from">From</label><input class="ds-input" style="width:160px" type="date" id="inq-from" value="'+esc(STATE.inqFrom)+'" onchange="STATE.inqFrom=this.value; render()">'+
         '<label class="ds-small ds-muted" for="inq-to">To</label><input class="ds-input" style="width:160px" type="date" id="inq-to" value="'+esc(STATE.inqTo)+'" onchange="STATE.inqTo=this.value; render()">'+
         (anyFilter?'<button class="ds-btn ds-btn--ghost ds-btn--sm" onclick="STATE.inqQuery=STATE.inqService=STATE.inqScope=STATE.inqStaff=STATE.inqFrom=STATE.inqTo=\'\'; render()">'+icon('x')+'Clear</button>':'')+
@@ -101,12 +100,6 @@ function inqNext(i){
     return Object.assign(base, { tone: mine?'ready':'waiting', icon:'eye', eyebrow: mine?'Needs your approval':'Waiting on a manager', title:'Review quotation v'+v.v,
       text:v.by+' uploaded '+amountText(v)+', valid until '+v.validUntil+'. Approve it so Sales can send it, or return it with a reason.',
       primary: mine ? act('Review quotation v'+v.v,"openReviewQuote('"+id+"')",'eye') : null, who: mine ? null : waitingOn(mgrs,'Manager') });
-  }
-  if(s.key==='ready'){
-    const mine = can('quote.send', i);
-    return Object.assign(base, { tone: mine?'ready':'waiting', icon:'arrow-right', eyebrow:'Green light', title:'Send v'+v.v+' to the client',
-      text:'Approved by '+v.review.by+(v.review.self?' (self-approved)':'')+'. Send it to the client, then mark it as sent.',
-      primary: mine ? act('Mark as sent',"openMarkSent('"+id+"')",'arrow-right') : null, who: mine ? null : waitingOn(i.staff,'Sales') });
   }
   if(s.key==='awaiting'){
     const mine = can('quote.send', i), d = awaitingDays(i);
@@ -170,9 +163,9 @@ function renderInquiry(id){
       '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h2>'+icon('quote')+'Version history</h2><span class="ds-panel__hint">'+esc(quoteNo(i))+'</span></div>'+versionHistoryHtml(i)+'</section></div>'+
     '<div class="ds-stack">'+
       '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h3>'+icon('info')+'The request</h3></div><div class="ds-panel__body"><dl class="ds-facts">'+
-        [['Customer', null],['Scope',scopeText(i)],['Services',servicesText(i.services)],['Cargo',r.commodity],['From',r.origin],['To',r.destination],[i.direction==='Export'?'Port of exit':'Port of entry',r.port],['Pickup address',r.pickupAddress],['Delivery address',r.deliveryAddress],
-          ['Expected volume',r.volume],['Storage period',r.storagePeriod],['Vehicle',r.vehicle],['LTO transaction',r.ltoType],
-          ['Notes',r.notes]].filter(x=>x[1]||x[0]==='Customer').map(x=>x[0]==='Customer' ? f('Customer', canView('customer.edit')?'<a class="ds-link" href="#/customers/'+c.id+'">'+esc(c.name)+'</a>':esc(c.name)) : f(x[0], esc(x[1]))).join('')+
+        [['Customer', null],['Scope',scopeText(i)],['Services',servicesText(i.services)],['Cargo',r.commodity],['Cargo type',r.cargoType],['Consignee',(((ensureCustomerExtras(c).consignees)||[]).find(x=>x.id===r.consigneeId)||{}).name],['From',r.origin],['To',r.destination],[i.direction==='Export'?'Port of exit':'Port of entry',r.port],['Pickup address',r.pickupAddress],['Delivery address',r.deliveryAddress],
+          ['Delivery instructions',r.deliveryInstructions],['Expected volume',r.volume],['Storage period',r.storagePeriod],['Vehicle',r.vehicle],['LTO transaction',r.ltoType],
+          ['Received via',i.channel],['Notes',r.notes]].filter(x=>x[1]||x[0]==='Customer').map(x=>x[0]==='Customer' ? f('Customer', canView('customer.edit')?'<a class="ds-link" href="#/customers/'+c.id+'">'+esc(c.name)+'</a>':esc(c.name)) : f(x[0], esc(x[1]))).join('')+
         f('Created', esc(i.createdOn+' by '+i.createdBy))+'</dl></div></section>'+
       '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h3>'+icon('users')+'Assigned staff</h3></div><div class="ds-panel__body ds-stack--sm">'+i.staff.map(s=>'<div class="ds-row ds-row--tight">'+avatar(s,true)+esc(s)+'<span class="ds-muted ds-xs">'+esc(rolesText(userByName(s)))+'</span></div>').join('')+'</div></section>'+
       '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h3>'+icon('file')+'Supporting documents</h3></div><div class="ds-panel__body ds-panel__body--flush ds-scroll-list">'+(docs.length ? docs.map(d=>fileRow(d.name, d.meta)).join('') : '<p class="ds-muted ds-small">No documents yet.</p>')+'</div></section>'+
@@ -205,20 +198,37 @@ function refreshPlan(){
   const pl = form.querySelector('[data-port-label]'); if(pl) pl.textContent = dir==='Export' ? 'Port of exit' : 'Port of entry';
   const pv = document.getElementById('inq-plan'); if(pv) pv.innerHTML = progressPreview(services, scope, dir, fd.get('cargoType'), legs);
 }
-function requestFieldsHtml(r){
+function requestFieldsHtml(r, channel){
   r = r || {};
   const wrap = (key, html)=>'<div data-req="'+key+'" class="ds-stack--sm" style="display:none">'+html+'</div>';
-  const inp = (id, name, label, ph)=>'<div class="ds-field"><label for="'+id+'">'+label+'</label><input class="ds-input" id="'+id+'" name="'+name+'" value="'+esc(r[name]||'')+'" placeholder="'+esc(ph)+'">'+errorSlot(name)+'</div>';
+  const inp = (id, name, label, ph, opt, extra)=>'<div class="ds-field"><label for="'+id+'">'+label+(opt?' <span class="ds-opt">optional</span>':'')+'</label><input class="ds-input" id="'+id+'" name="'+name+'" value="'+esc(r[name]||'')+'" placeholder="'+esc(ph)+'"'+(extra||'')+'>'+errorSlot(name)+'</div>';
   const two = (x, y)=>'<div class="ds-grid-2" style="gap:var(--t1m-space-3)">'+x+y+'</div>';
-  return wrap('route', two(inp('inq-origin','origin','From','e.g. Yokohama, JP'), inp('inq-dest','destination','To','e.g. Quezon City, PH')))+
+  return '<div class="ds-field"><label for="inq-channel">Received via</label>'+selectWrap('<select class="ds-select" id="inq-channel" name="channel">'+options(CHANNELS, channel||'Email')+'</select>')+'</div>'+
+    wrap('cargo', inp('inq-cargo','commodity','Cargo','e.g. Insured goods, 2 pickup trucks')+
+      '<div class="ds-field" id="inq-consignee-wrap" style="display:none"><label for="inq-consignee">Consignee <span class="ds-opt">optional</span></label>'+selectWrap('<select class="ds-select" id="inq-consignee" name="consigneeId" data-value="'+esc(r.consigneeId||'')+'"><option value="">Same as the customer</option></select>')+'</div>')+
+    wrap('route', two(inp('inq-origin','origin','From','e.g. Yokohama, JP'), inp('inq-dest','destination','To','e.g. Quezon City, PH')))+
     wrap('port', inp('inq-port','port','<span data-port-label>Port</span>','e.g. Manila International Container Port'))+
+    wrap('ctype', '<div class="ds-field"><label for="inq-ctype">Cargo type <span class="ds-opt">optional</span></label>'+selectWrap('<select class="ds-select" id="inq-ctype" name="cargoType" onchange="refreshPlan()"><option value="">Not known yet</option>'+CARGO_TYPES.map(t=>'<option value="'+esc(t)+'"'+(t===r.cargoType?' selected':'')+'>'+esc(t+' · '+CARGO_TYPE_SHORT[t])+'</option>').join('')+'</select>')+'</div>')+
     wrap('pickup', inp('inq-pickup','pickupAddress','Pickup address','Where the truck collects the cargo'))+
-    wrap('delivery', inp('inq-delivery','deliveryAddress','Delivery address','Where the truck delivers the cargo'))+
-    wrap('lto', '<div class="ds-field"><label for="inq-lto">LTO transaction</label>'+selectWrap('<select class="ds-select" id="inq-lto" name="ltoType">'+options(LTO_TYPES, r.ltoType||'')+'</select>')+'</div>')+
+    wrap('delivery', inp('inq-delivery','deliveryAddress','Delivery address','Where the truck delivers the cargo',false,' list="inq-del-list" autocomplete="off"')+'<datalist id="inq-del-list"></datalist>')+
+    wrap('deliv', '<div class="ds-field"><label for="inq-dinst">Delivery instructions <span class="ds-opt">optional</span></label><textarea class="ds-textarea" id="inq-dinst" name="deliveryInstructions" style="min-height:64px" placeholder="e.g. Deliver before 3 PM. Call the guard first.">'+esc(r.deliveryInstructions||'')+'</textarea><p class="ds-field__hint" id="inq-req-hint"></p></div>')+
+    wrap('wh', two(inp('inq-vol','volume','Expected volume','e.g. 20 pallets'), inp('inq-period','storagePeriod','Storage period','e.g. 3 months')))+
+    wrap('lto', inp('inq-vehicle','vehicle','Vehicle','e.g. Toyota Hilux 2024, 2 units')+'<div class="ds-field"><label for="inq-lto">LTO transaction</label>'+selectWrap('<select class="ds-select" id="inq-lto" name="ltoType">'+options(LTO_TYPES, r.ltoType||'')+'</select>')+'</div>')+
     '<div class="ds-field"><label for="inq-notes">Notes <span class="ds-opt">optional</span></label><textarea class="ds-textarea" id="inq-notes" name="notes" style="min-height:64px">'+esc(r.notes||'')+'</textarea></div>';
 }
+/* The customer's saved consignees, delivery addresses and standing instructions feed the inquiry form. */
+function ensureCustomerExtras(c){ if(c){ c.consignees = c.consignees||[]; c.deliveryAddresses = c.deliveryAddresses||[]; if(c.requirements==null) c.requirements = ''; } return c; }
+function refreshCustomerLists(){
+  const form = document.getElementById('inq-form'); if(!form) return;
+  const cu = ensureCustomerExtras(custById(form.elements.customerId ? form.elements.customerId.value : form.dataset.cust)); if(!cu) return;
+  const dl = document.getElementById('inq-del-list'); if(dl) dl.innerHTML = cu.deliveryAddresses.map(a=>'<option value="'+esc(a.address)+'">'+esc(a.label)+'</option>').join('');
+  const sel = form.elements.consigneeId, wrap = document.getElementById('inq-consignee-wrap');
+  if(sel){ const keep = sel.value || sel.dataset.value || ''; sel.innerHTML = '<option value="">Same as the customer</option>'+options(cu.consignees.map(x=>({ value:x.id, label:x.name })), keep); sel.dataset.value = ''; if(wrap) wrap.style.display = cu.consignees.length ? '' : 'none'; }
+  const di = form.elements.deliveryInstructions;
+  if(di && (!di.value || di.value===di.dataset.prefill)){ di.value = cu.requirements||''; di.dataset.prefill = di.value; }
+  const hint = document.getElementById('inq-req-hint'); if(hint) hint.textContent = cu.requirements ? 'Pre-filled from the customer’s standing instructions. Change it for this shipment if needed.' : '';
+}
 function legsHtml(sel){ return '<div class="ds-field" id="inq-legs-wrap" style="display:none"><span class="ds-field__label">Trucking covers</span>'+checkList('truckLegs', [{ value:'pickup', label:'Pickup: shipper to the origin port' },{ value:'delivery', label:'Delivery: destination port to the consignee' }], sel||['pickup','delivery'], null, 'refreshPlan()')+errorSlot('truckLegs')+'</div>'; }
-function planPreviewHtml(){ return '<div class="ds-field"><span class="ds-field__label">How the job will run</span><div id="inq-plan" class="ds-panel" style="padding:0 var(--t1m-space-3) var(--t1m-space-3)"></div><p class="ds-field__hint">Built from scope, direction and services. Hover a step to see what it means.</p></div>'; }
 function staffSelect(sales, sel){ return selectWrap('<select class="ds-select" id="inq-staff" name="staff"><option value="">Select sales staff</option>'+options(sales.map(u=>({value:u.value,label:u.label})), sel||'')+'</select>'); }
 function openNewInquiry(presetCustomer, intakeId){
   if(!can('inquiry.create')) return denied('Only a Manager creates inquiries. Use “Report an inquiry to the manager”.');
@@ -234,7 +244,7 @@ function openNewInquiry(presetCustomer, intakeId){
   openDrawer({ title:'New inquiry', sub:'Pick the services; the progress map follows from them. Assign who prepares the quote.',
     body:'<form class="ds-stack--sm" id="inq-form" novalidate onsubmit="event.preventDefault(); saveInquiry(this, null)">'+
       (intake?'<div class="ds-alert ds-alert--info">'+icon('flag')+'<div><strong>Reported by '+esc(intake.by)+'</strong>'+esc(intake.client+': '+intake.note)+(intake.file?'<div class="ds-muted ds-xs">'+icon('file')+' '+esc(intake.file)+' (attached to the inquiry)</div>':'')+'</div></div>':'')+
-      '<div class="ds-field"><label for="inq-cust">Customer</label>'+selectWrap('<select class="ds-select" id="inq-cust" name="customerId" onchange="suggestIntake(this.value)">'+options(CUSTOMERS.map(c=>({value:c.id,label:c.name})), presetCustomer||'')+'</select>')+
+      '<div class="ds-field"><label for="inq-cust">Customer</label>'+selectWrap('<select class="ds-select" id="inq-cust" name="customerId" onchange="suggestIntake(this.value); refreshCustomerLists()">'+options(CUSTOMERS.map(c=>({value:c.id,label:c.name})), presetCustomer||'')+'</select>')+
         '<button type="button" class="ds-link ds-xs" style="margin-top:6px" onclick="closeDrawer(); openNewCustomer(true)">'+icon('plus')+'Customer not listed? Add a new customer</button></div>'+
       (reports.length ? '<div class="ds-field"><label for="inq-intake">From a reported inquiry <span class="ds-opt">optional</span></label>'+selectWrap('<select class="ds-select" id="inq-intake" name="intakeId"><option value="">None, not reported by staff</option>'+options(reports.map(t=>({ value:t.id, label:t.client+' · '+t.by+' · '+t.on })), linked)+'</select>')+'</div>' : '')+
       '<div class="ds-field"><span class="ds-field__label">Scope</span>'+segControl('scope', SCOPES, 'International', 'refreshInqForm()')+'</div>'+
@@ -246,7 +256,7 @@ function openNewInquiry(presetCustomer, intakeId){
       '<div class="ds-field"><label for="inq-staff">Who prepares and sends the quote</label>'+staffSelect(sales, intake&&userByName(intake.by)&&userByName(intake.by).roles.includes('Sales')?intake.by:'')+errorSlot('staff')+'</div>'+
     '</form>',
     foot: drawerFoot('Create inquiry','inq-form',{icon:'plus'}) });
-  refreshPlan();
+  refreshCustomerLists(); refreshPlan();
 }
 function readInquiryForm(form, editing){
   const fd = new FormData(form), v = k=>String(fd.get(k)||'').trim();
@@ -257,7 +267,8 @@ function readInquiryForm(form, editing){
   const legs = fd.getAll('truckLegs'), staff = fd.getAll('staff').filter(Boolean);
   const vis = reqVisible(services, scope, direction, legs);
   const need = (key, name, msg)=> vis.has(key) ? fieldError(form, name, v(name)?'':msg) : fieldError(form, name, '');
-  const bad = need('route','origin','Where does it come from?') | need('route','destination','Where does it go?') |
+  const bad = need('cargo','commodity','What is the cargo?') | need('wh','volume','How much will be stored?') | need('wh','storagePeriod','For how long?') | need('lto','vehicle','Which vehicle?') |
+    need('route','origin','Where does it come from?') | need('route','destination','Where does it go?') |
     need('port','port','Which port?') | need('pickup','pickupAddress','Where is it picked up?') | need('delivery','deliveryAddress','Where is it delivered?') |
     fieldError(form,'services', services.length?'':'Pick at least one service.') | fieldError(form,'staff', staff.length?'':'Assign at least one person.') |
     (needsTruckLegs(services, scope) ? fieldError(form,'truckLegs', legs.length?'':'Pick pickup, delivery or both.') : false);
@@ -265,9 +276,11 @@ function readInquiryForm(form, editing){
   const val = (key, name)=> vis.has(key) ? v(name) : '';
   return { customerId: editing ? editing.customerId : v('customerId'), scope, direction, services, staff,
     truckLegs: needsTruckLegs(services, scope) ? legs : null,
-    request:{ origin:val('route','origin'), destination:val('route','destination'), port:val('port','port'),
-      pickupAddress:val('pickup','pickupAddress'), deliveryAddress:val('delivery','deliveryAddress'), 
-      ltoType:val('lto','ltoType'),
+    channel: v('channel') || 'Email',
+    request:{ commodity:val('cargo','commodity'), consigneeId:val('cargo','consigneeId'), cargoType:val('ctype','cargoType'),
+      origin:val('route','origin'), destination:val('route','destination'), port:val('port','port'),
+      pickupAddress:val('pickup','pickupAddress'), deliveryAddress:val('delivery','deliveryAddress'), deliveryInstructions:val('deliv','deliveryInstructions'),
+      volume:val('wh','volume'), storagePeriod:val('wh','storagePeriod'), vehicle:val('lto','vehicle'), ltoType:val('lto','ltoType'),
       notes:v('notes') } };
 }
 /* Which waiting report is about this customer? Matches names loosely (spacing, "Inc/Co", small typos). */
@@ -282,6 +295,8 @@ function saveInquiry(form, editId, intakeId){
   const editing = editId ? inqById(editId) : null;
   if(!editing) intakeId = intakeId || String(new FormData(form).get('intakeId')||'') || null;
   const d = readInquiryForm(form, editing); if(!d) return;
+  const cu = ensureCustomerExtras(custById(d.customerId)), addr = d.request.deliveryAddress;
+  if(cu && addr && !cu.deliveryAddresses.some(a=>a.address.toLowerCase()===addr.toLowerCase())){ cu.deliveryAddresses.push({ id:nextId('party'), label:'Saved from an inquiry', address:addr }); adminLog('Customer updated', cu.name+': delivery address saved from an inquiry.', cu.id); }
   if(editing){
     const added = d.staff.filter(s=>!editing.staff.includes(s));
     if(editing.request.attachment) d.request.attachment = editing.request.attachment;
@@ -304,15 +319,15 @@ function openEditInquiry(id){
   const sales = USERS.filter(u=>u.active && u.roles.includes('Sales')).map(u=>({ value:u.name, label:u.name, sub:u.dept }));
   const r = i.request;
   openDrawer({ title:'Edit / reassign', sub:'<span class="ds-mono">'+i.id+'</span> · '+esc(custById(i.customerId).name),
-    body:'<form class="ds-stack--sm" id="inq-form"'+(locked?' data-locked="'+id+'"':'')+' novalidate onsubmit="event.preventDefault(); saveInquiry(this, \''+id+'\')">'+
+    body:'<form class="ds-stack--sm" id="inq-form" data-cust="'+i.customerId+'"'+(locked?' data-locked="'+id+'"':'')+' novalidate onsubmit="event.preventDefault(); saveInquiry(this, \''+id+'\')">'+
       (locked ? '<div class="ds-alert ds-alert--info">'+icon('lock')+'<div><strong>Scope and services are locked</strong>A quotation has been uploaded against them. Staff and request details can still change.</div></div>'
         : '<div class="ds-field"><span class="ds-field__label">Scope</span>'+segControl('scope', SCOPES, i.scope, 'refreshInqForm()')+'</div>'+
           '<div class="ds-field" id="inq-dir-wrap"'+(i.scope==='International'?'':' style="display:none"')+'><span class="ds-field__label">Direction</span>'+segControl('direction', DIRECTIONS, i.direction||'Import', 'refreshInqForm()')+'</div>'+
           '<div class="ds-field"><span class="ds-field__label">Services</span><div id="inq-services">'+inqServicesHtml(i.scope, i.direction, i.services)+'</div>'+errorSlot('services')+'</div>')+legsHtml(i.truckLegs)+
-      '<div class="ds-label" style="margin-top:var(--t1m-space-4)">The request</div>'+requestFieldsHtml(r)+
+      '<div class="ds-label" style="margin-top:var(--t1m-space-4)">The request</div>'+requestFieldsHtml(r, i.channel)+
       '<div class="ds-field"><label for="inq-staff">Assigned staff</label>'+staffSelect(sales, i.staff[0])+errorSlot('staff')+'</div></form>',
     foot: drawerFoot('Save changes','inq-form',{icon:'check'}) });
-  refreshPlan();
+  refreshCustomerLists(); refreshPlan();
 }
 
 /* ---------- Quote actions ---------- */
@@ -334,7 +349,6 @@ function saveQuote(id, form, fromExpired){
   const bad = fieldError(form,'file', UPLOADS.quoteFile?'':'Attach the quotation file.') | fieldError(form,'amount', amount>0?'':'Enter the total amount.') |
     fieldError(form,'validUntil', !valid?'Pick the validity date.':daysUntil(valid)<0?'The validity date is already past.':'');
   if(bad) return;
-  if(needConfirm('Submit quotation for approval?', 'It goes to a manager. Once approved it is emailed to the client automatically.', 'Submit for approval', "saveQuote('"+id+"',document.getElementById('"+form.id+"'),"+(fromExpired?'true':'false')+")")) return;
   const prev = latestV(i);
   if(fromExpired && prev && prev.status==='Sent'){ prev.status = 'Expired'; prev.outcome = { type:'Expired', reasonType:'No response', comment:'Validity date passed without an answer.', by:me(), on:todayDMY() }; logTo(i, 'Quote expired', 'v'+prev.v+' expired on '+prev.validUntil+'.'); }
   const v = { v: prev ? prev.v+1 : 1, file:UPLOADS.quoteFile, amount, currency:'PHP', validUntil:valid, by:me(), on:todayDMY(), at:Date.now(), status:'For approval' };
@@ -353,7 +367,7 @@ function openReviewQuote(id){
       '<dl class="ds-facts"><dt>Amount</dt><dd>'+amountText(v)+'</dd><dt>Valid until</dt><dd>'+esc(v.validUntil)+'</dd><dt>Services</dt><dd>'+esc(servicesText(i.services))+'</dd><dt>Scope</dt><dd>'+esc(scopeText(i))+'</dd></dl>'+
       (self?'<div class="ds-alert ds-alert--info">'+icon('user')+'<div><strong>You uploaded this version</strong>You can approve it; the history will say “Self-approved”.</div></div>':'')+
       '</form>',
-    foot:'<button type="button" class="ds-btn ds-btn--ghost" onclick="closeDrawer()">Close</button><button type="button" class="ds-btn ds-btn--secondary" id="return-quote" onclick="confirmDecision(\'quote\', \''+id+'\', \'Returned\')">'+icon('x')+'Reject</button><button type="submit" form="review-form" class="ds-btn ds-btn--primary" id="approve-quote">'+icon('check')+'Approve</button>' });
+    foot:'<button type="button" class="ds-btn ds-btn--ghost" onclick="closeDrawer()">Close</button><button type="button" class="ds-btn ds-btn--secondary" id="return-quote" onclick="confirmDecision(\'quote\', \''+id+'\', \'Returned\')">'+icon('refresh')+'Send back</button><button type="submit" form="review-form" class="ds-btn ds-btn--primary" id="approve-quote">'+icon('check')+'Approve</button>' });
 }
 function confirmDecision(kind, id, decision, id2){
   const approve = decision==='Approved';
@@ -364,20 +378,20 @@ function confirmDecision(kind, id, decision, id2){
 }
 function openRejectDialog(kind, id, id2){
   const what = kind==='quote' ? 'quotation' : kind==='fund' ? 'fund request' : 'SOA';
-  const fields = kind==='fund' ? '<div class="ds-field"><label for="rs-comment">Reason</label><textarea class="ds-textarea" id="rs-comment" name="comment" style="min-height:72px" placeholder="Say why it is rejected"></textarea>'+errorSlot('comment')+'</div>'
+  const fields = kind==='fund' ? '<div class="ds-field"><label for="rs-comment">Reason</label><textarea class="ds-textarea" id="rs-comment" name="comment" style="min-height:72px" placeholder="Say what to fix before it can be approved"></textarea>'+errorSlot('comment')+'</div>'
     : reasonFields(MANAGER_RETURN_REASONS, 'What is wrong');
-  confirmAction('Reject this '+what+'?', 'It goes back with your reason, which stays in the history.', 'Reject', "submitReject('"+kind+"','"+id+"','"+(id2||'')+"')", true,
+  confirmAction('Send this '+what+' back?', 'It goes back with your reason, which stays in the history.', 'Send back', "submitReject('"+kind+"','"+id+"','"+(id2||'')+"')", false,
     '<form class="ds-stack--sm" id="reject-form" novalidate onsubmit="event.preventDefault()">'+fields+'</form>');
 }
 function submitReject(kind, id, id2){
-  const form = document.getElementById('reject-form');
-  if(String(new FormData(form).get('comment')||'').trim()==='') return fieldError(form,'comment', kind==='fund'?'Say why it is rejected.':'Say what to fix. It stays in the history.');
+  const form = document.getElementById('reject-form'), fd = new FormData(form);
+  if(fieldError(form,'comment', String(fd.get('comment')||'').trim() ? '' : kind==='fund' ? 'Say what to fix.' : 'Say what to fix. It stays in the history.') | (kind!=='fund' ? fieldError(form,'reasonType', fd.get('reasonType') ? '' : 'Pick the closest reason.') : false)) return;
   if(kind==='quote') decideQuote(id, 'Returned', form); else if(kind==='fund') decideFund(id, id2, 'Returned', form); else decideBill(id, 'Returned', form);
   closeConfirm();
 }
 function decideQuote(id, decision, form){
   const i = inqById(id), v = latestV(i), fd = new FormData(form), comment = String(fd.get('comment')||'').trim();
-  if(decision==='Returned' && fieldError(form,'comment', comment?'':'Say what to fix. It stays in the version history.')) return;
+  if(decision==='Returned' && (fieldError(form,'comment', comment?'':'Say what to fix. It stays in the version history.') | fieldError(form,'reasonType', fd.get('reasonType')?'':'Pick the closest reason.'))) return;
   v.review = { by:me(), on:todayDMY(), at:Date.now(), decision, self: v.by===me(), reasonType: decision==='Returned' ? String(fd.get('reasonType')) : null, comment: decision==='Returned' ? comment : null };
   v.status = decision;
   if(decision==='Approved'){
@@ -392,24 +406,6 @@ function decideQuote(id, decision, form){
     showToast('v'+v.v+' returned to sales with your reason.', 'warning', 'refresh');
   }
   closeDrawer(); STATE.justNext = id; render();
-}
-function openMarkSent(id){
-  const i = inqById(id), v = latestV(i);
-  if(!can('quote.send', i)) return denied();
-  openDrawer({ title:'Mark v'+v.v+' as sent', sub:'<span class="ds-mono">'+quoteNo(i)+'</span> · '+esc(custById(i.customerId).name),
-    body:'<form class="ds-stack--sm" id="sent-form" novalidate onsubmit="event.preventDefault(); saveSent(\''+id+'\', this)">'+
-      '<p class="ds-small">Send the approved file to the client yourself (email, Viber, WhatsApp…), then record it here. The awaiting-response count starts today.</p>'+
-      '<div class="ds-field"><label for="sent-ch">Sent via</label>'+selectWrap('<select class="ds-select" id="sent-ch" name="channel">'+options(CHANNELS, i.channel)+'</select>')+'</div>'+
-      dateField('sent-on','on','Date sent', todayDMY())+
-      '<div class="ds-field"><label>Proof it was sent</label>'+uploadHtml('sentProof')+errorSlot('proof')+'</div></form>',
-    foot: drawerFoot('Mark as sent','sent-form',{icon:'arrow-right'}) });
-}
-function saveSent(id, form){
-  const i = inqById(id), v = latestV(i), fd = new FormData(form), on = isoToDMY(fd.get('on'));
-  if(fieldError(form,'on', on?'':'Pick the date it was sent.') | fieldError(form,'proof', UPLOADS.sentProof?'':'Attach proof that the quotation was sent.')) return;
-  v.status = 'Sent'; v.sent = { by:me(), on, channel:String(fd.get('channel')), proof:UPLOADS.sentProof };
-  logTo(i, 'Quote sent', 'v'+v.v+' sent to the client via '+v.sent.channel+' on '+on+' (proof '+v.sent.proof+').');
-  closeDrawer(); STATE.justNext = id; showToast('Marked as sent. Follow up if there is no answer.', 'success', 'arrow-right'); render();
 }
 function openClientOutcome(id){
   const i = inqById(id), v = latestV(i);
@@ -427,9 +423,8 @@ function saveOutcome(id, form){
   const type = { Accepted:'Accepted', Renegotiate:'Renegotiated', Rejected:'Rejected' }[fd.get('type')];
   const on = isoToDMY(fd.get('on')), comment = String(fd.get('comment')||'').trim();
   const bad = fieldError(form,'proof', UPLOADS.outcomeProof?'':'Attach proof of the client’s answer.') | fieldError(form,'on', on?'':'Pick the date.') |
-    (type!=='Accepted' ? fieldError(form,'comment', comment?'':'Add a short note on what the client said.') : false);
+    (type!=='Accepted' ? fieldError(form,'comment', comment?'':'Add a short note on what the client said.') | fieldError(form,'reasonType', fd.get('reasonType')?'':'Pick the closest reason.') : false);
   if(bad) return;
-  if(needConfirm('Record the client’s answer?', 'This updates the inquiry and notifies the manager and sales staff.', 'Record answer', "saveOutcome('"+id+"',document.getElementById('"+form.id+"'))")) return;
   recordOutcome(id, type, type==='Accepted'?null:String(fd.get('reasonType')), comment, UPLOADS.outcomeProof, me(), on);
   closeDrawer(); STATE.justNext = id; render();
 }
@@ -459,7 +454,7 @@ function renderQuotePage(id){
   const body = answered ? '<div class="ds-alert ds-alert--success">'+icon('check')+'<div><strong>'+esc(said)+'</strong>Answered '+esc(o.on)+'.</div></div>'
     : open ? '<form class="ds-stack--sm" id="client-form" novalidate onsubmit="event.preventDefault(); confirmClientAnswer(\''+esc(id)+'\', this)">'+
         '<div class="ds-field">'+segControl('type', ['Accept','Renegotiate','Decline'], 'Accept', "document.getElementById('cl-reason').hidden = this.value==='Accept'")+'</div>'+
-        '<div id="cl-reason" hidden><div class="ds-field"><label for="cl-reason-text">Reason</label><textarea class="ds-textarea" id="cl-reason-text" name="comment" style="min-height:96px" placeholder="Tell us why"></textarea>'+errorSlot('comment')+'</div></div>'+
+        '<div id="cl-reason" hidden class="ds-stack--sm"><div class="ds-field"><label for="cl-reason-type">Reason</label>'+selectWrap('<select class="ds-select" id="cl-reason-type" name="reasonType"><option value="">Select a reason</option>'+options(CLIENT_REASONS.filter(r=>r!=='No response'))+'</select>')+errorSlot('reasonType')+'</div><div class="ds-field"><label for="cl-reason-text">Anything else we should know? <span class="ds-opt">optional</span></label><textarea class="ds-textarea" id="cl-reason-text" name="comment" style="min-height:96px" placeholder="Tell us more"></textarea></div></div>'+
         '<button class="ds-btn ds-btn--primary" type="submit" id="client-send">'+icon('check')+'Send my answer</button></form>'
     : '<div class="ds-alert ds-alert--warning">'+icon('alert')+'<div><strong>Please contact your Top1Movers coordinator</strong>This version has expired or was replaced.</div></div>';
   return '<div class="ds-public">'+trackHero('<div class="ds-public__headline"><p class="ds-label">Quotation <span class="ds-mono" style="color:var(--t1m-ink-inverse)">'+esc(quoteNo(i))+'</span></p><h1 class="ds-public__status" id="quote-status">'+esc(headline)+'</h1><div class="ds-public__meta"><span>'+esc(c)+'</span></div></div>','Quotation')+
@@ -470,14 +465,14 @@ function renderQuotePage(id){
 }
 function confirmClientAnswer(id, form){
   const fd = new FormData(form), type = String(fd.get('type')), comment = String(fd.get('comment')||'').trim();
-  if(type!=='Accept' && fieldError(form,'comment', comment?'':'Please tell us the reason.')) return;
+  if(type!=='Accept' && fieldError(form,'reasonType', fd.get('reasonType')?'':'Please pick the closest reason.')) return;
   const word = { Accept:'accept', Renegotiate:'ask to renegotiate', Decline:'decline' }[type];
   confirmAction('Send your answer?', 'You are about to '+word+' this quotation. Top1Movers will be notified.', 'Send answer', "submitClientAnswer('"+id+"')", type==='Decline');
 }
 function submitClientAnswer(id){
   const form = document.getElementById('client-form'), fd = new FormData(form), t = String(fd.get('type'));
   const type = { Accept:'Accepted', Renegotiate:'Renegotiated', Decline:'Rejected' }[t], comment = String(fd.get('comment')||'').trim();
-  recordOutcome(id, type, type==='Accepted'?null:'Client reason', comment, 'Client page response', custById(inqById(id).customerId).name, todayDMY());
+  recordOutcome(id, type, type==='Accepted'?null:String(fd.get('reasonType')), comment, 'Client page response', custById(inqById(id).customerId).name, todayDMY());
   render();
 }
 function openAckAccept(id){
@@ -491,7 +486,6 @@ function openAckAccept(id){
 }
 function ackAccept(id){
   const i = inqById(id), v = latestV(i);
-  if(needConfirm('Acknowledge and close?', 'The inquiry is closed as won and the version history is locked.', 'Acknowledge & close', "ackAccept('"+id+"')")) return;
   v.ack = { by:me(), on:todayDMY() }; i.closed = 'won'; i.closedBy = me(); i.closedOn = todayDMY();
   logTo(i, 'Inquiry closed (won)', 'Acceptance of v'+v.v+' acknowledged. Ready for Convert to job.');
   notify({ users:i.staff }, i.id+' closed as won by '+me()+'. It is ready to become a job.', '#/inquiries/'+id);
@@ -506,7 +500,7 @@ function openCloseLost(id){
 }
 function saveLost(id, form){
   const i = inqById(id), fd = new FormData(form), comment = String(fd.get('comment')||'').trim();
-  if(fieldError(form,'comment', comment?'':'Add a short note.')) return;
+  if(fieldError(form,'comment', comment?'':'Add a short note.') | fieldError(form,'reasonType', fd.get('reasonType')?'':'Pick the reason it was lost.')) return;
   if(needConfirm('Close as lost?', 'No more versions can be made. This can’t be undone.', 'Close as lost', "saveLost('"+id+"',document.getElementById('"+form.id+"'))", true)) return;
   const v = latestV(i);
   if(v && sentExpired(v)){ v.status = 'Expired'; v.outcome = { type:'Expired', reasonType:'No response', comment:'Validity date passed without an answer.', by:me(), on:todayDMY() }; }
@@ -608,8 +602,8 @@ function saveCustomer(form, editId, thenInquiry){
     fieldError(form,'email', !v('email')?'Enter the contact email.':/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('email'))?'':'Enter a valid email.');
   if(bad) return;
   const data = { name:v('name'), contact:{ name:v('contact'), email:v('email'), phone:v('phone') }, address:v('address') };
-  if(editId){ Object.assign(custById(editId), data); closeDrawer(); showToast('Customer updated.', 'success', 'check'); render(); return; }
-  const c = Object.assign({ id:nextId('cust'), createdBy:me(), createdOn:todayDMY() }, data);
+  if(editId){ Object.assign(custById(editId), data); adminLog('Customer updated', data.name+': contact and address details changed.', editId); closeDrawer(); showToast('Customer updated.', 'success', 'check'); render(); return; }
+  const c = Object.assign({ id:nextId('cust'), createdBy:me(), createdOn:todayDMY(), consignees:[], deliveryAddresses:[], requirements:'' }, data);
   CUSTOMERS.push(c);
   ADMIN_LOG.push({ ts:nowStamp(), actor:actorLabel(), action:'Customer created', detail:c.name+' ('+c.id+').', ref:c.id });
   closeDrawer(); showToast(c.name+' saved.', 'success', 'check');
@@ -619,7 +613,10 @@ function saveCustomer(form, editId, thenInquiry){
 function renderCustomer(id){
   const c = custById(id);
   if(!c) return '<div class="ds-panel ds-panel--elevated">'+emptyState('search','Customer not found','','<a class="ds-btn ds-btn--secondary" href="#/customers">All customers</a>')+'</div>';
-  const inqs = INQUIRIES.filter(i=>i.customerId===id && canView('inquiry.view', i)), jobs = JOBS.filter(j=>j.customerId===id && canView('job.view', j));
+  ensureCustomerExtras(c);
+  const inqs = INQUIRIES.filter(i=>i.customerId===id && canView('inquiry.view', i)), jobs = JOBS.filter(j=>j.customerId===id && canView('job.view', j)), edit = can('customer.edit');
+  const partyPanel = (kind, title, ic, list, line)=>'<section class="ds-panel ds-panel--elevated" id="cust-'+kind+'s"><div class="ds-panel__head"><h3>'+icon(ic)+title+'</h3>'+(edit?'<button class="ds-btn ds-btn--ghost ds-btn--sm" onclick="openPartyForm(\''+kind+'\',\''+id+'\')">'+icon('plus')+'Add</button>':'')+'</div><div class="ds-panel__body ds-stack--sm">'+
+    (list.length ? list.map(x=>'<div class="ds-row--between"><span><span class="ds-strong">'+esc(kind==='consignee'?x.name:x.label)+'</span><div class="ds-muted ds-xs">'+esc(line(x))+'</div></span>'+(edit?'<button class="ds-btn ds-btn--ghost ds-btn--sm" onclick="openPartyForm(\''+kind+'\',\''+id+'\',\''+x.id+'\')" aria-label="Edit '+esc(kind==='consignee'?x.name:x.label)+'">Edit</button>':'')+'</div>').join('') : '<p class="ds-muted ds-small">None saved yet.</p>')+'</div></section>';
   const f = (k,v)=>'<dt>'+esc(k)+'</dt><dd>'+v+'</dd>';
   return '<nav class="ds-crumbs"><a href="#/customers">Customers</a>'+icon('chevron-right')+'<span>'+esc(c.name)+'</span></nav>'+
     '<div class="ds-page-head"><div><h1>'+esc(c.name)+'</h1><p class="ds-page-head__sub">'+esc(c.address)+' · added '+esc(c.createdOn)+' by '+esc(c.createdBy)+'</p></div><div class="ds-page-head__actions">'+
@@ -635,5 +632,51 @@ function renderCustomer(id){
           : '<div class="ds-panel__body ds-muted">No jobs yet.</div>')+'</section>'+
     '</div><div class="ds-stack">'+
       '<section class="ds-panel ds-panel--elevated"><div class="ds-panel__head"><h3>'+icon('user')+'Contact</h3></div><div class="ds-panel__body"><dl class="ds-facts">'+f('Name',esc(c.contact.name))+f('Email',esc(c.contact.email))+f('Phone',esc(c.contact.phone))+f('Business address',esc(c.address||'—'))+'</dl></div></section>'+
+      partyPanel('consignee','Consignees','users', c.consignees, x=>[x.address, x.contact, x.phone].filter(Boolean).join(' · '))+
+      partyPanel('address','Delivery addresses','building', c.deliveryAddresses, x=>x.address)+
+      '<section class="ds-panel ds-panel--elevated" id="cust-requirements"><div class="ds-panel__head"><h3>'+icon('info')+'Requirements &amp; delivery instructions</h3>'+(edit?'<button class="ds-btn ds-btn--ghost ds-btn--sm" onclick="openRequirements(\''+id+'\')">Edit</button>':'')+'</div><div class="ds-panel__body">'+(c.requirements?'<p style="white-space:pre-wrap">'+esc(c.requirements)+'</p>':'<p class="ds-muted ds-small">No standing requirements yet. What you write here pre-fills the delivery instructions on new inquiries.</p>')+'</div></section>'+
     '</div></div>';
+}
+
+/* ---------- Consignees, delivery addresses and standing requirements (on the customer) ---------- */
+function openPartyForm(kind, custId, partyId){
+  const c = ensureCustomerExtras(custById(custId));
+  if(!can('customer.edit')) return denied('Only a Manager edits customers.');
+  const list = kind==='consignee' ? c.consignees : c.deliveryAddresses, x = partyId ? list.find(y=>y.id===partyId) : null;
+  const fld = (id, name, label, val, ph, opt)=>'<div class="ds-field"><label for="'+id+'">'+label+(opt?' <span class="ds-opt">optional</span>':'')+'</label><input class="ds-input" id="'+id+'" name="'+name+'" value="'+esc(val||'')+'" placeholder="'+esc(ph||'')+'">'+errorSlot(name)+'</div>';
+  const body = kind==='consignee'
+    ? fld('pt-name','name','Consignee name',x&&x.name,'Who receives the cargo')+fld('pt-contact','contact','Contact person',x&&x.contact,'',true)+fld('pt-phone','phone','Phone',x&&x.phone,'+63 917 555 0123',true)+fld('pt-addr','address','Address',x&&x.address,'Where the consignee is located')
+    : fld('pt-label','label','Name this address',x&&x.label,'e.g. Main warehouse')+fld('pt-addr','address','Address',x&&x.address,'Street, city');
+  openDrawer({ title:(x?'Edit ':'Add ')+(kind==='consignee'?'consignee':'delivery address'), sub:esc(c.name),
+    body:'<form class="ds-stack--sm" id="party-form" novalidate onsubmit="event.preventDefault(); savePartyForm(\''+kind+'\',\''+custId+'\','+(x?'\''+x.id+'\'':'null')+', this)">'+body+'</form>',
+    foot: drawerFoot('Save','party-form',{ icon:'check', extra: x ? '<button type="button" class="ds-btn ds-btn--ghost" onclick="removeParty(\''+kind+'\',\''+custId+'\',\''+x.id+'\')">Remove</button>' : '' }) });
+}
+function savePartyForm(kind, custId, partyId, form){
+  const c = ensureCustomerExtras(custById(custId)), fd = new FormData(form), v = k=>String(fd.get(k)||'').trim(), list = kind==='consignee' ? c.consignees : c.deliveryAddresses;
+  const bad = kind==='consignee' ? fieldError(form,'name', v('name')?'':'Enter the consignee’s name.') | fieldError(form,'address', v('address')?'':'Enter their address.')
+    : fieldError(form,'label', v('label')?'':'Give the address a short name.') | fieldError(form,'address', v('address')?'':'Enter the address.');
+  if(bad) return;
+  const data = kind==='consignee' ? { name:v('name'), contact:v('contact'), phone:v('phone'), address:v('address') } : { label:v('label'), address:v('address') };
+  const label = kind==='consignee' ? 'consignee ' : 'delivery address ', nm = kind==='consignee' ? data.name : data.label;
+  if(partyId){ Object.assign(list.find(y=>y.id===partyId), data); adminLog('Customer updated', c.name+': '+label+nm+' edited.', c.id); }
+  else { list.push(Object.assign({ id:nextId('party') }, data)); adminLog('Customer updated', c.name+': '+label+nm+' added.', c.id); }
+  closeDrawer(); showToast('Saved.', 'success', 'check'); render();
+}
+function removeParty(kind, custId, partyId){
+  const c = ensureCustomerExtras(custById(custId)), list = kind==='consignee' ? c.consignees : c.deliveryAddresses, x = list.find(y=>y.id===partyId);
+  if(needConfirm('Remove '+(kind==='consignee'?x.name:x.label)+'?', 'It is removed from this customer. Inquiries and jobs that already used it keep what they recorded.', 'Remove', "removeParty('"+kind+"','"+custId+"','"+partyId+"')", true)) return;
+  list.splice(list.indexOf(x), 1); adminLog('Customer updated', c.name+': '+(kind==='consignee'?'consignee ':'delivery address ')+(x.name||x.label)+' removed.', c.id);
+  closeDrawer(); showToast('Removed.', 'info', 'x'); render();
+}
+function openRequirements(custId){
+  const c = ensureCustomerExtras(custById(custId));
+  if(!can('customer.edit')) return denied('Only a Manager edits customers.');
+  openDrawer({ title:'Requirements & delivery instructions', sub:esc(c.name),
+    body:'<form class="ds-stack--sm" id="req-form" onsubmit="event.preventDefault(); saveRequirements(\''+custId+'\', this)"><div class="ds-field"><label for="rq-text">Standing requirements</label><textarea class="ds-textarea" id="rq-text" name="requirements" style="min-height:140px" placeholder="e.g. Deliveries only on weekdays, before 3 PM. Send the BL copy to accounting@client.example.">'+esc(c.requirements)+'</textarea><p class="ds-field__hint">Shown here and pre-filled as the delivery instructions on every new inquiry for this customer.</p></div></form>',
+    foot: drawerFoot('Save','req-form',{icon:'check'}) });
+}
+function saveRequirements(custId, form){
+  const c = ensureCustomerExtras(custById(custId)); c.requirements = String(new FormData(form).get('requirements')||'').trim();
+  adminLog('Customer updated', c.name+': standing requirements '+(c.requirements?'saved':'cleared')+'.', c.id);
+  closeDrawer(); showToast('Saved.', 'success', 'check'); render();
 }

@@ -90,3 +90,34 @@ Recommendations (pending the user's confirmation):
 ## Pain points covered
 Missing/incomplete shipment details (document checklist), forgotten requirements (checklist + required proof),
 delayed coordination with Ops/Accounting (Convert to Job + completed job goes to Accounting), scattered info, human errors (fixed tracks per service).
+
+
+## Blueprint gap closure (2026-10-03)
+Added so the mockup meets the client's blueprint (modules 5.3 to 5.6) without changing the agreed flow above.
+
+### Due dates, overdue and reminders (5.4)
+- Every step has a DUE DATE: the previous step's date plus the days allowed (Settings: "Days allowed per step", default 2; a few steps such as ocean transit have their own allowance). The first step is due that many days after the job is created.
+- The owner or a Manager can change the due date ("Change" on the Milestones tab); the change is logged with an optional reason.
+- A step past its date is OVERDUE: red dot on the progress map, an alert on the job, "Needs attention" health, a red "Next due" on the Jobs list (with an Overdue filter), a Needs attention row for Managers and a red row on the owner's My Work.
+- AUTOMATIC EMAIL (simulated: saved and readable from the notification bell, "View email"): the owner is emailed when a step becomes overdue; a Manager is emailed after "Escalate to a Manager after N days overdue" (Settings, default 2). Corrective actions and unliquidated funds work the same way; a quote with no client answer triggers a follow-up email to Sales every N days. Each reminder is logged in the record's history ("System (automatic email)").
+- Demo only: the avatar menu can jump the calendar ahead 1, 3 or 7 days (a "Demo date" badge shows) so a reviewer can watch a step go overdue.
+
+### Exceptions (5.6)
+- Replaces the old "issue". Operations raises an EXCEPTION against the current stage with CATEGORY, REASON, IMPACT and optional EVIDENCE. The job goes ON HOLD.
+- Every exception needs MANAGER approval (decided 2026-10-03). The Manager approves by assigning a CORRECTIVE ACTION (what, owner, due date), which lifts the hold, or sends it back with a reason (the job stays on hold; Operations edits and resubmits).
+- The corrective action is a tracked task (My Work, job page alert, overdue flags and emails). The owner marks it done with a note and optional proof, which resolves the exception. A job cannot be closed while any exception is unresolved.
+
+### Delivery and POD (5.6)
+- Marking "Delivered" (or "Delivered to warehouse" / "Released to consignee") records the TIME, who RECEIVED it, and the CONDITION: Good condition / Damaged / Incomplete (short). The signed POD is still required.
+- Damaged or short raises an exception automatically (it does not freeze the job, so the empty container can still be returned) and the job page shows a Delivery panel.
+
+### Documents (5.5)
+- A Manager can ACCEPT or REJECT a received document; rejecting needs a reason (list + comment). Operations is notified and uploads a NEW VERSION; the rejected file stays in the version history ("History" on the row).
+- Pending documents can be uploaded from the Documents tab by the assigned Operations staff. Rejected and missing documents are counted on the dashboard.
+
+### Customer and inquiry data (5.1, 5.2)
+- The customer profile keeps CONSIGNEES, DELIVERY ADDRESSES and standing REQUIREMENTS / delivery instructions. The inquiry form asks for the channel, cargo, optional consignee, cargo type, delivery instructions, warehousing volume and period, and the LTO vehicle, as listed in 01-inquiry-quotation.md.
+- BL / AWB and container numbers are entered from the job ("Shipment references"). Sales have a read-only view of the jobs from their inquiries (never money).
+
+### BL / AWB, container and booking numbers (2026-10-03)
+Entered where the document appears, not in a separate form: the optional BOOKING NO. at "Booked with shipping line"; the BL / AWB NO. and the CONTAINER NO(S). at "Departed origin port" (import with freight), "Cargo arrived at port" (customs only), "BL released to client" (export) or "Loaded at origin port" (domestic). The BL / AWB number is required whenever the cargo has one (not for a land-only move). Container numbers are required for FCL (copy them from the BL), optional for LCL (shared container) and not asked for air, RoRo, bulk or breakbulk. "Shipment references" on the job menu remains for corrections.

@@ -6,10 +6,10 @@ Permissions answer two questions: WHAT a role can do (role matrix) and WHICH rec
 1. Roles: Admin, Manager, Sales, Operations (includes customs broker, documentation, liaison), Accounting.
    External Client: NO login; public tracking page with a tracking code only.
 2. One user can hold multiple roles (e.g. a founder = Admin + Manager, or Manager + Accounting).
-3. Admin = users, permissions and settings only. No business actions unless also a Manager.
+3. Admin = ALL ACCESS (changed 2026-10-03): users, permissions, settings and every business action. The Admin column of the permission matrix is shown ticked and locked.
 4. Record access:
    - Manager: all inquiries, jobs, customers (create/edit customers).
-   - Sales: VIEW all inquiries, EDIT assigned only; jobs = assigned (viewer); customers view.
+   - Sales: VIEW all inquiries, EDIT assigned only; jobs = assigned, READ-ONLY (never sees money); customers view.
    - Operations: assigned jobs only + read-only linked inquiry; customers view.
    - Accounting: all jobs (for fund release/billing); customers view.
 5. Sensitive info: quotes → Manager, Sales. Fund requests/costs/vendor bills → Manager, Accounting, Ops (assigned).
