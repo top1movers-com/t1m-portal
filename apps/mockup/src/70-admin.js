@@ -223,7 +223,7 @@ function trackLookup(form){
   STATE.trackError = q ? 'We could not find a shipment for “'+q+'”. Check the tracking code from your Top1Movers coordinator.' : 'Enter your tracking code.';
   STATE.trackQuery = q; render();
 }
-function trackHero(inner, label){ return '<div class="ds-public__hero"><div class="ds-public__hero-inner"><div class="ds-public__brand"><img src="'+LOGO_SRC+'" alt="Top1Movers"><span>'+(label||'Shipment tracking')+'</span></div>'+inner+'</div></div>'; }
+function trackHero(inner, label){ return '<div class="ds-public__hero"><div class="ds-public__hero-inner"><div class="ds-public__brand"><img src="'+LOGO_SRC+'" alt="Top1Movers"><span>'+(label||'Shipment tracking')+'</span></div>'+inner+'</div><div class="ds-public__mark" aria-hidden="true">T1M</div></div>'; }
 function renderTrackLookup(){
   const err = STATE.trackError;
   return '<div class="ds-public">'+trackHero('<div class="ds-public__headline"><p class="ds-label">Customer tracking</p><h1 class="ds-public__status">Where is your shipment?</h1><p class="ds-public__meta">Enter the tracking code your Top1Movers coordinator gave you. No account needed.</p></div>')+
@@ -231,7 +231,7 @@ function renderTrackLookup(){
       '<div class="ds-field"><label for="track-q">Tracking code</label><input class="ds-input ds-mono" id="track-q" name="q" value="'+esc(STATE.trackQuery)+'" placeholder="T1M-XXXX-XXXX" autocomplete="off"'+(err?' aria-invalid="true"':'')+'>'+(err?'<span class="ds-field__error" id="track-error">'+icon('alert')+'<span>'+esc(err)+'</span></span>':'')+'</div>'+
       '<button class="ds-btn ds-btn--primary" type="submit">'+icon('search')+'Track shipment</button></form>'+
       '<p class="ds-muted ds-xs">'+icon('info')+' Mockup: tracking codes exist only for jobs created in this browser session (see the job’s Key facts).</p></div></div>'+
-      '<p class="ds-small" style="text-align:center"><a href="#/login">Top1Movers staff sign in</a></p></div></div>';
+      '<p class="ds-small" style="text-align:center"><a href="#/inquire">Send an inquiry</a> · <a href="#/login">Top1Movers staff sign in</a></p></div></div>';
 }
 function renderTrackPage(code){
   if(!code) return renderTrackLookup();

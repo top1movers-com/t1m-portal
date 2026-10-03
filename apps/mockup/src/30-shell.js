@@ -17,6 +17,7 @@ function renderLogin(){
       '<div><h2>Sign in</h2><p class="ds-muted">Top1Movers Operations Portal</p></div>'+
       '<button type="button" class="ds-msbtn" id="ms-signin" onclick="openAcctPicker()">'+msLogo()+'Sign in with Microsoft</button>'+
       '<p class="ds-muted ds-xs" style="text-align:center">Use your Top1Movers work account.</p>'+
+      '<p class="ds-small" style="text-align:center">Are you a customer? <a href="#/inquire">Send an inquiry</a> · <a href="#/track">Track a shipment</a></p>'+
     '</div></div>'+
   '</div>';
 }

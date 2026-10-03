@@ -239,6 +239,7 @@ function render(){
   const scrollY = window.scrollY;
 
   if(parts[0]==='track') root.innerHTML = renderTrackPage(parts[1]);
+  else if(parts[0]==='inquire') root.innerHTML = renderInquirePage(parts[1], parts[2]);
   else if(parts[0]==='quote') root.innerHTML = renderQuotePage(parts[1]);
   else if(parts[0]==='login' || !parts.length) root.innerHTML = renderLogin();
   else if(!CURRENT_USER){ location.hash = '#/login'; return; }

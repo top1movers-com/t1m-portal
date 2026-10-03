@@ -364,6 +364,17 @@ a { color: var(--t1m-navy-700); text-underline-offset: 2px; }
 .ds-seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
 .ds-seg label:has(input:checked) { background: var(--t1m-surface); color: var(--t1m-navy-700); box-shadow: 0 1px 2px rgba(20, 22, 58, 0.08); }
 .ds-seg label:has(input:focus-visible) { box-shadow: var(--t1m-focus-ring); }
+/* Sliding variant: tab-picker that sizes to its content, equal-width options, and a pill that glides to the chosen one.
+   Set --n (option count, up to 4) inline. Stays visible on phones. */
+.ds-seg--slide { --n: 2; --k: 0; position: relative; display: inline-grid; grid-auto-flow: column; grid-auto-columns: 1fr; width: fit-content; align-self: flex-start; }
+.ds-seg--slide::before { content: ""; position: absolute; top: 2px; bottom: 2px; left: 2px; width: calc((100% - 4px - (var(--n) - 1) * 2px) / var(--n)); border-radius: calc(var(--t1m-radius-sm) - 2px); background: var(--t1m-surface); box-shadow: 0 1px 2px rgba(20, 22, 58, 0.08); transform: translateX(calc(var(--k) * (100% + 2px))); transition: transform var(--t1m-dur-base) var(--t1m-ease); }
+.ds-seg--slide label { justify-content: center; white-space: nowrap; transition: color var(--t1m-dur-base) var(--t1m-ease); }
+.ds-seg--slide label:has(input:checked) { background: transparent; box-shadow: none; }
+.ds-seg--slide:has(label:nth-child(2) input:checked) { --k: 1; }
+.ds-seg--slide:has(label:nth-child(3) input:checked) { --k: 2; }
+.ds-seg--slide:has(label:nth-child(4) input:checked) { --k: 3; }
+.ds-seg--slide label:has(input:focus-visible) { box-shadow: var(--t1m-focus-ring); }
+@media (max-width: 640px) { .ds-seg--slide label { height: calc(var(--t1m-control-h-touch) - 4px); padding: 0 var(--t1m-space-5); } }
 
 /* Checkbox */
 .ds-check input, .ds-table input[type="checkbox"] { appearance: none; -webkit-appearance: none; width: 18px; height: 18px; margin: 0; border: 1.5px solid var(--t1m-border-strong); border-radius: 5px; background: var(--t1m-surface); cursor: pointer; display: inline-grid; place-content: center; transition: background var(--t1m-dur-fast) var(--t1m-ease), border-color var(--t1m-dur-fast) var(--t1m-ease); }
@@ -522,7 +533,7 @@ th[aria-sort="ascending"] .ds-icon { rotate: 180deg; }
   .ds-table--stack td { height: auto; min-height: 28px; padding: 2px 0; border: 0; display: flex; justify-content: space-between; gap: var(--t1m-space-3); align-items: center; text-align: right; }
   .ds-table--stack td::before { content: attr(data-label); font-size: var(--t1m-text-xs); font-weight: var(--t1m-w-label); letter-spacing: 0.04em; text-transform: uppercase; color: var(--t1m-ink-2); text-align: left; }
   .ds-table--stack td.ds-check-col, .ds-table--stack td.ds-actions-col { display: none; }
-  .ds-seg { display: none; }
+  .ds-seg:not(.ds-seg--always):not(.ds-seg--slide) { display: none; }
   .ds-panel__head { flex-wrap: wrap; }
   .ds-table--stack tr[aria-selected="true"] { background: var(--t1m-navy-100); border-radius: var(--t1m-radius-sm); }
   .ds-table--stack tbody tr:hover td, .ds-table--stack tr[aria-selected="true"] td { background: transparent; border-radius: 0; }
@@ -1279,6 +1290,16 @@ th[aria-sort="ascending"] .ds-icon { rotate: 180deg; }
 @keyframes ds-login-line { from { opacity: 0; scale: 0 1; } to { scale: 1 1; } }
 @media (max-width: 640px) { .ds-login__mark, .ds-login__foot { display: none; } }
 @media (prefers-reduced-motion: reduce) { .ds-login__sub, .ds-login__lines i, .ds-login__mark, .ds-login__foot { animation: none; } }
+
+/* Public pages (tracking, quotation, inquiry): the hero wears the same dot grid, drifting glows and outlined mark as the login brand pane. */
+.ds-public__hero { position: relative; overflow: hidden; background-image: radial-gradient(color-mix(in srgb, var(--t1m-ink-inverse) 14%, transparent) 1px, transparent 1px); background-size: 26px 26px; }
+.ds-public__hero::before, .ds-public__hero::after { content: ""; position: absolute; border-radius: var(--t1m-radius-full); pointer-events: none; filter: blur(70px); opacity: 0.55; }
+.ds-public__hero::before { width: 360px; height: 360px; top: -160px; right: -100px; background: var(--t1m-navy-600); animation: ds-login-drift-a 14s ease-in-out infinite alternate; }
+.ds-public__hero::after { width: 300px; height: 300px; bottom: -150px; left: -90px; background: var(--t1m-navy-700); animation: ds-login-drift-b 18s ease-in-out infinite alternate; }
+.ds-public__hero-inner { position: relative; z-index: 1; }
+.ds-public__mark { position: absolute; right: var(--t1m-space-6); bottom: calc(var(--t1m-space-6) * -0.5); z-index: 0; font: 800 clamp(100px, 16vw, 200px)/1 var(--t1m-font-display); letter-spacing: -0.04em; color: transparent; -webkit-text-stroke: 2px color-mix(in srgb, var(--t1m-ink-inverse) 14%, transparent); user-select: none; pointer-events: none; }
+@media (max-width: 640px) { .ds-public__mark { display: none; } }
+@media (prefers-reduced-motion: reduce) { .ds-public__hero::before, .ds-public__hero::after { animation: none; } }
 
 </style>
 </head>
@@ -2148,6 +2169,7 @@ function render(){
   const scrollY = window.scrollY;
 
   if(parts[0]==='track') root.innerHTML = renderTrackPage(parts[1]);
+  else if(parts[0]==='inquire') root.innerHTML = renderInquirePage(parts[1], parts[2]);
   else if(parts[0]==='quote') root.innerHTML = renderQuotePage(parts[1]);
   else if(parts[0]==='login' || !parts.length) root.innerHTML = renderLogin();
   else if(!CURRENT_USER){ location.hash = '#/login'; return; }
@@ -2180,6 +2202,7 @@ function renderLogin(){
       '<div><h2>Sign in</h2><p class="ds-muted">Top1Movers Operations Portal</p></div>'+
       '<button type="button" class="ds-msbtn" id="ms-signin" onclick="openAcctPicker()">'+msLogo()+'Sign in with Microsoft</button>'+
       '<p class="ds-muted ds-xs" style="text-align:center">Use your Top1Movers work account.</p>'+
+      '<p class="ds-small" style="text-align:center">Are you a customer? <a href="#/inquire">Send an inquiry</a> · <a href="#/track">Track a shipment</a></p>'+
     '</div></div>'+
   '</div>';
 }
@@ -4273,7 +4296,7 @@ function trackLookup(form){
   STATE.trackError = q ? 'We could not find a shipment for “'+q+'”. Check the tracking code from your Top1Movers coordinator.' : 'Enter your tracking code.';
   STATE.trackQuery = q; render();
 }
-function trackHero(inner, label){ return '<div class="ds-public__hero"><div class="ds-public__hero-inner"><div class="ds-public__brand"><img src="'+LOGO_SRC+'" alt="Top1Movers"><span>'+(label||'Shipment tracking')+'</span></div>'+inner+'</div></div>'; }
+function trackHero(inner, label){ return '<div class="ds-public__hero"><div class="ds-public__hero-inner"><div class="ds-public__brand"><img src="'+LOGO_SRC+'" alt="Top1Movers"><span>'+(label||'Shipment tracking')+'</span></div>'+inner+'</div><div class="ds-public__mark" aria-hidden="true">T1M</div></div>'; }
 function renderTrackLookup(){
   const err = STATE.trackError;
   return '<div class="ds-public">'+trackHero('<div class="ds-public__headline"><p class="ds-label">Customer tracking</p><h1 class="ds-public__status">Where is your shipment?</h1><p class="ds-public__meta">Enter the tracking code your Top1Movers coordinator gave you. No account needed.</p></div>')+
@@ -4281,7 +4304,7 @@ function renderTrackLookup(){
       '<div class="ds-field"><label for="track-q">Tracking code</label><input class="ds-input ds-mono" id="track-q" name="q" value="'+esc(STATE.trackQuery)+'" placeholder="T1M-XXXX-XXXX" autocomplete="off"'+(err?' aria-invalid="true"':'')+'>'+(err?'<span class="ds-field__error" id="track-error">'+icon('alert')+'<span>'+esc(err)+'</span></span>':'')+'</div>'+
       '<button class="ds-btn ds-btn--primary" type="submit">'+icon('search')+'Track shipment</button></form>'+
       '<p class="ds-muted ds-xs">'+icon('info')+' Mockup: tracking codes exist only for jobs created in this browser session (see the job’s Key facts).</p></div></div>'+
-      '<p class="ds-small" style="text-align:center"><a href="#/login">Top1Movers staff sign in</a></p></div></div>';
+      '<p class="ds-small" style="text-align:center"><a href="#/inquire">Send an inquiry</a> · <a href="#/login">Top1Movers staff sign in</a></p></div></div>';
 }
 function renderTrackPage(code){
   if(!code) return renderTrackLookup();
@@ -4307,6 +4330,58 @@ function renderTrackPage(code){
     '<div class="ds-panel"><div class="ds-panel__head"><h2>Shipment details</h2></div><div class="ds-panel__body ds-grid-kv ds-kv">'+kvv('Cargo',esc(j.commodity))+kvv('Services',esc(servicesText(j.services)))+(j.refs.bl?kvv('BL / AWB','<span class="ds-mono">'+esc(j.refs.bl)+'</span>'):'')+(j.refs.containers?kvv('Container','<span class="ds-mono">'+esc(j.refs.containers)+'</span>'):'')+'</div></div>'+
     '<div class="ds-panel"><div class="ds-panel__body ds-row--between"><div><strong class="ds-strong">Questions about this shipment?</strong><p class="ds-muted ds-small">Contact your Top1Movers coordinator and quote '+esc(j.trackingCode)+'.</p></div><a class="ds-btn ds-btn--secondary" href="#/track">'+icon('search')+'Track another</a></div></div>'+
     '<p class="ds-muted ds-xs">'+icon('info')+' Updated by Top1Movers staff as the shipment moves.</p></div></div>';
+}
+
+/* ---- src/80-portal.js ---- */
+/* ============================== CUSTOMER INQUIRY PORTAL (public, no sign-in) ==============================
+   #/inquire. A client describes what they need; it lands in the same INTAKE queue as staff reports, so the
+   Manager sees it on the dashboard and creates the real inquiry (customer, scope, services, staff). */
+const seg = (...a)=>segControl(...a).replace('class="ds-seg"','class="ds-seg ds-seg--slide" style="--n:'+a[1].length+'"');
+const svcGrid = h=>h.replace('class="ds-stack--sm"','class="ds-grid-2" style="gap:var(--t1m-space-3)"');
+function portalServices(){
+  const f = document.getElementById('portal-form'); if(!f) return;
+  const fd = new FormData(f), scope = fd.get('scope'), dir = scope==='International' ? fd.get('direction') : null;
+  document.getElementById('portal-dir').style.display = scope==='International' ? '' : 'none';
+  document.getElementById('portal-services').innerHTML = svcGrid(checkList('services', SERVICE_ORDER.filter(k=>serviceAllowed(k, scope, dir)).map(k=>({ value:k, label:SERVICES[k].label })), fd.getAll('services')));
+}
+function renderInquirePage(sub, ref){
+  if(sub==='sent'){
+    const t = INTAKE.find(x=>x.id===ref);
+    if(!t) return renderInquirePage();
+    return '<div class="ds-public">'+trackHero('<div class="ds-public__headline"><p class="ds-label">Inquiry received</p><h1 class="ds-public__status">Thank you, we have your request</h1><p class="ds-public__meta">A Top1Movers coordinator will review it and reach out with a quotation.</p></div>','Send an inquiry')+
+      '<div class="ds-public__body"><div class="ds-panel"><div class="ds-panel__body ds-stack--sm"><div><span class="ds-label">Your reference</span><div class="ds-mono ds-strong" id="portal-ref">'+esc(t.id)+'</div></div>'+
+      '<p class="ds-muted ds-small">Quote this reference if you contact us about this request.</p>'+
+      '<div class="ds-row" style="flex-wrap:wrap"><a class="ds-btn ds-btn--primary" href="#/inquire">'+icon('plus')+'Send another inquiry</a><a class="ds-btn ds-btn--secondary" href="#/track">'+icon('search')+'Track a shipment</a></div></div></div></div></div>';
+  }
+  const fld = (id, name, label, ph, type, opt)=>'<div class="ds-field"><label for="'+id+'">'+label+(opt?' <span class="ds-opt">optional</span>':'')+'</label><input class="ds-input" id="'+id+'" name="'+name+'" type="'+(type||'text')+'" placeholder="'+esc(ph||'')+'">'+errorSlot(name)+'</div>';
+  const two = (x, y)=>'<div class="ds-grid-2" style="gap:var(--t1m-space-3)">'+x+y+'</div>';
+  return '<div class="ds-public">'+trackHero('<div class="ds-public__headline"><p class="ds-label">Customer inquiry</p><h1 class="ds-public__status">What do you need moved?</h1><p class="ds-public__meta">Tell us about your shipment or transaction. No account needed.</p></div>','Send an inquiry')+
+    '<div class="ds-public__body"><form class="ds-stack--sm" id="portal-form" novalidate onsubmit="event.preventDefault(); submitPortalInquiry(this)">'+
+      '<div class="ds-panel"><div class="ds-panel__head"><h2>About you</h2></div><div class="ds-panel__body ds-stack--sm">'+
+        two(fld('pi-name','name','Your name','Full name'), fld('pi-company','company','Company','Sample Trading Co.'))+
+        two(fld('pi-email','email','Email','name@company.example','email'), fld('pi-phone','phone','Mobile number','09XX XXX XXXX','tel'))+'</div></div>'+
+      '<div class="ds-panel"><div class="ds-panel__head"><h2>What you need</h2></div><div class="ds-panel__body ds-stack--sm">'+
+        '<div class="ds-field"><span class="ds-field__label">Shipment type</span>'+seg('scope', SCOPES, 'International', 'portalServices()')+'</div>'+
+        '<div class="ds-field" id="portal-dir"><span class="ds-field__label">Direction</span>'+seg('direction', DIRECTIONS, 'Import', 'portalServices()')+'</div>'+
+        '<div class="ds-field"><span class="ds-field__label">Services (pick any)</span><div id="portal-services">'+svcGrid(checkList('services', SERVICE_ORDER.map(k=>({ value:k, label:SERVICES[k].label })), []))+'</div>'+errorSlot('services')+'</div>'+
+        two(fld('pi-from','origin','From','e.g. Yokohama, JP',null,true), fld('pi-to','destination','To','e.g. Quezon City, PH',null,true))+
+        '<div class="ds-field"><label for="pi-note">Describe your cargo or request</label><textarea class="ds-textarea" id="pi-note" name="note" placeholder="What are you shipping, how much, and when do you need it?"></textarea>'+errorSlot('note')+'</div>'+
+        '<div class="ds-field"><label>Supporting document <span class="ds-opt">optional</span></label>'+uploadHtml('portalFile','Packing list, invoice or anything that helps')+'</div></div></div>'+
+      '<button class="ds-btn ds-btn--primary" type="submit">'+icon('arrow-right')+'Send inquiry</button>'+
+      '<p class="ds-small" style="text-align:center"><a href="#/track">Track a shipment</a> · <a href="#/login">Top1Movers staff sign in</a></p></form></div></div>';
+}
+function submitPortalInquiry(form){
+  const fd = new FormData(form), g = k=>String(fd.get(k)||'').trim(), services = fd.getAll('services');
+  const email = g('email'), phone = g('phone');
+  if(fieldError(form,'name', g('name')?'':'Tell us your name.') | fieldError(form,'company', g('company')?'':'Tell us your company.') |
+     fieldError(form,'email', /^\S+@\S+\.\S+$/.test(email)?'':'Enter a valid email address.') | fieldError(form,'phone', phone?'':'Enter a mobile number we can reach.') |
+     fieldError(form,'services', services.length?'':'Pick at least one service.') | fieldError(form,'note', g('note')?'':'Describe what you need.')) return;
+  const scope = fd.get('scope')==='International' ? 'International '+fd.get('direction') : 'Domestic';
+  const note = [g('note'), 'Type: '+scope, 'Services: '+servicesText(services), g('origin')||g('destination') ? 'Route: '+(g('origin')||'?')+' to '+(g('destination')||'?') : '', 'Contact: '+g('name')+' · '+email+' · '+phone].filter(Boolean).join('\n');
+  const t = { id:nextId('intake'), by:'Customer portal', on:nowStamp(), client:g('company'), note, file:UPLOADS.portalFile||null, status:'open', source:'portal' };
+  INTAKE.push(t); delete UPLOADS.portalFile;
+  notify({ roles:['Manager'] }, 'New customer inquiry from '+t.client+' (portal).', '#/home');
+  go('#/inquire/sent/'+t.id);
 }
 
 </script>
